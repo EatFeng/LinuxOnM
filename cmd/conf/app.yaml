@@ -1,0 +1,16 @@
+system:
+  base_dir: /opt
+  port: 9999
+  version: v1.0.0
+  mode: dev
+  username: username
+  password: password
+  entrance: entrance
+  db_file: main.db
+
+log:
+  level: debug
+  time_zone: Asia/Shanghai
+  log_name: LinuxOnM
+  log_suffix: .log
+  max_backup: 10

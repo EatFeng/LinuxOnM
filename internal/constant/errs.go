@@ -21,3 +21,8 @@ var (
 	ErrTypeInternalServer = "ErrInternalServer"
 	ErrTypeInvalidParams  = "ErrInvalidParams"
 )
+
+// app
+var (
+	ErrCmdTimeout = "ErrCmdTimeout"
+)

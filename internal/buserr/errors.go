@@ -27,3 +27,11 @@ func (e BusinessError) Error() string {
 	}
 	return content
 }
+
+func New(Key string) BusinessError {
+	return BusinessError{
+		Msg:    Key,
+		Detail: nil,
+		Err:    nil,
+	}
+}

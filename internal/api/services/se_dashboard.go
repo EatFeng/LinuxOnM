@@ -4,6 +4,9 @@ import (
 	"LinuxOnM/internal/api/dto"
 	"LinuxOnM/internal/constant"
 	"LinuxOnM/internal/global"
+	"LinuxOnM/internal/utils/cmd"
+	"LinuxOnM/internal/utils/copier"
+	"LinuxOnM/internal/utils/xpack"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/load"
 	"github.com/shirou/gopsutil/v3/mem"
@@ -222,7 +225,7 @@ func loadDiskInfo() []dto.DiskInfo {
 }
 
 func loadGPUInfo() []dto.GPUInfo {
-	list := xpack.LoadGpuInfo()
+	list := xpack.LoadGpuInfo() // return nil, this func have not been implemented yet.
 	if len(list) == 0 {
 		return nil
 	}

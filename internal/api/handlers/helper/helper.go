@@ -4,6 +4,7 @@ import (
 	"LinuxOnM/internal/api/dto"
 	"LinuxOnM/internal/buserr"
 	"LinuxOnM/internal/constant"
+	"LinuxOnM/internal/global"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -51,6 +52,10 @@ func SuccessWithData(ctx *gin.Context, data interface{}) {
 
 func CheckBindAndValidate(ctx *gin.Context, req interface{}) error {
 	if err := ctx.ShouldBindJSON(req); err != nil {
+		ErrorWithDetail(ctx, constant.CodeErrBadRequest, constant.ErrTypeInvalidParams, err)
+		return err
+	}
+	if err := global.VILID.Struct(req); err != nil {
 		ErrorWithDetail(ctx, constant.CodeErrBadRequest, constant.ErrTypeInvalidParams, err)
 		return err
 	}

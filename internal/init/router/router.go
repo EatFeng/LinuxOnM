@@ -1,6 +1,8 @@
 package router
 
 import (
+	rou "LinuxOnM/internal/api/routers"
+
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -21,6 +23,11 @@ func Routers() *gin.Engine {
 			c.JSON(200, "ok")
 		})
 		PublicGroup.Use(gzip.Gzip(gzip.DefaultCompression))
+	}
+
+	PrivateGroup := Router.Group("/api/handler")
+	for _, router := range rou.RouterGroupApp {
+		router.InitRouter(PrivateGroup)
 	}
 
 	return Router

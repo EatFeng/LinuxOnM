@@ -1,6 +1,6 @@
 system:
   base_dir: /opt
-  port: 9999
+  port: 8848
   version: v1.0.0
   mode: dev
   username: username

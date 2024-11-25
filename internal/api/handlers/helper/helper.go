@@ -48,3 +48,11 @@ func SuccessWithData(ctx *gin.Context, data interface{}) {
 	ctx.JSON(http.StatusOK, res)
 	ctx.Abort()
 }
+
+func CheckBindAndValidate(ctx *gin.Context, req interface{}) error {
+	if err := ctx.ShouldBindJSON(req); err != nil {
+		ErrorWithDetail(ctx, constant.CodeErrBadRequest, constant.ErrTypeInvalidParams, err)
+		return err
+	}
+	return nil
+}

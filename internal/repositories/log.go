@@ -10,6 +10,7 @@ type LogRepository struct{}
 
 type ILogRepository interface {
 	PageLoginLog(limit, offset int, opts ...DBOption) (int64, []models.LoginLog, error)
+	CreateLoginLog(user *models.LoginLog) error
 
 	WithByIP(ip string) DBOption
 	WithByStatus(status string) DBOption
@@ -29,6 +30,10 @@ func (u *LogRepository) PageLoginLog(page, size int, opts ...DBOption) (int64, [
 	db = db.Count(&count)
 	err := db.Limit(size).Offset(size * (page - 1)).Find(&ops).Error
 	return count, ops, err
+}
+
+func (u *LogRepository) CreateLoginLog(user *models.LoginLog) error {
+	return global.DB.Create(user).Error
 }
 
 func (u *LogRepository) WithByIP(ip string) DBOption {

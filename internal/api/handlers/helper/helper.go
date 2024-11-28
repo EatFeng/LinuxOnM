@@ -26,7 +26,15 @@ func ErrorWithDetail(ctx *gin.Context, code int, msgKey string, err error) {
 			res.Message = "Invalid parameters"
 		case errors.Is(constant.ErrStructTransform, err):
 			res.Message = fmt.Sprintf("Struct transform error: %v", err)
-		case errors.As(&buserr.BusinessError{}, err):
+		case errors.Is(constant.ErrCaptchaCode, err):
+			res.Code = constant.CodeAuth
+			res.Message = "Captcha code error"
+		case errors.Is(constant.ErrAuth, err):
+			res.Code = constant.CodeAuth
+			res.Message = "Auth error"
+		case errors.Is(constant.ErrInitialPassword, err):
+			res.Message = "Initial Password error"
+		case errors.As(err, &buserr.BusinessError{}):
 			res.Message = err.Error()
 		default:
 			res.Message = fmt.Sprintf("%s: %v", msgKey, err)
@@ -55,7 +63,7 @@ func CheckBindAndValidate(ctx *gin.Context, req interface{}) error {
 		ErrorWithDetail(ctx, constant.CodeErrBadRequest, constant.ErrTypeInvalidParams, err)
 		return err
 	}
-	if err := global.VILID.Struct(req); err != nil {
+	if err := global.VALID.Struct(req); err != nil {
 		ErrorWithDetail(ctx, constant.CodeErrBadRequest, constant.ErrTypeInvalidParams, err)
 		return err
 	}

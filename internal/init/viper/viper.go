@@ -16,6 +16,7 @@ import (
 
 func Init() {
 	baseDir := "/opt"
+	bindaddress := "0.0.0.0"
 	port := "9999"
 	mode := ""
 	version := "v1.0.0"
@@ -52,6 +53,9 @@ func Init() {
 		if serverConfig.System.BaseDir != "" {
 			baseDir = serverConfig.System.BaseDir
 		}
+		if serverConfig.System.BindAddress != "" {
+			bindaddress = serverConfig.System.BindAddress
+		}
 		if serverConfig.System.Port != "" {
 			port = serverConfig.System.Port
 		}
@@ -74,6 +78,7 @@ func Init() {
 
 	global.CONF = serverConfig
 	global.CONF.System.BaseDir = baseDir
+	global.CONF.System.BindAddress = bindaddress
 	global.CONF.System.Port = port
 	global.CONF.System.Version = version
 	global.CONF.System.Username = username

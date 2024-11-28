@@ -13,4 +13,5 @@ type System struct {
 	DbFile      string `mapstructure:"db_file"`
 	DataDir     string `mapstructure:"data_dir"`
 	BindAddress string `mapstructure:"bindAddress"`
+	EncryptKey  string `mapstructure:"encrypt_key"`
 }

@@ -3,6 +3,7 @@ package services
 import (
 	"LinuxOnM/internal/api/dto"
 	"LinuxOnM/internal/constant"
+	"LinuxOnM/internal/models"
 	"LinuxOnM/internal/utils/copier"
 	"github.com/pkg/errors"
 )
@@ -11,6 +12,9 @@ type LogService struct{}
 
 type ILogService interface {
 	PageLoginLog(search dto.SearchLoginLogWithPage) (int64, interface{}, error)
+	CreateLoginLog(operation models.LoginLog) error
+
+	PageOperationLog(search dto.SearchOpLogWithPage) (int64, interface{}, error)
 }
 
 func NewLogService() ILogService {
@@ -34,4 +38,8 @@ func (u *LogService) PageLoginLog(req dto.SearchLoginLogWithPage) (int64, interf
 		dtoOps = append(dtoOps, item)
 	}
 	return total, dtoOps, err
+}
+
+func (u *LogService) CreateLoginLog(operation models.LoginLog) error {
+	return logRepo.CreateLoginLog(&operation)
 }

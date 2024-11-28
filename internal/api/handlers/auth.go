@@ -1,0 +1,59 @@
+package handlers
+
+import (
+	"LinuxOnM/internal/api/dto"
+	"LinuxOnM/internal/api/handlers/helper"
+	"LinuxOnM/internal/constant"
+	"LinuxOnM/internal/global"
+	"LinuxOnM/internal/models"
+	"LinuxOnM/internal/utils/captcha"
+	"LinuxOnM/internal/utils/qqwry"
+	"encoding/base64"
+	"github.com/gin-gonic/gin"
+)
+
+func (b *BaseApi) Login(c *gin.Context) {
+	var req dto.Login
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if req.AuthMethod != "jwt" && !req.IgnoreCaptcha {
+		if err := captcha.VerifyCode(req.CaptchaID, req.Captcha); err != nil {
+			helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+			return
+		}
+	}
+	entranceItem := c.Request.Header.Get("entranceCode")
+	var entrance []byte
+	if len(entranceItem) != 0 {
+		entrance, _ = base64.StdEncoding.DecodeString(entranceItem)
+	}
+
+	user, err := authService.Login(c, req, string(entrance))
+	go saveLoginLog(c, err)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, user)
+}
+
+func saveLoginLog(c *gin.Context, err error) {
+	var logs models.LoginLog
+	if err != nil {
+		logs.Status = constant.StatusFailed
+		logs.Message = err.Error()
+	} else {
+		logs.Status = constant.StatusSuccess
+	}
+	logs.IP = c.ClientIP()
+	qqWry, err := qqwry.NewQQwry()
+	if err != nil {
+		global.LOG.Errorf("load qqwry datas failed: %s", err)
+	}
+	res := qqWry.Find(logs.IP)
+	logs.Agent = c.GetHeader("User-Agent")
+	logs.Address = res.Area
+	_ = logService.CreateLoginLog(logs)
+}

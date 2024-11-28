@@ -4,8 +4,12 @@ import (
 	"LinuxOnM/internal/global"
 	"LinuxOnM/internal/init/db"
 	"LinuxOnM/internal/init/log"
+	"LinuxOnM/internal/init/migration"
 	"LinuxOnM/internal/init/router"
+	"LinuxOnM/internal/init/session"
+	"LinuxOnM/internal/init/validator"
 	"LinuxOnM/internal/init/viper"
+	"github.com/gin-gonic/gin"
 	"net"
 	"net/http"
 )
@@ -14,12 +18,16 @@ func main() {
 	viper.Init()
 	log.Init()
 	db.Init()
+	migration.Init()
+	validator.Init()
+	session.Init()
+
+	gin.SetMode("debug")
 
 	rootRouter := router.Routers()
 
 	tcpItem := "tcp4"
 
-	global.CONF.System.BindAddress = "0.0.0.0"
 	server := &http.Server{
 		Addr:    global.CONF.System.BindAddress + ":" + global.CONF.System.Port,
 		Handler: rootRouter,

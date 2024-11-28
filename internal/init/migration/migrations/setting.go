@@ -1,0 +1,87 @@
+package migrations
+
+import (
+	"LinuxOnM/internal/constant"
+	"LinuxOnM/internal/global"
+	"LinuxOnM/internal/models"
+	"LinuxOnM/internal/utils/common"
+	"LinuxOnM/internal/utils/encrypt"
+	"github.com/go-gormigrate/gormigrate/v2"
+	"gorm.io/gorm"
+	"time"
+)
+
+var AddTableSetting = &gormigrate.Migration{
+	ID: "20241126_add_table_setting",
+	Migrate: func(tx *gorm.DB) error {
+		if err := tx.AutoMigrate(&models.Setting{}); err != nil {
+			return err
+		}
+		encryptKey := common.RandStr(16)
+		if err := tx.Create(&models.Setting{Key: "UserName", Value: global.CONF.System.Username}).Error; err != nil {
+			return err
+		}
+		global.CONF.System.EncryptKey = encryptKey
+		pass, _ := encrypt.StringEncrypt(global.CONF.System.Password)
+		if err := tx.Create(&models.Setting{Key: "Password", Value: pass}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&models.Setting{Key: "SecurityEntrance", Value: global.CONF.System.Entrance}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&models.Setting{Key: "SessionTimeout", Value: "86400"}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&models.Setting{Key: "LocalTime", Value: ""}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&models.Setting{Key: "ServerPort", Value: global.CONF.System.Port}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&models.Setting{Key: "JWTSigningKey", Value: common.RandStr(16)}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&models.Setting{Key: "EncryptKey", Value: encryptKey}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&models.Setting{Key: "ExpirationTime", Value: time.Now().AddDate(0, 0, 10).Format(constant.DateTimeLayout)}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&models.Setting{Key: "ExpirationDays", Value: "0"}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&models.Setting{Key: "ComplexityVerification", Value: "enable"}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&models.Setting{Key: "MonitorStatus", Value: "enable"}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&models.Setting{Key: "MonitorStoreDays", Value: "7"}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&models.Setting{Key: "MessageType", Value: "none"}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&models.Setting{Key: "SystemVersion", Value: global.CONF.System.Version}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&models.Setting{Key: "SystemStatus", Value: "Free"}).Error; err != nil {
+			return err
+		}
+
+		return nil
+	},
+}

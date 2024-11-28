@@ -12,6 +12,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Tags Auth
+// @Summary User login
+// @Description 用户登录
+// @Accept json
+// @Param EntranceCode header string true "安全入口 base64 加密串"
+// @Param request body dto.Login true "request"
+// @Success 200 {object} dto.UserLoginInfo
+// @Router /auth/login [post]
 func (b *BaseApi) Login(c *gin.Context) {
 	var req dto.Login
 	if err := helper.CheckBindAndValidate(c, &req); err != nil {

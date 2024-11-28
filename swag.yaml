@@ -1,0 +1,29 @@
+# swag.yaml
+
+# 项目名称，可自定义
+projectName: LinuxOnM
+
+# 项目版本，可根据实际情况填写
+version: 1.0.0
+
+# 输出文件的目录，设置为你期望的输出目录./cmd/docs
+  outputDir:./cmd/docs
+
+# 要扫描的Go文件所在的目录，设置为重点扫描的目录./internal/api/handlers
+scanDir:
+  -./internal/api/handlers
+
+# 解析的Go文件扩展名，一般为.go
+parseGoFiles: true
+
+# 是否生成JSON格式的Swagger文档，设置为 true 以生成swagger.json
+generateJson: true
+
+# 是否生成YAML格式的Swagger文档，设置为 true 以生成swagger.yaml
+generateYaml: true
+
+# 是否生成docs.go文件，设置为 true 以生成docs.go
+generateDocs: true
+
+# 可根据需要添加其他配置项，比如设置API的基础路径等
+BasePath: /api/handler

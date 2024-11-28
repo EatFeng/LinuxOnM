@@ -24,3 +24,21 @@ type SearchOpLogWithPage struct {
 	Status    string `json:"status"`
 	Operation string `json:"operation"`
 }
+
+type OperationLog struct {
+	ID     uint   `json:"id"`
+	Source string `json:"source"`
+
+	IP        string `json:"ip"`
+	Path      string `json:"path"`
+	Method    string `json:"method"`
+	UserAgent string `json:"userAgent"`
+
+	Latency time.Duration `json:"latency"`
+	Status  string        `json:"status"`
+	Message string        `json:"message"`
+
+	DetailZH  string    `json:"detailZH"`
+	DetailEN  string    `json:"detailEN"`
+	CreatedAt time.Time `json:"createdAt"`
+}

@@ -13,6 +13,6 @@ func (s *LogRouter) InitRouter(Router *gin.RouterGroup) {
 	baseApi := handlers.ApiGroupApp.BaseApi
 	{
 		operationRouter.POST("/login", baseApi.GetLoginLog)
-		operationRouter.POST("operation", baseApi.GetOperationLog)
+		operationRouter.POST("/operation", baseApi.GetOperationLog)
 	}
 }

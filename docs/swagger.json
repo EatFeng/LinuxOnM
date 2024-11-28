@@ -1,0 +1,493 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is the API documentation for LinuxOnM.",
+        "title": "LinuxOnM API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "email": "support@yourwebapp.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0.0"
+    },
+    "host": "localhost:8848",
+    "basePath": "/api/handler",
+    "paths": {
+        "/auth/login": {
+            "post": {
+                "description": "用户登录",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "User login",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "安全入口 base64 加密串",
+                        "name": "EntranceCode",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.Login"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserLoginInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/dashboard/base/os": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取服务器基础数据",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Load os info",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.OsInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/dashboard/current/:ioOption/:netOption": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取首页实时数据",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Load dashboard current info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "request",
+                        "name": "ioOption",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "request",
+                        "name": "netOption",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DashboardCurrent"
+                        }
+                    }
+                }
+            }
+        },
+        "/logs/login": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取系统登录日志列表分页",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Logs"
+                ],
+                "summary": "Page login logs",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SearchLoginLogWithPage"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PageResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/logs/operation": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取系统操作日志列表分页",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Logs"
+                ],
+                "summary": "Page operation logs",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SearchOpLogWithPage"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PageResult"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dto.DashboardCurrent": {
+            "type": "object",
+            "properties": {
+                "cpuPercent": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "cpuTotal": {
+                    "type": "integer"
+                },
+                "cpuUsed": {
+                    "type": "number"
+                },
+                "cpuUsedPercent": {
+                    "type": "number"
+                },
+                "diskData": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DiskInfo"
+                    }
+                },
+                "gpuData": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.GPUInfo"
+                    }
+                },
+                "ioCount": {
+                    "type": "integer"
+                },
+                "ioReadBytes": {
+                    "type": "integer"
+                },
+                "ioReadTime": {
+                    "type": "integer"
+                },
+                "ioWriteBytes": {
+                    "type": "integer"
+                },
+                "ioWriteTime": {
+                    "type": "integer"
+                },
+                "load1": {
+                    "type": "number"
+                },
+                "load15": {
+                    "type": "number"
+                },
+                "load5": {
+                    "type": "number"
+                },
+                "loadUsagePercent": {
+                    "type": "number"
+                },
+                "memoryAvailable": {
+                    "type": "integer"
+                },
+                "memoryTotal": {
+                    "type": "integer"
+                },
+                "memoryUsed": {
+                    "type": "integer"
+                },
+                "memoryUsedPercent": {
+                    "type": "number"
+                },
+                "netBytesRecv": {
+                    "type": "integer"
+                },
+                "netBytesSent": {
+                    "type": "integer"
+                },
+                "procs": {
+                    "type": "integer"
+                },
+                "shotTime": {
+                    "type": "string"
+                },
+                "swapMemoryAvailable": {
+                    "type": "integer"
+                },
+                "swapMemoryTotal": {
+                    "type": "integer"
+                },
+                "swapMemoryUsed": {
+                    "type": "integer"
+                },
+                "swapMemoryUsedPercent": {
+                    "type": "number"
+                },
+                "timeSinceUptime": {
+                    "type": "string"
+                },
+                "uptime": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.DiskInfo": {
+            "type": "object",
+            "properties": {
+                "device": {
+                    "type": "string"
+                },
+                "free": {
+                    "type": "integer"
+                },
+                "inodesFree": {
+                    "type": "integer"
+                },
+                "inodesTotal": {
+                    "type": "integer"
+                },
+                "inodesUsed": {
+                    "type": "integer"
+                },
+                "inodesUsedPercent": {
+                    "type": "number"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "used": {
+                    "type": "integer"
+                },
+                "usedPercent": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.GPUInfo": {
+            "type": "object",
+            "properties": {
+                "fanSpeed": {
+                    "type": "string"
+                },
+                "gpuUtil": {
+                    "type": "string"
+                },
+                "index": {
+                    "type": "integer"
+                },
+                "maxPowerLimit": {
+                    "type": "string"
+                },
+                "memTotal": {
+                    "type": "string"
+                },
+                "memUsed": {
+                    "type": "string"
+                },
+                "memoryUsage": {
+                    "type": "string"
+                },
+                "performanceState": {
+                    "type": "string"
+                },
+                "powerDraw": {
+                    "type": "string"
+                },
+                "powerUsage": {
+                    "type": "string"
+                },
+                "productName": {
+                    "type": "string"
+                },
+                "temperature": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.Login": {
+            "type": "object",
+            "properties": {
+                "authMethod": {
+                    "type": "string"
+                },
+                "captcha": {
+                    "type": "string"
+                },
+                "captchaID": {
+                    "type": "string"
+                },
+                "ignore_capycha": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.OsInfo": {
+            "type": "object",
+            "properties": {
+                "diskSize": {
+                    "type": "integer"
+                },
+                "kernelArch": {
+                    "type": "string"
+                },
+                "kernelVersion": {
+                    "type": "string"
+                },
+                "os": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "platformFamily": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.PageResult": {
+            "type": "object",
+            "properties": {
+                "items": {},
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.SearchLoginLogWithPage": {
+            "type": "object",
+            "required": [
+                "page",
+                "pageSize"
+            ],
+            "properties": {
+                "ip": {
+                    "type": "string"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SearchOpLogWithPage": {
+            "type": "object",
+            "required": [
+                "page",
+                "pageSize"
+            ],
+            "properties": {
+                "operation": {
+                    "type": "string"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserLoginInfo": {
+            "type": "object",
+            "properties": {
+                "mfaStatus": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

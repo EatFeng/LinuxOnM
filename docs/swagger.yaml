@@ -1,0 +1,320 @@
+basePath: /api/handler
+definitions:
+  dto.DashboardCurrent:
+    properties:
+      cpuPercent:
+        items:
+          type: number
+        type: array
+      cpuTotal:
+        type: integer
+      cpuUsed:
+        type: number
+      cpuUsedPercent:
+        type: number
+      diskData:
+        items:
+          $ref: '#/definitions/dto.DiskInfo'
+        type: array
+      gpuData:
+        items:
+          $ref: '#/definitions/dto.GPUInfo'
+        type: array
+      ioCount:
+        type: integer
+      ioReadBytes:
+        type: integer
+      ioReadTime:
+        type: integer
+      ioWriteBytes:
+        type: integer
+      ioWriteTime:
+        type: integer
+      load1:
+        type: number
+      load5:
+        type: number
+      load15:
+        type: number
+      loadUsagePercent:
+        type: number
+      memoryAvailable:
+        type: integer
+      memoryTotal:
+        type: integer
+      memoryUsed:
+        type: integer
+      memoryUsedPercent:
+        type: number
+      netBytesRecv:
+        type: integer
+      netBytesSent:
+        type: integer
+      procs:
+        type: integer
+      shotTime:
+        type: string
+      swapMemoryAvailable:
+        type: integer
+      swapMemoryTotal:
+        type: integer
+      swapMemoryUsed:
+        type: integer
+      swapMemoryUsedPercent:
+        type: number
+      timeSinceUptime:
+        type: string
+      uptime:
+        type: integer
+    type: object
+  dto.DiskInfo:
+    properties:
+      device:
+        type: string
+      free:
+        type: integer
+      inodesFree:
+        type: integer
+      inodesTotal:
+        type: integer
+      inodesUsed:
+        type: integer
+      inodesUsedPercent:
+        type: number
+      path:
+        type: string
+      total:
+        type: integer
+      type:
+        type: string
+      used:
+        type: integer
+      usedPercent:
+        type: number
+    type: object
+  dto.GPUInfo:
+    properties:
+      fanSpeed:
+        type: string
+      gpuUtil:
+        type: string
+      index:
+        type: integer
+      maxPowerLimit:
+        type: string
+      memTotal:
+        type: string
+      memUsed:
+        type: string
+      memoryUsage:
+        type: string
+      performanceState:
+        type: string
+      powerDraw:
+        type: string
+      powerUsage:
+        type: string
+      productName:
+        type: string
+      temperature:
+        type: string
+    type: object
+  dto.Login:
+    properties:
+      authMethod:
+        type: string
+      captcha:
+        type: string
+      captchaID:
+        type: string
+      ignore_capycha:
+        type: boolean
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  dto.OsInfo:
+    properties:
+      diskSize:
+        type: integer
+      kernelArch:
+        type: string
+      kernelVersion:
+        type: string
+      os:
+        type: string
+      platform:
+        type: string
+      platformFamily:
+        type: string
+    type: object
+  dto.PageResult:
+    properties:
+      items: {}
+      total:
+        type: integer
+    type: object
+  dto.SearchLoginLogWithPage:
+    properties:
+      ip:
+        type: string
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      status:
+        type: string
+    required:
+    - page
+    - pageSize
+    type: object
+  dto.SearchOpLogWithPage:
+    properties:
+      operation:
+        type: string
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      source:
+        type: string
+      status:
+        type: string
+    required:
+    - page
+    - pageSize
+    type: object
+  dto.UserLoginInfo:
+    properties:
+      mfaStatus:
+        type: string
+      name:
+        type: string
+      token:
+        type: string
+    type: object
+host: localhost:8848
+info:
+  contact:
+    email: support@yourwebapp.com
+    name: API Support
+  description: This is the API documentation for LinuxOnM.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: LinuxOnM API
+  version: 1.0.0
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: 用户登录
+      parameters:
+      - description: 安全入口 base64 加密串
+        in: header
+        name: EntranceCode
+        required: true
+        type: string
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Login'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserLoginInfo'
+      summary: User login
+      tags:
+      - Auth
+  /dashboard/base/os:
+    get:
+      consumes:
+      - application/json
+      description: 获取服务器基础数据
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.OsInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Load os info
+      tags:
+      - Dashboard
+  /dashboard/current/:ioOption/:netOption:
+    get:
+      consumes:
+      - application/json
+      description: 获取首页实时数据
+      parameters:
+      - description: request
+        in: path
+        name: ioOption
+        required: true
+        type: string
+      - description: request
+        in: path
+        name: netOption
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DashboardCurrent'
+      security:
+      - ApiKeyAuth: []
+      summary: Load dashboard current info
+      tags:
+      - Dashboard
+  /logs/login:
+    post:
+      consumes:
+      - application/json
+      description: 获取系统登录日志列表分页
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SearchLoginLogWithPage'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PageResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Page login logs
+      tags:
+      - Logs
+  /logs/operation:
+    post:
+      consumes:
+      - application/json
+      description: 获取系统操作日志列表分页
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SearchOpLogWithPage'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PageResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Page operation logs
+      tags:
+      - Logs
+swagger: "2.0"

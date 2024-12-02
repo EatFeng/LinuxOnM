@@ -5,5 +5,6 @@ func commonGroups() []CommonRouter {
 		&DashboardRouter{},
 		&LogRouter{},
 		&AuthRouter{},
+		&TerminalRouter{},
 	}
 }

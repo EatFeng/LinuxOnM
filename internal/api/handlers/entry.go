@@ -12,6 +12,7 @@ var ApiGroupApp = new(ApiGroup)
 
 var (
 	dashboardService = services.NewDashboardService()
-	logService       = services.NewLogService()
+	logService       = services.NewILogService()
 	authService      = services.NewIAuthService()
+	hostService		 = services.NewIHostService()
 )

@@ -2,6 +2,7 @@ package router
 
 import (
 	rou "LinuxOnM/internal/api/routers"
+	"LinuxOnM/internal/middleware"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -10,6 +11,7 @@ import (
 
 func Routers() *gin.Engine {
 	Router := gin.Default()
+	Router.Use(middleware.OperationLog())
 
 	Router.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{

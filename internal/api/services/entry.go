@@ -6,4 +6,5 @@ var (
 	logRepo     = repositories.NewLogRepository()
 	commonRepo  = repositories.NewCommonRepository()
 	settingRepo = repositories.NewISettingRepo()
+	hostRepo	= repositories.NewIHostRepo()
 )

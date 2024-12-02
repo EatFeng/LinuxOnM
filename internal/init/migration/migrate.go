@@ -10,6 +10,7 @@ func Init() {
 	m := gormigrate.New(global.DB, gormigrate.DefaultOptions, []*gormigrate.Migration{
 		migrations.AddTableSetting,
 		migrations.AddTableOperationLog,
+		migrations.AddTableHost,
 	})
 	if err := m.Migrate(); err != nil {
 		global.LOG.Error(err)

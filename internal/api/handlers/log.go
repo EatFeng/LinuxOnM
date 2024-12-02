@@ -58,3 +58,19 @@ func (b *BaseApi) GetOperationLog(c *gin.Context) {
 		Total: total,
 	})
 }
+
+// @Tags Logs
+// @Summary Load system log files
+// @Description 获取系统日志文件列表
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /log/system/files [get]
+func (b *BaseApi) GetSystemFiles(c *gin.Context) {
+	data, err := logService.ListSystemLogFile()
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+
+	helper.SuccessWithData(c, data)
+}

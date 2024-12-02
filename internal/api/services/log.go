@@ -3,9 +3,16 @@ package services
 import (
 	"LinuxOnM/internal/api/dto"
 	"LinuxOnM/internal/constant"
+	"LinuxOnM/internal/global"
 	"LinuxOnM/internal/models"
 	"LinuxOnM/internal/utils/copier"
 	"github.com/pkg/errors"
+	"os"
+	"path"
+	"path/filepath"
+	"sort"
+	"strings"
+	"time"
 )
 
 type LogService struct{}
@@ -14,11 +21,13 @@ type ILogService interface {
 	CreateLoginLog(operation models.LoginLog) error
 	PageLoginLog(search dto.SearchLoginLogWithPage) (int64, interface{}, error)
 
-	CreateOperationLog(operation models.OperationLog)
+	CreateOperationLog(operation models.OperationLog) error
 	PageOperationLog(search dto.SearchOpLogWithPage) (int64, interface{}, error)
+
+	ListSystemLogFile() ([]string, error)
 }
 
-func NewLogService() ILogService {
+func NewILogService() ILogService {
 	return &LogService{}
 }
 
@@ -68,4 +77,37 @@ func (u *LogService) PageOperationLog(req dto.SearchOpLogWithPage) (int64, inter
 
 func (u *LogService) CreateOperationLog(operation models.OperationLog) error {
 	return logRepo.CreateOperationLog(&operation)
+}
+
+func (u *LogService) ListSystemLogFile() ([]string, error) {
+	logDir := path.Join(global.CONF.System.BaseDir, "LinuxOnM/log")
+	var files []string
+	if err := filepath.Walk(logDir, func(pathItem string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() && strings.HasPrefix(info.Name(), "LinuxOnM") {
+			if info.Name() == "LinuxOnM.log" {
+				files = append(files, time.Now().Format("2006-01-02"))
+				return nil
+			}
+			itemFileName := strings.TrimPrefix(info.Name(), "LinuxOnM-")
+			itemFileName = strings.TrimSuffix(itemFileName, ".gz")
+			itemFileName = strings.TrimSuffix(itemFileName, ".log")
+			files = append(files, itemFileName)
+			return nil
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	if len(files) < 2 {
+		return files, nil
+	}
+	sort.Slice(files, func(i, j int) bool {
+		return files[i] > files[j]
+	})
+
+	return files, nil
 }

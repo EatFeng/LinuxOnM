@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func handlerErr(stdout, stderr bytes.Buffer, err error) (string, error) {
+func handleErr(stdout, stderr bytes.Buffer, err error) (string, error) {
 	errMsg := ""
 	if len(stderr.String()) != 0 {
 		errMsg = fmt.Sprintf("stderr: %s", stderr.String())
@@ -43,9 +43,21 @@ func ExecWithTimeOut(cmdStr string, timeout time.Duration) (string, error) {
 		return "", buserr.New(constant.ErrCmdTimeout)
 	case err := <-done:
 		if err != nil {
-			return handlerErr(stdout, stderr, err)
+			return handleErr(stdout, stderr, err)
 		}
 	}
 
+	return stdout.String(), nil
+}
+
+func Execf(cmdStr string, a ...interface{}) (string, error) {
+	cmd := exec.Command("bash", "-c", fmt.Sprintf(cmdStr, a...))
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+		return handleErr(stdout, stderr, err)
+	}
 	return stdout.String(), nil
 }

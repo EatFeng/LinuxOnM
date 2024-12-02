@@ -14,5 +14,6 @@ var (
 	dashboardService = services.NewDashboardService()
 	logService       = services.NewILogService()
 	authService      = services.NewIAuthService()
-	hostService		 = services.NewIHostService()
+	hostService      = services.NewIHostService()
+	fileService      = services.NewIFileService()
 )

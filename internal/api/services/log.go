@@ -25,6 +25,8 @@ type ILogService interface {
 	PageOperationLog(search dto.SearchOpLogWithPage) (int64, interface{}, error)
 
 	ListSystemLogFile() ([]string, error)
+
+	LoadSSHLog() (string, error)
 }
 
 func NewILogService() ILogService {

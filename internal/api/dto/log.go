@@ -42,3 +42,9 @@ type OperationLog struct {
 	DetailEN  string    `json:"detailEN"`
 	CreatedAt time.Time `json:"createdAt"`
 }
+
+type SearchSSHLog struct {
+	PageInfo
+	Info   string `json:"info"`
+	Status string `json:"Status" validate:"required,oneof=Success Failed All"`
+}

@@ -74,3 +74,25 @@ func (b *BaseApi) GetSystemFiles(c *gin.Context) {
 
 	helper.SuccessWithData(c, data)
 }
+
+// @Tags SSH
+// @Summary Load host SSH logs
+// @Description 获取 SSH 登录日志
+// @Accept json
+// @Param request body dto.SearchSSHLog true "request"
+// @Success 200 {object} dto.SSHLog
+// @Security ApiKeyAuth
+// @Router /log/ssh [post]
+func (b *BaseApi) LoadSSHLogs(c *gin.Context) {
+	var req dto.SearchSSHLog
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	data, err := logService.LoadLog(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, data)
+}

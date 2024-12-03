@@ -83,13 +83,13 @@ func (b *BaseApi) GetSystemFiles(c *gin.Context) {
 // @Success 200 {object} dto.SSHLog
 // @Security ApiKeyAuth
 // @Router /log/ssh [post]
-func (b *BaseApi) LoadSSHLogs(c *gin.Context) {
+func (b *BaseApi) LoadSSHLog(c *gin.Context) {
 	var req dto.SearchSSHLog
 	if err := helper.CheckBindAndValidate(c, &req); err != nil {
 		return
 	}
 
-	data, err := logService.LoadLog(req)
+	data, err := logService.LoadSSHLog(req)
 	if err != nil {
 		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
 		return

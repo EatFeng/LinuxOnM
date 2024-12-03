@@ -61,3 +61,7 @@ func Execf(cmdStr string, a ...interface{}) (string, error) {
 	}
 	return stdout.String(), nil
 }
+
+func Exec(cmdStr string) (string, error) {
+	return ExecWithTimeOut(cmdStr, 20*time.Second)
+}

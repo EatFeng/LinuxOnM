@@ -11,6 +11,7 @@ func (s *HostRouter) InitRouter(Router *gin.RouterGroup) {
 	hostRouter := Router.Group("host")
 	baseApi := handler.ApiGroupApp.BaseApi
 	{
+		hostRouter.POST("", baseApi.CreateHost)
 		hostRouter.POST("/test/byid/:id", baseApi.TestByID)
 		hostRouter.POST("/test/byinfo", baseApi.TestByInfo)
 	}

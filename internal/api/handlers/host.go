@@ -51,3 +51,33 @@ func (b *BaseApi) TestByInfo(c *gin.Context) {
 	connStatus := hostService.TestByInfo(req)
 	helper.SuccessWithData(c, connStatus)
 }
+
+// CreateHost
+// @Tags Host
+// @Summary Create host
+// @Description This function is used to create or update a host. It first validates and binds the incoming JSON request data of type dto.HostOperate.
+//
+//	Then it calls the Create function in the HostService. In the HostService.Create function, it encrypts the password or private key if needed
+//	based on the authentication mode. It also determines the host group, checks if a host with the same address (and additional criteria if not 127.0.0.1)
+//	already exists. If it exists, it updates the existing host record; otherwise, it creates a new one. Finally, it returns the created or updated host
+//	information in the dto.HostInfo type. If any errors occur during the process, appropriate error handling is performed and an error response is sent.
+//
+// @Accept json
+// @Param request body dto.HostOperate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /hosts [post]
+// @x-panel-log {"bodyKeys":["name","addr"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"创建主机 [name][addr]","formatEN":"create host [name][addr]"}
+func (b *BaseApi) CreateHost(c *gin.Context) {
+	var req dto.HostOperate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	host, err := hostService.Create(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, host)
+}

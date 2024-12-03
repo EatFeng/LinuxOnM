@@ -1,11 +1,13 @@
 package services
 
 import (
+	"LinuxOnM/internal/api/dto"
 	"LinuxOnM/internal/constant"
 	"LinuxOnM/internal/models"
 	"LinuxOnM/internal/utils/copier"
 	"LinuxOnM/internal/utils/encrypt"
 	"LinuxOnM/internal/utils/ssh"
+	"encoding/base64"
 )
 
 type HostService struct{}
@@ -13,6 +15,7 @@ type HostService struct{}
 type IHostService interface {
 	GetHostInfo(id uint) (*models.Host, error)
 	TestLocalConn(id uint) bool
+	TestByInfo(req dto.HostConnTest) bool
 }
 
 func NewIHostService() IHostService {
@@ -92,5 +95,45 @@ func (u *HostService) TestLocalConn(id uint) bool {
 	}
 	defer client.Close()
 
+	return true
+}
+
+func (u *HostService) TestByInfo(req dto.HostConnTest) bool {
+	if req.AuthMode == "password" && len(req.Password) != 0 {
+		password, err := base64.StdEncoding.DecodeString(req.Password)
+		if err != nil {
+			return false
+		}
+		req.Password = string(password)
+	}
+	if req.AuthMode == "key" && len(req.PrivateKey) != 0 {
+		privateKey, err := base64.StdEncoding.DecodeString(req.PrivateKey)
+		if err != nil {
+			return false
+		}
+		req.PrivateKey = string(privateKey)
+	}
+	if len(req.Password) == 0 && len(req.PrivateKey) == 0 {
+		host, err := hostRepo.Get(hostRepo.WithByAddr(req.Addr))
+		if err != nil {
+			return false
+		}
+		req.Password = host.Password
+		req.AuthMode = host.AuthMode
+		req.PrivateKey = host.PrivateKey
+		req.PassPhrase = host.PassPhrase
+	}
+
+	var connInfo ssh.ConnInfo
+	_ = copier.Copy(&connInfo, &req)
+	connInfo.PrivateKey = []byte(req.PrivateKey)
+	if len(req.PassPhrase) != 0 {
+		connInfo.PassPhrase = []byte(req.PassPhrase)
+	}
+	client, err := connInfo.NewClient()
+	if err != nil {
+		return false
+	}
+	defer client.Close()
 	return true
 }

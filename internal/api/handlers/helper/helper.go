@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"net/http"
+	"strconv"
 )
 
 func ErrorWithDetail(ctx *gin.Context, code int, msgKey string, err error) {
@@ -68,4 +69,13 @@ func CheckBindAndValidate(ctx *gin.Context, req interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func GetParamID(c *gin.Context) (uint, error) {
+	idParam, ok := c.Params.Get("id")
+	if !ok {
+		return 0, errors.New("error id in path")
+	}
+	intNum, _ := strconv.Atoi(idParam)
+	return uint(intNum), nil
 }

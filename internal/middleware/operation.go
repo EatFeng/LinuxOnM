@@ -39,7 +39,7 @@ func OperationLog() gin.HandlerFunc {
 			Source:    source,
 			IP:        c.ClientIP(),
 			Method:    strings.ToLower(c.Request.Method),
-			Path:      strings.ReplaceAll(c.Request.URL.Path, "/api/v1", ""),
+			Path:      strings.ReplaceAll(c.Request.URL.Path, "/api/handler", ""),
 			UserAgent: c.Request.UserAgent(),
 		}
 		var (
@@ -250,7 +250,7 @@ func (r responseBodyWriter) Write(b []byte) (int, error) {
 
 // loadLogInfo extracts the log source information from the request path.
 func loadLogInfo(path string) string {
-	path = strings.ReplaceAll(path, "/api/v1", "")
+	path = strings.ReplaceAll(path, "/api/handler", "")
 	if !strings.Contains(path, "/") {
 		return ""
 	}

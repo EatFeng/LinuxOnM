@@ -7,7 +7,7 @@ import (
 )
 
 var AddTableOperationLog = &gormigrate.Migration{
-	ID: "20200809-add-table-operation-log",
+	ID: "20241203-add-table-operation-logs",
 	Migrate: func(tx *gorm.DB) error {
 		return tx.AutoMigrate(&models.OperationLog{}, &models.LoginLog{})
 	},

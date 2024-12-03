@@ -40,7 +40,7 @@ func (b *BaseApi) GetLoginLog(c *gin.Context) {
 // @Param request body dto.SearchOpLogWithPage true "request"
 // @Success 200 {object} dto.PageResult
 // @Security ApiKeyAuth
-// @Router /logs/operation [post]
+// @Router /log/operation [post]
 func (b *BaseApi) GetOperationLog(c *gin.Context) {
 	var req dto.SearchOpLogWithPage
 	if err := helper.CheckBindAndValidate(c, &req); err != nil {

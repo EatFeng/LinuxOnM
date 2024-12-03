@@ -23,24 +23,6 @@ var upGrader = websocket.Upgrader{
 	},
 }
 
-// WsSsh is a route handler function that establishes an SSH connection over WebSocket.
-// It upgrades the HTTP connection to a WebSocket connection, validates and retrieves necessary parameters from the request,
-// sets up the SSH connection details, creates an SSH WebSocket session, starts the session, and waits for it to complete.
-//
-// @Tags SSH, WebSocket
-// @Summary Establish SSH connection over WebSocket
-// @Description This endpoint upgrades the incoming HTTP connection to a WebSocket connection and then
-// establishes an SSH connection to a specified host using the provided parameters. It allows interaction with the
-// remote host's shell via the WebSocket connection.
-// @Accept websocket
-// @Produce json
-// @Param id query int true "The ID of the host to connect to"
-// @Param cols query int false "The number of columns for the terminal session (default: 80)"
-// @Param rows query int false "The number of rows for the terminal session (default: 40)"
-// @Success 200 {string} string "WebSocket connection established successfully and SSH session started."
-// @Failure 400 {string} string "Invalid parameters in the request"
-// @Failure 500 {string} string "Failed to establish SSH connection or other internal errors occurred"
-// @Router /ws-ssh [get]
 func (b *BaseApi) WsSsh(c *gin.Context) {
 	// Upgrade the HTTP connection to a WebSocket connection
 	wsConn, err := upGrader.Upgrade(c.Writer, c.Request, nil)

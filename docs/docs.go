@@ -127,6 +127,237 @@ const docTemplate = `{
                 }
             }
         },
+        "/file/read": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "按行读取日志文件",
+                "tags": [
+                    "File"
+                ],
+                "summary": "Read file by Line",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.FileReadByLineReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/host": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This function is used to create or update a host. It first validates and binds the incoming JSON request data of type dto.HostOperate.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Host"
+                ],
+                "summary": "Create host",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.HostOperate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [],
+                    "bodyKeys": [
+                        "name",
+                        "addr"
+                    ],
+                    "formatEN": "create host [name][addr]",
+                    "formatZH": "创建主机 [name][addr]",
+                    "paramKeys": []
+                }
+            }
+        },
+        "/host/test/byid/:id": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "测试主机连接",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Host"
+                ],
+                "summary": "Test host conn by host id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "request",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                }
+            }
+        },
+        "/host/test/byinfo": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This function is used to test the SSH connection to a host based on the connection information provided in the request body.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Host"
+                ],
+                "summary": "Test host connection by provided connection information",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.HostConnTest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns true if the SSH connection to the host is successfully established, false otherwise."
+                    }
+                }
+            }
+        },
+        "/log/operation": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取系统操作日志列表分页",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Logs"
+                ],
+                "summary": "Page operation logs",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SearchOpLogWithPage"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PageResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/log/ssh": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取 SSH 登录日志",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SSH"
+                ],
+                "summary": "Load host SSH logs",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SearchSSHLog"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SSHLog"
+                        }
+                    }
+                }
+            }
+        },
+        "/log/system/files": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取系统日志文件列表",
+                "tags": [
+                    "Logs"
+                ],
+                "summary": "Load system log files",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/logs/login": {
             "post": {
                 "security": [
@@ -150,42 +381,6 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/dto.SearchLoginLogWithPage"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.PageResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/logs/operation": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "获取系统操作日志列表分页",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Logs"
-                ],
-                "summary": "Page operation logs",
-                "parameters": [
-                    {
-                        "description": "request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.SearchOpLogWithPage"
                         }
                     }
                 ],
@@ -381,6 +576,95 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.HostConnTest": {
+            "type": "object",
+            "required": [
+                "addr",
+                "port",
+                "user"
+            ],
+            "properties": {
+                "addr": {
+                    "type": "string"
+                },
+                "authMode": {
+                    "type": "string",
+                    "enum": [
+                        "password",
+                        "key"
+                    ]
+                },
+                "passPhrase": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "integer",
+                    "maximum": 65535,
+                    "minimum": 1
+                },
+                "privateKey": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.HostOperate": {
+            "type": "object",
+            "required": [
+                "addr",
+                "port",
+                "user"
+            ],
+            "properties": {
+                "addr": {
+                    "type": "string"
+                },
+                "authMode": {
+                    "type": "string",
+                    "enum": [
+                        "password",
+                        "key"
+                    ]
+                },
+                "description": {
+                    "type": "string"
+                },
+                "groupID": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "passPhrase": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "integer",
+                    "maximum": 65535,
+                    "minimum": 1
+                },
+                "privateKey": {
+                    "type": "string"
+                },
+                "rememberPassword": {
+                    "type": "boolean"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.Login": {
             "type": "object",
             "properties": {
@@ -436,6 +720,58 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.SSHHistory": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "area": {
+                    "type": "string"
+                },
+                "authMode": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "dateStr": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SSHLog": {
+            "type": "object",
+            "properties": {
+                "failedCount": {
+                    "type": "integer"
+                },
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.SSHHistory"
+                    }
+                },
+                "successfulCount": {
+                    "type": "integer"
+                },
+                "totalCount": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.SearchLoginLogWithPage": {
             "type": "object",
             "required": [
@@ -481,6 +817,33 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.SearchSSHLog": {
+            "type": "object",
+            "required": [
+                "Status",
+                "page",
+                "pageSize"
+            ],
+            "properties": {
+                "Status": {
+                    "type": "string",
+                    "enum": [
+                        "Success",
+                        "Failed",
+                        "All"
+                    ]
+                },
+                "info": {
+                    "type": "string"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.UserLoginInfo": {
             "type": "object",
             "properties": {
@@ -491,6 +854,34 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.FileReadByLineReq": {
+            "type": "object",
+            "required": [
+                "page",
+                "pageSize",
+                "type"
+            ],
+            "properties": {
+                "ID": {
+                    "type": "integer"
+                },
+                "latest": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "type": {
                     "type": "string"
                 }
             }

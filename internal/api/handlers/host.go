@@ -41,7 +41,7 @@ func (b *BaseApi) TestByID(c *gin.Context) {
 // @Param request body dto.HostConnTest true "request"
 // @Success 200 "Returns true if the SSH connection to the host is successfully established, false otherwise."
 // @Security ApiKeyAuth
-// @Router /hosts/test/byinfo [post]
+// @Router /host/test/byinfo [post]
 func (b *BaseApi) TestByInfo(c *gin.Context) {
 	var req dto.HostConnTest
 	if err := helper.CheckBindAndValidate(c, &req); err != nil {
@@ -66,7 +66,7 @@ func (b *BaseApi) TestByInfo(c *gin.Context) {
 // @Param request body dto.HostOperate true "request"
 // @Success 200
 // @Security ApiKeyAuth
-// @Router /hosts [post]
+// @Router /host [post]
 // @x-panel-log {"bodyKeys":["name","addr"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"创建主机 [name][addr]","formatEN":"create host [name][addr]"}
 func (b *BaseApi) CreateHost(c *gin.Context) {
 	var req dto.HostOperate

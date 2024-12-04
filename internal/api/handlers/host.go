@@ -397,3 +397,48 @@ func (b *BaseApi) UpdateCommand(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// SearchCommand
+// @Tags Command
+// @Summary Page commands
+// @Description This function is used to retrieve a paginated list of quick commands. It first validates and binds the incoming JSON request data of type dto.SearchCommandWithPage. The dto.SearchCommandWithPage structure likely contains parameters related to pagination, such as the page number, page size, and potentially search criteria to filter the commands. After successful validation and binding to the 'req' variable, it calls the commandService.SearchWithPage function, passing the 'req' object. The commandService.SearchWithPage function is responsible for querying the underlying data source (usually a database) to fetch the relevant commands based on the provided pagination and search parameters. It calculates the total number of commands that match the criteria and returns a subset of commands according to the page number and page size. If the query operation is successful, a success response with status code 200 is sent, containing the paginated data in the format of dto.PageResult, which includes the list of commands and the total count. In case of any errors during the query process, such as database connection issues, incorrect pagination parameters, or errors in data retrieval, the helper.ErrorWithDetail function is called to send back an error response with a specific error code (constant.CodeErrInternalServer) and error type (constant.ErrTypeInternalServer), along with the detailed error message.
+// @Accept json
+// @Param request body dto.SearchCommandWithPage true "request"
+// @Success 200 {object} dto.PageResult
+// @Security ApiKeyAuth
+// @Router /host/command/search [post]
+func (b *BaseApi) SearchCommand(c *gin.Context) {
+	var req dto.SearchCommandWithPage
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	total, list, err := commandService.SearchWithPage(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+
+	helper.SuccessWithData(c, dto.PageResult{
+		Items: list,
+		Total: total,
+	})
+}
+
+// SearchCommandTree
+// @Tags Command
+// @Summary Tree commands
+// @Description This function is designed to obtain a tree-like structure representation of the quick commands. It calls the commandService.SearchForTree function which is responsible for querying and constructing the command tree from the underlying data source. The command tree might be organized in a hierarchical manner, perhaps based on command groups or other relevant categorizations. If the query and construction of the command tree in the commandService.SearchForTree function is successful, it returns the tree data which is then sent back as a successful response with a status code of 200 and the data in the format of dto.CommandTree. In case of any errors during the process, such as database connection problems or errors in data retrieval and tree construction, the helper.ErrorWithDetail function is called to send back an error response with a specific error code (constant.CodeErrInternalServer) and error type (constant.ErrTypeInternalServer), along with the detailed error message.
+// @Accept json
+// @Success 200 {Array} dto.CommandTree
+// @Security ApiKeyAuth
+// @Router /host/command/tree [get]
+func (b *BaseApi) SearchCommandTree(c *gin.Context) {
+	list, err := commandService.SearchForTree()
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+
+	helper.SuccessWithData(c, list)
+}

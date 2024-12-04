@@ -261,6 +261,45 @@
                 }
             }
         },
+        "/host/tree": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This function is used to load the host information in a tree-like structure. It first validates and binds the incoming JSON request data of type dto.SearchForTree.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Host"
+                ],
+                "summary": "Load host tree",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SearchForTree"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.HostTree"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/log/operation": {
             "post": {
                 "security": [
@@ -659,6 +698,23 @@
                 }
             }
         },
+        "dto.HostTree": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.TreeChild"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "label": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.Login": {
             "type": "object",
             "properties": {
@@ -766,6 +822,14 @@
                 }
             }
         },
+        "dto.SearchForTree": {
+            "type": "object",
+            "properties": {
+                "info": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.SearchLoginLogWithPage": {
             "type": "object",
             "required": [
@@ -835,6 +899,17 @@
                 },
                 "pageSize": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.TreeChild": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "label": {
+                    "type": "string"
                 }
             }
         },

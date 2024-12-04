@@ -97,7 +97,7 @@ func (b *BaseApi) CreateHost(c *gin.Context) {
 // @Param request body dto.SearchForTree true "request"
 // @Success 200 {array} dto.HostTree
 // @Security ApiKeyAuth
-// @Router /hosts/tree [post]
+// @Router /host/tree [post]
 func (b *BaseApi) HostTree(c *gin.Context) {
 	var req dto.SearchForTree
 	if err := helper.CheckBind(&req, c); err != nil {

@@ -16,4 +16,5 @@ var (
 	authService      = services.NewIAuthService()
 	hostService      = services.NewIHostService()
 	fileService      = services.NewIFileService()
+	groupService     = services.NewIGroupService()
 )

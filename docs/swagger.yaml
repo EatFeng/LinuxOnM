@@ -181,6 +181,17 @@ definitions:
     - port
     - user
     type: object
+  dto.HostTree:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/dto.TreeChild'
+        type: array
+      id:
+        type: integer
+      label:
+        type: string
+    type: object
   dto.Login:
     properties:
       authMethod:
@@ -251,6 +262,11 @@ definitions:
       totalCount:
         type: integer
     type: object
+  dto.SearchForTree:
+    properties:
+      info:
+        type: string
+    type: object
   dto.SearchLoginLogWithPage:
     properties:
       ip:
@@ -299,6 +315,13 @@ definitions:
     - Status
     - page
     - pageSize
+    type: object
+  dto.TreeChild:
+    properties:
+      id:
+        type: integer
+      label:
+        type: string
     type: object
   dto.UserLoginInfo:
     properties:
@@ -495,6 +518,32 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Test host connection by provided connection information
+      tags:
+      - Host
+  /host/tree:
+    post:
+      consumes:
+      - application/json
+      description: This function is used to load the host information in a tree-like
+        structure. It first validates and binds the incoming JSON request data of
+        type dto.SearchForTree.
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SearchForTree'
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.HostTree'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: Load host tree
       tags:
       - Host
   /log/operation:

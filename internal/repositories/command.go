@@ -11,6 +11,7 @@ type ICommandRepo interface {
 	GetList(opts ...DBOption) ([]models.Command, error)
 	Get(opts ...DBOption) (models.Command, error)
 	Create(command *models.Command) error
+	Delete(opts ...DBOption) error
 }
 
 func NewICommandRepo() ICommandRepo {
@@ -39,4 +40,12 @@ func (u *CommandRepo) Get(opts ...DBOption) (models.Command, error) {
 
 func (u *CommandRepo) Create(command *models.Command) error {
 	return global.DB.Create(command).Error
+}
+
+func (u *CommandRepo) Delete(opts ...DBOption) error {
+	db := global.DB
+	for _, opt := range opts {
+		db = opt(db)
+	}
+	return db.Delete(&models.Command{}).Error
 }

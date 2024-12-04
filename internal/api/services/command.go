@@ -12,6 +12,7 @@ type CommandService struct{}
 type ICommandService interface {
 	List() ([]dto.CommandInfo, error)
 	Create(commandDto dto.CommandOperate) error
+	Delete(ids []uint) error
 }
 
 func NewICommandService() ICommandService {
@@ -46,4 +47,15 @@ func (u *CommandService) Create(commandDto dto.CommandOperate) error {
 		return err
 	}
 	return nil
+}
+
+func (u *CommandService) Delete(ids []uint) error {
+	if len(ids) == 1 {
+		command, _ := commandRepo.Get(commonRepo.WithByID(ids[0]))
+		if command.ID == 0 {
+			return constant.ErrRecordNotFound
+		}
+		return commandRepo.Delete(commonRepo.WithByID(ids[0]))
+	}
+	return commandRepo.Delete(commonRepo.WithIDsIn(ids))
 }

@@ -441,6 +441,57 @@
                 }
             }
         },
+        "/host/command/del": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This function is specifically designed to handle the deletion of quick commands. It first initiates by validating and binding the incoming JSON request data of type dto.BatchDeleteReq.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Command"
+                ],
+                "summary": "Delete command",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BatchDeleteReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [
+                        {
+                            "db": "commands",
+                            "input_column": "id",
+                            "input_value": "ids",
+                            "isList": true,
+                            "output_column": "name",
+                            "output_value": "names"
+                        }
+                    ],
+                    "bodyKeys": [
+                        "ids"
+                    ],
+                    "formatEN": "delete quick command [names]",
+                    "formatZH": "删除快捷命令 [names]",
+                    "paramKeys": []
+                }
+            }
+        },
         "/host/del": {
             "post": {
                 "security": [

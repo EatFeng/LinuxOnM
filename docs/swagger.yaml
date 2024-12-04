@@ -778,6 +778,41 @@ paths:
         formatEN: create quick command [name][command]
         formatZH: 创建快捷命令 [name][command]
         paramKeys: []
+  /host/command/del:
+    post:
+      consumes:
+      - application/json
+      description: This function is specifically designed to handle the deletion of
+        quick commands. It first initiates by validating and binding the incoming
+        JSON request data of type dto.BatchDeleteReq.
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BatchDeleteReq'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Delete command
+      tags:
+      - Command
+      x-panel-log:
+        BeforeFunctions:
+        - db: commands
+          input_column: id
+          input_value: ids
+          isList: true
+          output_column: name
+          output_value: names
+        bodyKeys:
+        - ids
+        formatEN: delete quick command [names]
+        formatZH: 删除快捷命令 [names]
+        paramKeys: []
   /host/del:
     post:
       consumes:

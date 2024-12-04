@@ -333,3 +333,33 @@ func (b *BaseApi) CreateCommand(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// DeleteCommand
+// @Tags Command
+// @Summary Delete command
+// @Description This function is specifically designed to handle the deletion of quick commands. It first initiates by validating and binding the incoming JSON request data of type dto.BatchDeleteReq.
+//
+//	The dto.BatchDeleteReq structure is expected to contain an 'Ids' field which holds a list of identifiers. These identifiers are used to precisely specify which quick commands in the system need to be deleted.
+//	Once the request data has been successfully validated and bound to the 'req' variable of type dto.BatchDeleteReq, the function proceeds to call the commandService.Delete function, passing the list of command identifiers (req.Ids) as an argument.
+//	The commandService.Delete function is responsible for executing the actual deletion operations in the underlying database or relevant data storage. It undertakes several important steps during this process. Firstly, it will likely perform checks to ensure that the commands identified by the provided IDs are eligible for deletion. This might involve verifying that there are no dependencies on these commands from other parts of the system, such as other processes or entities that rely on these commands to function properly. After confirming that the deletion is feasible, it proceeds with the necessary database operations to physically remove the corresponding command records from the storage.
+//	If the deletion process within the commandService.Delete function is carried out without encountering any errors, a success response with no additional data is returned to indicate that the specified quick commands have been successfully deleted.
+//	However, if any issues arise during the validation and binding of the request data (for example, if the JSON format of the incoming request is incorrect, or the 'Ids' list doesn't meet the validation requirements specified for the dto.BatchDeleteReq structure) or during the actual deletion process in the commandService.Delete function (like encountering database connection problems, violating deletion constraints related to data integrity, or issues with the deletion logic itself), appropriate error handling is implemented. In such cases, the helper.ErrorWithDetail function is called to send back an error response. This error response includes detailed error information, such as an error code (constant.CodeErrInternalServer) and an error type (constant.ErrTypeInternalServer), along with the specific error message that occurred during the process.
+//
+// @Accept json
+// @Param request body dto.BatchDeleteReq true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /host/command/del [post]
+// @x-panel-log {"bodyKeys":["ids"],"paramKeys":[],"BeforeFunctions":[{"input_column":"id","input_value":"ids","isList":true,"db":"commands","output_column":"name","output_value":"names"}],"formatZH":"删除快捷命令 [names]","formatEN":"delete quick command [names]"}
+func (b *BaseApi) DeleteCommand(c *gin.Context) {
+	var req dto.BatchDeleteReq
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := commandService.Delete(req.Ids); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

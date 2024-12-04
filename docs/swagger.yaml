@@ -119,6 +119,24 @@ definitions:
       temperature:
         type: string
     type: object
+  dto.GroupInfo:
+    properties:
+      id:
+        type: integer
+      isDefault:
+        type: boolean
+      name:
+        type: string
+      type:
+        type: string
+    type: object
+  dto.GroupSearch:
+    properties:
+      type:
+        type: string
+    required:
+    - type
+    type: object
   dto.HostConnTest:
     properties:
       addr:
@@ -266,6 +284,20 @@ definitions:
     properties:
       info:
         type: string
+    type: object
+  dto.SearchHostWithPage:
+    properties:
+      groupID:
+        type: integer
+      info:
+        type: string
+      page:
+        type: integer
+      pageSize:
+        type: integer
+    required:
+    - page
+    - pageSize
     type: object
   dto.SearchLoginLogWithPage:
     properties:
@@ -448,6 +480,31 @@ paths:
       summary: Read file by Line
       tags:
       - File
+  /group/search:
+    post:
+      consumes:
+      - application/json
+      description: This function is used to query and retrieve a list of system groups.
+        It first validates and binds the incoming JSON request data of type dto.GroupSearch.
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GroupSearch'
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.GroupInfo'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: List groups
+      tags:
+      - System Group
   /host:
     post:
       consumes:
@@ -477,6 +534,31 @@ paths:
         formatEN: create host [name][addr]
         formatZH: 创建主机 [name][addr]
         paramKeys: []
+  /host/search:
+    post:
+      consumes:
+      - application/json
+      description: This function is used to retrieve a paginated list of hosts. It
+        first validates and binds the incoming JSON request data of type dto.SearchHostWithPage.
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SearchHostWithPage'
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.HostTree'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: Page host
+      tags:
+      - Host
   /host/test/byid/:id:
     post:
       consumes:
@@ -546,6 +628,35 @@ paths:
       summary: Load host tree
       tags:
       - Host
+  /host/update:
+    post:
+      consumes:
+      - application/json
+      description: This function is used to update host information. It first validates
+        and binds the incoming JSON request data of type dto.HostOperate.
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.HostOperate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Update host
+      tags:
+      - Host
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - name
+        - addr
+        formatEN: update host [name][addr]
+        formatZH: 更新主机信息 [name][addr]
+        paramKeys: []
   /log/operation:
     post:
       consumes:

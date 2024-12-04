@@ -11,6 +11,7 @@ type HostRepo struct{}
 type IHostRepo interface {
 	Get(opts ...DBOption) (models.Host, error)
 	GetList(opts ...DBOption) ([]models.Host, error)
+	Page(limit, offset int, opts ...DBOption) (int64, []models.Host, error)
 	Create(host *models.Host) error
 	Update(id uint, vars map[string]interface{}) error
 
@@ -78,4 +79,16 @@ func (h *HostRepo) WithByInfo(info string) DBOption {
 		infoStr := "%" + info + "%"
 		return g.Where("name LIKE ? OR addr LIKE ?", infoStr, infoStr)
 	}
+}
+
+func (h *HostRepo) Page(page, size int, opts ...DBOption) (int64, []models.Host, error) {
+	var users []models.Host
+	db := global.DB.Model(&models.Host{})
+	for _, opt := range opts {
+		db = opt(db)
+	}
+	count := int64(0)
+	db = db.Count(&count)
+	err := db.Limit(size).Offset(size * (page - 1)).Find(&users).Error
+	return count, users, err
 }

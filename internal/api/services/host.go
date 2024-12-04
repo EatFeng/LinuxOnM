@@ -19,7 +19,11 @@ type IHostService interface {
 	TestLocalConn(id uint) bool
 	TestByInfo(req dto.HostConnTest) bool
 	Create(hostDto dto.HostOperate) (*dto.HostInfo, error)
+	Update(id uint, upMap map[string]interface{}) error
 	SearchForTree(search dto.SearchForTree) ([]dto.HostTree, error)
+	SearchWithPage(search dto.SearchHostWithPage) (int64, interface{}, error)
+
+	EncryptHost(itemVal string) (string, error)
 }
 
 func NewIHostService() IHostService {
@@ -256,4 +260,50 @@ func (u *HostService) SearchForTree(search dto.SearchForTree) ([]dto.HostTree, e
 		}
 	}
 	return datas, err
+}
+
+func (u *HostService) SearchWithPage(search dto.SearchHostWithPage) (int64, interface{}, error) {
+	total, hosts, err := hostRepo.Page(search.Page, search.PageSize, hostRepo.WithByInfo(search.Info), commonRepo.WithByGroupID(search.GroupID))
+	if err != nil {
+		return 0, nil, err
+	}
+	var dtoHosts []dto.HostInfo
+	for _, host := range hosts {
+		var item dto.HostInfo
+		if err := copier.Copy(&item, &host); err != nil {
+			return 0, nil, errors.WithMessage(constant.ErrStructTransform, err.Error())
+		}
+		group, _ := groupRepo.Get(commonRepo.WithByID(host.GroupID))
+		item.GroupBelong = group.Name
+		if !item.RememberPassword {
+			item.Password = ""
+			item.PrivateKey = ""
+			item.PassPhrase = ""
+		} else {
+			if len(host.Password) != 0 {
+				item.Password, err = encrypt.StringDecrypt(host.Password)
+				if err != nil {
+					return 0, nil, err
+				}
+			}
+			if len(host.PrivateKey) != 0 {
+				item.PrivateKey, err = encrypt.StringDecrypt(host.PrivateKey)
+				if err != nil {
+					return 0, nil, err
+				}
+			}
+			if len(host.PassPhrase) != 0 {
+				item.PassPhrase, err = encrypt.StringDecrypt(host.PassPhrase)
+				if err != nil {
+					return 0, nil, err
+				}
+			}
+		}
+		dtoHosts = append(dtoHosts, item)
+	}
+	return total, dtoHosts, err
+}
+
+func (u *HostService) Update(id uint, upMap map[string]interface{}) error {
+	return hostRepo.Update(id, upMap)
 }

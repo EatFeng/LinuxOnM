@@ -157,6 +157,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/group/search": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This function is used to query and retrieve a list of system groups. It first validates and binds the incoming JSON request data of type dto.GroupSearch.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System Group"
+                ],
+                "summary": "List groups",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.GroupSearch"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GroupInfo"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/host": {
             "post": {
                 "security": [
@@ -197,6 +236,45 @@ const docTemplate = `{
                     "formatEN": "create host [name][addr]",
                     "formatZH": "创建主机 [name][addr]",
                     "paramKeys": []
+                }
+            }
+        },
+        "/host/search": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This function is used to retrieve a paginated list of hosts. It first validates and binds the incoming JSON request data of type dto.SearchHostWithPage.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Host"
+                ],
+                "summary": "Page host",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SearchHostWithPage"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.HostTree"
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -303,6 +381,49 @@ const docTemplate = `{
                             }
                         }
                     }
+                }
+            }
+        },
+        "/host/update": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This function is used to update host information. It first validates and binds the incoming JSON request data of type dto.HostOperate.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Host"
+                ],
+                "summary": "Update host",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.HostOperate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [],
+                    "bodyKeys": [
+                        "name",
+                        "addr"
+                    ],
+                    "formatEN": "update host [name][addr]",
+                    "formatZH": "更新主机信息 [name][addr]",
+                    "paramKeys": []
                 }
             }
         },
@@ -615,6 +736,34 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.GroupInfo": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "isDefault": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GroupSearch": {
+            "type": "object",
+            "required": [
+                "type"
+            ],
+            "properties": {
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.HostConnTest": {
             "type": "object",
             "required": [
@@ -833,6 +982,27 @@ const docTemplate = `{
             "properties": {
                 "info": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.SearchHostWithPage": {
+            "type": "object",
+            "required": [
+                "page",
+                "pageSize"
+            ],
+            "properties": {
+                "groupID": {
+                    "type": "integer"
+                },
+                "info": {
+                    "type": "string"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
                 }
             }
         },

@@ -60,3 +60,9 @@ type TreeChild struct {
 	ID    uint   `json:"id"`
 	Label string `json:"label"`
 }
+
+type SearchHostWithPage struct {
+	PageInfo
+	GroupID uint   `json:"groupID"`
+	Info    string `json:"info"`
+}

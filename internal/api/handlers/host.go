@@ -4,6 +4,7 @@ import (
 	"LinuxOnM/internal/api/dto"
 	"LinuxOnM/internal/api/handlers/helper"
 	"LinuxOnM/internal/constant"
+	"LinuxOnM/internal/utils/encrypt"
 	"github.com/gin-gonic/gin"
 )
 
@@ -111,4 +112,120 @@ func (b *BaseApi) HostTree(c *gin.Context) {
 	}
 
 	helper.SuccessWithData(c, data)
+}
+
+// SearchHost
+// @Tags Host
+// @Summary Page host
+// @Description This function is used to retrieve a paginated list of hosts. It first validates and binds the incoming JSON request data of type dto.SearchHostWithPage.
+//
+//	The dto.SearchHostWithPage structure contains information such as the page number, page size, search criteria for hosts (in the 'Info' field), and the group ID to filter hosts by.
+//	Then, it calls the SearchWithPage function in the HostService. In the HostService.SearchWithPage function, it queries the hostRepo to fetch the hosts based on the provided page number,
+//	page size, and the search and group ID filters. If there's an error during this database query, it immediately returns with that error.
+//	For each retrieved host, it copies the relevant data into a dto.HostInfo structure. It also fetches the corresponding group information for each host using the group ID and sets the
+//	'GroupBelong' field in the dto.HostInfo structure to the group's name.
+//	Additionally, if the 'RememberPassword' field of the host is false, the function clears the sensitive password-related fields (Password, PrivateKey, PassPhrase) in the dto.HostInfo structure.
+//	However, if 'RememberPassword' is true and the respective password, private key, or pass phrase fields of the host have non-zero lengths, the function decrypts these values using appropriate
+//	encryption functions before setting them in the dto.HostInfo structure. In case of any errors during the decryption process, it returns with that error.
+//	Finally, it returns the total number of hosts that match the search criteria (regardless of pagination) and the list of hosts in the dto.HostInfo format.
+//	Back in this route handling function, if the HostService.SearchWithPage call is successful, it packages the returned host list and total count into a dto.PageResult structure and sends it back
+//	as a successful response. In case of any errors during the validation, binding, or the host retrieval and processing steps, appropriate error handling is performed and an error response is sent.
+//
+// @Accept json
+// @Param request body dto.SearchHostWithPage true "request"
+// @Success 200 {array} dto.HostTree
+// @Security ApiKeyAuth
+// @Router /host/search [post]
+func (b *BaseApi) SearchHost(c *gin.Context) {
+	var req dto.SearchHostWithPage
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	total, list, err := hostService.SearchWithPage(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+
+	helper.SuccessWithData(c, dto.PageResult{
+		Items: list,
+		Total: total,
+	})
+}
+
+// UpdateHost
+// @Tags Host
+// @Summary Update host
+// @Description This function is used to update host information. It first validates and binds the incoming JSON request data of type dto.HostOperate.
+//
+//	Then, it encrypts the password or private key (if provided) based on the authentication mode. If the authentication mode is 'password' and a password is present,
+//	it calls the hostService.EncryptHost function to encrypt the password and clears the private key and pass phrase fields. If the authentication mode is 'key' and a
+//	private key is present, it encrypts the private key and, if a pass phrase exists, encrypts it as well, and clears the password field.
+//	Next, it constructs a map (upMap) containing the updated host information. The map includes fields such as name, group ID, address, port, user, authentication mode,
+//	remember password flag, and description. The password, private key, and pass phrase fields are set according to the authentication mode.
+//	Finally, it calls the hostService.Update function with the host ID and the update map. If the update is successful, it returns a success response with no data.
+//	In case of any errors during the validation, binding, encryption, or update process, appropriate error handling is performed and an error response is sent.
+//
+// @Accept json
+// @Param request body dto.HostOperate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /host/update [post]
+// @x-panel-log {"bodyKeys":["name","addr"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"更新主机信息 [name][addr]","formatEN":"update host [name][addr]"}
+func (b *BaseApi) UpdateHost(c *gin.Context) {
+	var req dto.HostOperate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	var err error
+	if len(req.Password) != 0 && req.AuthMode == "password" {
+		req.Password, err = hostService.EncryptHost(req.Password)
+		if err != nil {
+			helper.ErrorWithDetail(c, constant.CodeErrBadRequest, constant.ErrTypeInvalidParams, err)
+			return
+		}
+		req.PrivateKey = ""
+		req.PassPhrase = ""
+	}
+	if len(req.PrivateKey) != 0 && req.AuthMode == "key" {
+		req.PrivateKey, err = hostService.EncryptHost(req.PrivateKey)
+		if err != nil {
+			helper.ErrorWithDetail(c, constant.CodeErrBadRequest, constant.ErrTypeInvalidParams, err)
+			return
+		}
+		if len(req.PassPhrase) != 0 {
+			req.PassPhrase, err = encrypt.StringEncrypt(req.PassPhrase)
+			if err != nil {
+				helper.ErrorWithDetail(c, constant.CodeErrBadRequest, constant.ErrTypeInvalidParams, err)
+				return
+			}
+		}
+		req.Password = ""
+	}
+
+	upMap := make(map[string]interface{})
+	upMap["name"] = req.Name
+	upMap["group_id"] = req.GroupID
+	upMap["addr"] = req.Addr
+	upMap["port"] = req.Port
+	upMap["user"] = req.User
+	upMap["auth_mode"] = req.AuthMode
+	upMap["remember_password"] = req.RememberPassword
+	if req.AuthMode == "password" {
+		upMap["password"] = req.Password
+		upMap["private_key"] = ""
+		upMap["pass_phrase"] = ""
+	} else {
+		upMap["password"] = ""
+		upMap["private_key"] = req.PrivateKey
+		upMap["pass_phrase"] = req.PassPhrase
+	}
+	upMap["description"] = req.Description
+	if err := hostService.Update(req.ID, upMap); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
 }

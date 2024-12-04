@@ -8,4 +8,5 @@ var (
 	settingRepo = repositories.NewISettingRepo()
 	hostRepo    = repositories.NewIHostRepo()
 	groupRepo   = repositories.NewIGroupRepo()
+	commandRepo = repositories.NewICommandRepo()
 )

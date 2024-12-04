@@ -13,6 +13,7 @@ func (a *GroupRouter) InitRouter(Router *gin.RouterGroup) {
 	baseApi := handler.ApiGroupApp.BaseApi
 	{
 		groupRouter.POST("", baseApi.CreateGroup)
+		groupRouter.POST("/del", baseApi.DeleteGroup)
 		groupRouter.POST("/search", baseApi.ListGroup)
 		groupRouter.POST("/update", baseApi.UpdateGroup)
 	}

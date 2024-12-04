@@ -13,6 +13,7 @@ type IGroupRepo interface {
 	GetList(opts ...DBOption) ([]models.Group, error)
 	Create(group *models.Group) error
 	Update(id uint, vars map[string]interface{}) error
+	Delete(opts ...DBOption) error
 	CancelDefault(groupType string) error
 	WithByHostDefault() DBOption
 }
@@ -47,6 +48,14 @@ func (u *GroupRepo) Create(group *models.Group) error {
 
 func (u *GroupRepo) Update(id uint, vars map[string]interface{}) error {
 	return global.DB.Model(&models.Group{}).Where("id = ?", id).Updates(vars).Error
+}
+
+func (u *GroupRepo) Delete(opts ...DBOption) error {
+	db := global.DB
+	for _, opt := range opts {
+		db = opt(db)
+	}
+	return db.Delete(&models.Group{}).Error
 }
 
 func (u *GroupRepo) WithByHostDefault() DBOption {

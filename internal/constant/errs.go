@@ -32,5 +32,6 @@ var (
 )
 
 var (
-	ErrEntrance = "ErrEntrance"
+	ErrEntrance    = "ErrEntrance"
+	ErrGroupIsUsed = "ErrGroupIsUsed"
 )

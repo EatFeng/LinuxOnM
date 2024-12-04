@@ -100,3 +100,33 @@ func (b *BaseApi) UpdateGroup(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// DeleteGroup
+// @Tags System Group
+// @Summary Delete group
+// @Description This function is specifically designed to handle the deletion of system groups. It commences by validating and binding the incoming JSON request data of type dto.OperateByID.
+//
+//	The dto.OperateByID structure is likely crafted to hold the essential identifier information required to pinpoint the specific system group that needs to be deleted. In this case, it presumably contains an 'ID' field which serves as the unique identifier for the target group within the system.
+//	Once the request data has been successfully validated and bound to the 'req' variable of type dto.OperateByID, the function proceeds to call the groupService.Delete function, passing the group's ID (req.ID) as an argument.
+//	The groupService.Delete function is responsible for executing the actual deletion operations in the underlying database or relevant data storage. This entails several important steps, such as first verifying whether the group can be safely deleted. This might involve checking if the group is not associated with any other critical entities or operations that could be disrupted by its removal (for example, ensuring there are no dependencies on this group from other parts of the system). After confirming that the deletion is feasible, it proceeds to perform the necessary database operations to physically remove the group record from the storage.
+//	If the deletion process within the groupService.Delete function is carried out without any errors, a success response with no additional data is returned to signify that the system group has been successfully deleted.
+//	However, if any issues arise during the validation and binding of the request data (for instance, if the JSON format of the incoming request is incorrect or the 'ID' value doesn't meet the validation requirements specified for the dto.OperateByID structure) or during the actual deletion process in the groupService.Delete function (like encountering database connection problems, violating deletion constraints, or issues with data integrity), appropriate error handling is implemented. In such situations, the helper.ErrorWithDetail function is invoked to send back an error response. This error response encompasses detailed error information including an error code (constant.CodeErrInternalServer) and an error type (constant.ErrTypeInternalServer), along with the specific error message that occurred during the process.
+//
+// @Accept json
+// @Param request body dto.OperateByID true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /groups/del [post]
+// @x-panel-log {"bodyKeys":["id"],"paramKeys":[],"BeforeFunctions":[{"input_column":"id","input_value":"id","isList":false,"db":"groups","output_column":"name","output_value":"name"},{"input_column":"id","input_value":"id","isList":false,"db":"groups","output_column":"type","output_value":"type"}],"formatZH":"删除组 [type][name]","formatEN":"delete group [type][name]"}
+func (b *BaseApi) DeleteGroup(c *gin.Context) {
+	var req dto.OperateByID
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := groupService.Delete(req.ID); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

@@ -2,6 +2,7 @@ package services
 
 import (
 	"LinuxOnM/internal/api/dto"
+	"LinuxOnM/internal/buserr"
 	"LinuxOnM/internal/constant"
 	"LinuxOnM/internal/utils/copier"
 	"github.com/pkg/errors"
@@ -13,6 +14,7 @@ type IGroupService interface {
 	List(req dto.GroupSearch) ([]dto.GroupInfo, error)
 	Create(req dto.GroupCreate) error
 	Update(req dto.GroupUpdate) error
+	Delete(id uint) error
 }
 
 func NewIGroupService() IGroupService {
@@ -60,4 +62,24 @@ func (u *GroupService) Update(req dto.GroupUpdate) error {
 	upMap["is_default"] = req.IsDefault
 
 	return groupRepo.Update(req.ID, upMap)
+}
+
+func (u *GroupService) Delete(id uint) error {
+	group, _ := groupRepo.Get(commonRepo.WithByID(id))
+	if group.ID == 0 {
+		return constant.ErrRecordNotFound
+	}
+	switch group.Type {
+	case "command":
+		commands, _ := commandRepo.GetList(commonRepo.WithByGroupID(id))
+		if len(commands) > 0 {
+			return buserr.New(constant.ErrGroupIsUsed)
+		}
+	case "host":
+		hosts, _ := hostRepo.GetList(commonRepo.WithByGroupID(id))
+		if len(hosts) > 0 {
+			return buserr.New(constant.ErrGroupIsUsed)
+		}
+	}
+	return groupRepo.Delete(commonRepo.WithByID(id))
 }

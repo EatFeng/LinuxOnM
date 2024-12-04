@@ -239,6 +239,65 @@ const docTemplate = `{
                 }
             }
         },
+        "/groups/del": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This function is specifically designed to handle the deletion of system groups. It commences by validating and binding the incoming JSON request data of type dto.OperateByID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System Group"
+                ],
+                "summary": "Delete group",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.OperateByID"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [
+                        {
+                            "db": "groups",
+                            "input_column": "id",
+                            "input_value": "id",
+                            "isList": false,
+                            "output_column": "name",
+                            "output_value": "name"
+                        },
+                        {
+                            "db": "groups",
+                            "input_column": "id",
+                            "input_value": "id",
+                            "isList": false,
+                            "output_column": "type",
+                            "output_value": "type"
+                        }
+                    ],
+                    "bodyKeys": [
+                        "id"
+                    ],
+                    "formatEN": "delete group [type][name]",
+                    "formatZH": "删除组 [type][name]",
+                    "paramKeys": []
+                }
+            }
+        },
         "/groups/update": {
             "post": {
                 "security": [
@@ -321,6 +380,69 @@ const docTemplate = `{
                     ],
                     "formatEN": "create host [name][addr]",
                     "formatZH": "创建主机 [name][addr]",
+                    "paramKeys": []
+                }
+            }
+        },
+        "/host/command": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This function is used to retrieve the list of quick commands. It calls the commandService.List function which is responsible for querying and fetching the relevant command data from the underlying data source, such as a database. If the query operation in the commandService.List function is successful, it returns the list of commands which is then sent back as a successful response with a status code of 200 and the data in the format of dto.CommandInfo. In case of any errors during the query process, such as database connection issues or errors in data retrieval, the helper.ErrorWithDetail function is called to send back an error response with a specific error code (constant.CodeErrInternalServer) and error type (constant.ErrTypeInternalServer), along with the detailed error message.",
+                "tags": [
+                    "Command"
+                ],
+                "summary": "List commands",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommandInfo"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This function is designed to create a new quick command. It first validates and binds the incoming JSON request data of type dto.CommandOperate. The dto.CommandOperate structure likely contains essential fields for creating a command, such as the name and the actual command text. After successful validation and binding, it calls the commandService.Create function, passing the validated request data (req) as an argument. The commandService.Create function is tasked with performing the actual creation operations in the underlying data source, which may involve inserting the new command record with the provided details and handling any associated business logic or data integrity checks. If the creation process is successful, a success response with no additional data is returned. In case of any errors during the validation and binding of the request data or during the actual creation process in the commandService.Create function, the helper.ErrorWithDetail function is called to send back an error response with the appropriate error code and type, along with the detailed error message.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Command"
+                ],
+                "summary": "Create command",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommandOperate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [],
+                    "bodyKeys": [
+                        "name",
+                        "command"
+                    ],
+                    "formatEN": "create quick command [name][command]",
+                    "formatZH": "创建快捷命令 [name][command]",
                     "paramKeys": []
                 }
             }
@@ -774,6 +896,50 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CommandInfo": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string"
+                },
+                "groupBelong": {
+                    "type": "string"
+                },
+                "group_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CommandOperate": {
+            "type": "object",
+            "required": [
+                "command",
+                "name"
+            ],
+            "properties": {
+                "command": {
+                    "type": "string"
+                },
+                "groupBelong": {
+                    "type": "string"
+                },
+                "group_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.DashboardCurrent": {
             "type": "object",
             "properties": {
@@ -1146,6 +1312,17 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.OperateByID": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
                 }
             }
         },

@@ -293,3 +293,43 @@ func (b *BaseApi) DeleteHost(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// ListCommand
+// @Tags Command
+// @Summary List commands
+// @Description This function is used to retrieve the list of quick commands. It calls the commandService.List function which is responsible for querying and fetching the relevant command data from the underlying data source, such as a database. If the query operation in the commandService.List function is successful, it returns the list of commands which is then sent back as a successful response with a status code of 200 and the data in the format of dto.CommandInfo. In case of any errors during the query process, such as database connection issues or errors in data retrieval, the helper.ErrorWithDetail function is called to send back an error response with a specific error code (constant.CodeErrInternalServer) and error type (constant.ErrTypeInternalServer), along with the detailed error message.
+// @Success 200 {object} dto.CommandInfo
+// @Security ApiKeyAuth
+// @Router /host/command [get]
+func (b *BaseApi) ListCommand(c *gin.Context) {
+	list, err := commandService.List()
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+
+	helper.SuccessWithData(c, list)
+}
+
+// CreateCommand
+// @Tags Command
+// @Summary Create command
+// @Description This function is designed to create a new quick command. It first validates and binds the incoming JSON request data of type dto.CommandOperate. The dto.CommandOperate structure likely contains essential fields for creating a command, such as the name and the actual command text. After successful validation and binding, it calls the commandService.Create function, passing the validated request data (req) as an argument. The commandService.Create function is tasked with performing the actual creation operations in the underlying data source, which may involve inserting the new command record with the provided details and handling any associated business logic or data integrity checks. If the creation process is successful, a success response with no additional data is returned. In case of any errors during the validation and binding of the request data or during the actual creation process in the commandService.Create function, the helper.ErrorWithDetail function is called to send back an error response with the appropriate error code and type, along with the detailed error message.
+// @Accept json
+// @Param request body dto.CommandOperate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /host/command [post]
+// @x-panel-log {"bodyKeys":["name","command"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"创建快捷命令 [name][command]","formatEN":"create quick command [name][command]"}
+func (b *BaseApi) CreateCommand(c *gin.Context) {
+	var req dto.CommandOperate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := commandService.Create(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

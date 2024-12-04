@@ -17,4 +17,5 @@ var (
 	hostService      = services.NewIHostService()
 	fileService      = services.NewIFileService()
 	groupService     = services.NewIGroupService()
+	commandService   = services.NewICommandService()
 )

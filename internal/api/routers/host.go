@@ -20,5 +20,7 @@ func (s *HostRouter) InitRouter(Router *gin.RouterGroup) {
 		hostRouter.POST("/test/byid/:id", baseApi.TestByID)
 		hostRouter.POST("/test/byinfo", baseApi.TestByInfo)
 
+		hostRouter.GET("/command", baseApi.ListCommand)
+		hostRouter.POST("/command", baseApi.CreateCommand)
 	}
 }

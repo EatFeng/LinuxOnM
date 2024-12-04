@@ -70,3 +70,33 @@ func (b *BaseApi) CreateGroup(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// UpdateGroup
+// @Tags System Group
+// @Summary Update group
+// @Description This function is responsible for handling the update operation of system groups. It first validates and binds the incoming JSON request data of type dto.GroupUpdate.
+//
+//	The dto.GroupUpdate structure likely contains fields that are relevant for modifying the properties of an existing group, such as the 'name' and 'type' fields which are specified in the @x-panel-log annotation as key fields. These fields hold the updated values that the user intends to apply to the corresponding group.
+//	Once the request data is successfully bound to the 'req' variable of type dto.GroupUpdate, the function proceeds to call the groupService.Update function, passing the 'req' object as an argument.
+//	The groupService.Update function is tasked with performing the actual update operations in the underlying database or relevant data storage. This may involve checking the validity of the new values (for example, ensuring that the group name adheres to any naming conventions or uniqueness constraints if applicable), querying the database to locate the group record to be updated using its unique identifier (which might be implicitly associated with the request data), and then updating the corresponding fields in the group record with the new values provided in the 'req' object.
+//	If the update process within the groupService.Update function is completed without encountering any errors, a success response with no additional data is returned to indicate that the group has been successfully updated.
+//	However, if any issues arise during the validation and binding of the request data (such as incorrect JSON formatting, or the data not conforming to the validation rules defined for the dto.GroupUpdate structure) or during the actual update process in the groupService.Update function (like database connection failures, or violations of data integrity constraints), appropriate error handling is carried out. In such cases, the helper.ErrorWithDetail function is called to send back an error response. This error response includes detailed error information such as an error code (constant.CodeErrInternalServer) and an error type (constant.ErrTypeInternalServer), along with the specific error message that occurred during the process.
+//
+// @Accept json
+// @Param request body dto.GroupUpdate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /groups/update [post]
+// @x-panel-log {"bodyKeys":["name","type"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"更新组 [name][type]","formatEN":"update group [name][type]"}
+func (b *BaseApi) UpdateGroup(c *gin.Context) {
+	var req dto.GroupUpdate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := groupService.Update(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

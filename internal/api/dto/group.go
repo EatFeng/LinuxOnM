@@ -16,3 +16,10 @@ type GroupCreate struct {
 	Name string `json:"name" validate:"required"`
 	Type string `json:"type" validate:"required"`
 }
+
+type GroupUpdate struct {
+	ID        uint   `json:"id"`
+	Name      string `json:"name"`
+	Type      string `json:"type" validate:"required"`
+	IsDefault bool   `json:"isDefault"`
+}

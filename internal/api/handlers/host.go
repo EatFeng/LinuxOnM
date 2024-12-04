@@ -279,7 +279,7 @@ func (b *BaseApi) UpdateHostGroup(c *gin.Context) {
 // @Param request body dto.BatchDeleteReq true "request"
 // @Success 200
 // @Security ApiKeyAuth
-// @Router /hosts/del [post]
+// @Router /host/del [post]
 // @x-panel-log {"bodyKeys":["ids"],"paramKeys":[],"BeforeFunctions":[{"input_column":"id","input_value":"ids","isList":true,"db":"hosts","output_column":"addr","output_value":"addrs"}],"formatZH":"删除主机 [addrs]","formatEN":"delete host [addrs]"}
 func (b *BaseApi) DeleteHost(c *gin.Context) {
 	var req dto.BatchDeleteReq

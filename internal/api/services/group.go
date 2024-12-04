@@ -12,6 +12,7 @@ type GroupService struct{}
 type IGroupService interface {
 	List(req dto.GroupSearch) ([]dto.GroupInfo, error)
 	Create(req dto.GroupCreate) error
+	Update(req dto.GroupUpdate) error
 }
 
 func NewIGroupService() IGroupService {
@@ -46,4 +47,17 @@ func (u *GroupService) Create(req dto.GroupCreate) error {
 		return err
 	}
 	return nil
+}
+
+func (u *GroupService) Update(req dto.GroupUpdate) error {
+	if req.IsDefault {
+		if err := groupRepo.CancelDefault(req.Type); err != nil {
+			return err
+		}
+	}
+	upMap := make(map[string]interface{})
+	upMap["name"] = req.Name
+	upMap["is_default"] = req.IsDefault
+
+	return groupRepo.Update(req.ID, upMap)
 }

@@ -1,5 +1,14 @@
 basePath: /api/handler
 definitions:
+  dto.BatchDeleteReq:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    required:
+    - ids
+    type: object
   dto.ChangeHostGroup:
     properties:
       group_id:
@@ -154,6 +163,19 @@ definitions:
     type: object
   dto.GroupSearch:
     properties:
+      type:
+        type: string
+    required:
+    - type
+    type: object
+  dto.GroupUpdate:
+    properties:
+      id:
+        type: integer
+      isDefault:
+        type: boolean
+      name:
+        type: string
       type:
         type: string
     required:
@@ -556,6 +578,36 @@ paths:
       summary: List groups
       tags:
       - System Group
+  /groups/update:
+    post:
+      consumes:
+      - application/json
+      description: This function is responsible for handling the update operation
+        of system groups. It first validates and binds the incoming JSON request data
+        of type dto.GroupUpdate.
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GroupUpdate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Update group
+      tags:
+      - System Group
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - name
+        - type
+        formatEN: update group [name][type]
+        formatZH: 更新组 [name][type]
+        paramKeys: []
   /host:
     post:
       consumes:
@@ -584,6 +636,41 @@ paths:
         - addr
         formatEN: create host [name][addr]
         formatZH: 创建主机 [name][addr]
+        paramKeys: []
+  /host/del:
+    post:
+      consumes:
+      - application/json
+      description: This function is designed to handle the deletion of hosts. It operates
+        in a way that first validates and binds the incoming JSON request data of
+        type dto.BatchDeleteReq.
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BatchDeleteReq'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Delete host
+      tags:
+      - Host
+      x-panel-log:
+        BeforeFunctions:
+        - db: hosts
+          input_column: id
+          input_value: ids
+          isList: true
+          output_column: addr
+          output_value: addrs
+        bodyKeys:
+        - ids
+        formatEN: delete host [addrs]
+        formatZH: 删除主机 [addrs]
         paramKeys: []
   /host/search:
     post:

@@ -14,5 +14,6 @@ func (a *GroupRouter) InitRouter(Router *gin.RouterGroup) {
 	{
 		groupRouter.POST("", baseApi.CreateGroup)
 		groupRouter.POST("/search", baseApi.ListGroup)
+		groupRouter.POST("/update", baseApi.UpdateGroup)
 	}
 }

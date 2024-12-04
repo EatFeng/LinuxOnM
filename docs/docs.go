@@ -239,6 +239,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/groups/update": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This function is responsible for handling the update operation of system groups. It first validates and binds the incoming JSON request data of type dto.GroupUpdate.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System Group"
+                ],
+                "summary": "Update group",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.GroupUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [],
+                    "bodyKeys": [
+                        "name",
+                        "type"
+                    ],
+                    "formatEN": "update group [name][type]",
+                    "formatZH": "更新组 [name][type]",
+                    "paramKeys": []
+                }
+            }
+        },
         "/host": {
             "post": {
                 "security": [
@@ -278,6 +321,57 @@ const docTemplate = `{
                     ],
                     "formatEN": "create host [name][addr]",
                     "formatZH": "创建主机 [name][addr]",
+                    "paramKeys": []
+                }
+            }
+        },
+        "/host/del": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This function is designed to handle the deletion of hosts. It operates in a way that first validates and binds the incoming JSON request data of type dto.BatchDeleteReq.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Host"
+                ],
+                "summary": "Delete host",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BatchDeleteReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [
+                        {
+                            "db": "hosts",
+                            "input_column": "id",
+                            "input_value": "ids",
+                            "isList": true,
+                            "output_column": "addr",
+                            "output_value": "addrs"
+                        }
+                    ],
+                    "bodyKeys": [
+                        "ids"
+                    ],
+                    "formatEN": "delete host [addrs]",
+                    "formatZH": "删除主机 [addrs]",
                     "paramKeys": []
                 }
             }
@@ -651,6 +745,20 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.BatchDeleteReq": {
+            "type": "object",
+            "required": [
+                "ids"
+            ],
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "dto.ChangeHostGroup": {
             "type": "object",
             "required": [
@@ -887,6 +995,26 @@ const docTemplate = `{
                 "type"
             ],
             "properties": {
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GroupUpdate": {
+            "type": "object",
+            "required": [
+                "type"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "isDefault": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
                 "type": {
                     "type": "string"
                 }

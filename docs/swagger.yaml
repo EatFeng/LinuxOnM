@@ -2,12 +2,12 @@ basePath: /api/handler
 definitions:
   dto.ChangeHostGroup:
     properties:
-      groupID:
+      group_id:
         type: integer
       id:
         type: integer
     required:
-    - groupID
+    - group_id
     - id
     type: object
   dto.DashboardCurrent:
@@ -129,6 +129,18 @@ definitions:
       temperature:
         type: string
     type: object
+  dto.GroupCreate:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      type:
+        type: string
+    required:
+    - name
+    - type
+    type: object
   dto.GroupInfo:
     properties:
       id:
@@ -184,7 +196,7 @@ definitions:
         type: string
       description:
         type: string
-      groupID:
+      group_id:
         type: integer
       id:
         type: integer
@@ -297,7 +309,7 @@ definitions:
     type: object
   dto.SearchHostWithPage:
     properties:
-      groupID:
+      group_id:
         type: integer
       info:
         type: string
@@ -490,6 +502,35 @@ paths:
       summary: Read file by Line
       tags:
       - File
+  /group:
+    post:
+      consumes:
+      - application/json
+      description: This function serves the purpose of creating a new system group.
+        It first validates and binds the incoming JSON request data of type dto.GroupCreate.
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GroupCreate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Create group
+      tags:
+      - System Group
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - name
+        - type
+        formatEN: create group [name][type]
+        formatZH: 创建组 [name][type]
+        paramKeys: []
   /group/search:
     post:
       consumes:

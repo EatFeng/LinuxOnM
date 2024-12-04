@@ -10,3 +10,9 @@ type GroupInfo struct {
 	Type      string `json:"type"`
 	IsDefault bool   `json:"isDefault"`
 }
+
+type GroupCreate struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name" validate:"required"`
+	Type string `json:"type" validate:"required"`
+}

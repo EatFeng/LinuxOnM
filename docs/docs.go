@@ -157,6 +157,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/group": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This function serves the purpose of creating a new system group. It first validates and binds the incoming JSON request data of type dto.GroupCreate.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System Group"
+                ],
+                "summary": "Create group",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.GroupCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [],
+                    "bodyKeys": [
+                        "name",
+                        "type"
+                    ],
+                    "formatEN": "create group [name][type]",
+                    "formatZH": "创建组 [name][type]",
+                    "paramKeys": []
+                }
+            }
+        },
         "/group/search": {
             "post": {
                 "security": [
@@ -611,11 +654,11 @@ const docTemplate = `{
         "dto.ChangeHostGroup": {
             "type": "object",
             "required": [
-                "groupID",
+                "group_id",
                 "id"
             ],
             "properties": {
-                "groupID": {
+                "group_id": {
                     "type": "integer"
                 },
                 "id": {
@@ -803,6 +846,24 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.GroupCreate": {
+            "type": "object",
+            "required": [
+                "name",
+                "type"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.GroupInfo": {
             "type": "object",
             "properties": {
@@ -889,7 +950,7 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "groupID": {
+                "group_id": {
                     "type": "integer"
                 },
                 "id": {
@@ -1059,7 +1120,7 @@ const docTemplate = `{
                 "pageSize"
             ],
             "properties": {
-                "groupID": {
+                "group_id": {
                     "type": "integer"
                 },
                 "info": {

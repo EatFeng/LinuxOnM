@@ -14,7 +14,7 @@ type HostConnTest struct {
 
 type HostOperate struct {
 	ID               uint   `json:"id"`
-	GroupID          uint   `json:"groupID"`
+	GroupID          uint   `json:"group_id"`
 	Name             string `json:"name"`
 	Addr             string `json:"addr" validate:"required"`
 	Port             uint   `json:"port" validate:"required,number,max=65535,min=1"`
@@ -31,7 +31,7 @@ type HostOperate struct {
 type HostInfo struct {
 	ID               uint      `json:"id"`
 	CreatedAt        time.Time `json:"createdAt"`
-	GroupID          uint      `json:"groupID"`
+	GroupID          uint      `json:"group_id"`
 	GroupBelong      string    `json:"groupBelong"`
 	Name             string    `json:"name"`
 	Addr             string    `json:"addr"`
@@ -63,11 +63,11 @@ type TreeChild struct {
 
 type SearchHostWithPage struct {
 	PageInfo
-	GroupID uint   `json:"groupID"`
+	GroupID uint   `json:"group_id"`
 	Info    string `json:"info"`
 }
 
 type ChangeHostGroup struct {
 	ID      uint `json:"id" validate:"required"`
-	GroupID uint `json:"groupID" validate:"required"`
+	GroupID uint `json:"group_id" validate:"required"`
 }

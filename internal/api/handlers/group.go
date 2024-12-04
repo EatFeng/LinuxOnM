@@ -40,3 +40,33 @@ func (b *BaseApi) ListGroup(c *gin.Context) {
 
 	helper.SuccessWithData(c, list)
 }
+
+// CreateGroup
+// @Tags System Group
+// @Summary Create group
+// @Description This function serves the purpose of creating a new system group. It first validates and binds the incoming JSON request data of type dto.GroupCreate.
+//
+//	The dto.GroupCreate structure likely contains essential details required to create a group, such as the name and type of the group. These details are crucial for accurately creating the group record in the system.
+//	Once the request data is successfully validated and bound, it proceeds to call the groupService.Create function, passing the validated request data (req) as an argument.
+//	The groupService.Create function is responsible for performing the actual operations to create the group in the underlying database or relevant data storage. It might involve tasks like checking for uniqueness of the group name (if applicable), inserting the new group record with the provided details, and handling any associated business logic related to group creation.
+//	If the group creation process within the groupService.Create function is executed without any errors, a success response with no additional data is returned to indicate that the group has been successfully created.
+//	However, if any errors occur during the validation and binding of the request data or during the actual group creation process in the groupService.Create function, appropriate error handling is performed. In case of an error, the helper.ErrorWithDetail function is called to send back an error response. This error response includes detailed error information such as an error code (constant.CodeErrInternalServer) and an error type (constant.ErrTypeInternalServer), along with the specific error message that occurred during the process.
+//
+// @Accept json
+// @Param request body dto.GroupCreate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /group [post]
+// @x-panel-log {"bodyKeys":["name","type"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"创建组 [name][type]","formatEN":"create group [name][type]"}
+func (b *BaseApi) CreateGroup(c *gin.Context) {
+	var req dto.GroupCreate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := groupService.Create(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

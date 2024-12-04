@@ -11,6 +11,7 @@ type GroupRepo struct{}
 type IGroupRepo interface {
 	Get(opts ...DBOption) (models.Group, error)
 	GetList(opts ...DBOption) ([]models.Group, error)
+	Create(group *models.Group) error
 	WithByHostDefault() DBOption
 }
 
@@ -36,6 +37,10 @@ func (u *GroupRepo) GetList(opts ...DBOption) ([]models.Group, error) {
 	}
 	err := db.Find(&groups).Error
 	return groups, err
+}
+
+func (u *GroupRepo) Create(group *models.Group) error {
+	return global.DB.Create(group).Error
 }
 
 func (u *GroupRepo) WithByHostDefault() DBOption {

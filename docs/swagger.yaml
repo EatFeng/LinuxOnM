@@ -1,5 +1,15 @@
 basePath: /api/handler
 definitions:
+  dto.ChangeHostGroup:
+    properties:
+      groupID:
+        type: integer
+      id:
+        type: integer
+    required:
+    - groupID
+    - id
+    type: object
   dto.DashboardCurrent:
     properties:
       cpuPercent:
@@ -656,6 +666,42 @@ paths:
         - addr
         formatEN: update host [name][addr]
         formatZH: 更新主机信息 [name][addr]
+        paramKeys: []
+  /host/update/group:
+    post:
+      consumes:
+      - application/json
+      description: This function is designed to handle the operation of changing the
+        group to which a host belongs, which is often referred to as "switching the
+        host's group".
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ChangeHostGroup'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Update host group
+      tags:
+      - Host
+      x-panel-log:
+        BeforeFunctions:
+        - db: hosts
+          input_column: id
+          input_value: id
+          isList: false
+          output_column: addr
+          output_value: addr
+        bodyKeys:
+        - id
+        - group
+        formatEN: change host [addr] group => [group]
+        formatZH: 切换主机[addr]分组 => [group]
         paramKeys: []
   /log/operation:
     post:

@@ -66,3 +66,8 @@ type SearchHostWithPage struct {
 	GroupID uint   `json:"groupID"`
 	Info    string `json:"info"`
 }
+
+type ChangeHostGroup struct {
+	ID      uint `json:"id" validate:"required"`
+	GroupID uint `json:"groupID" validate:"required"`
+}

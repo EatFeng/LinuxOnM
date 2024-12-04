@@ -229,3 +229,37 @@ func (b *BaseApi) UpdateHost(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// UpdateHostGroup
+// @Tags Host
+// @Summary Update host group
+// @Description This function is designed to handle the operation of changing the group to which a host belongs, which is often referred to as "switching the host's group".
+//
+//	It first validates and binds the incoming JSON request data of type dto.ChangeHostGroup. The dto.ChangeHostGroup structure likely contains essential information such as the ID of the host
+//	whose group needs to be changed and the ID of the target group it will be switched to.
+//	Next, it constructs a map named 'upMap' which is used to hold the update information. In this case, only the 'group_id' key is set with the value from req.GroupID, indicating the new group ID that the host will be assigned to.
+//	Then, it calls the hostService.Update function with the host's ID (req.ID) and the 'upMap'. This function in the hostService is responsible for performing the actual update operation in the database to change the host's group.
+//	If the update process is successful, a success response with no additional data is returned. However, if any errors occur during the validation and binding of the request data or the database update operation,
+//	appropriate error handling is performed. Specifically, if there's an error during the update, the helper.ErrorWithDetail function is called to send back an error response with detailed error information, including an error code
+//	(constant.CodeErrInternalServer) and an error type (constant.ErrTypeInternalServer), along with the specific error message.
+//
+// @Accept json
+// @Param request body dto.ChangeHostGroup true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /host/update/group [post]
+// @x-panel-log {"bodyKeys":["id","group"],"paramKeys":[],"BeforeFunctions":[{"input_column":"id","input_value":"id","isList":false,"db":"hosts","output_column":"addr","output_value":"addr"}],"formatZH":"切换主机[addr]分组 => [group]","formatEN":"change host [addr] group => [group]"}
+func (b *BaseApi) UpdateHostGroup(c *gin.Context) {
+	var req dto.ChangeHostGroup
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	upMap := make(map[string]interface{})
+	upMap["group_id"] = req.GroupID
+	if err := hostService.Update(req.ID, upMap); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

@@ -427,6 +427,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/host/update/group": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This function is designed to handle the operation of changing the group to which a host belongs, which is often referred to as \"switching the host's group\".",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Host"
+                ],
+                "summary": "Update host group",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChangeHostGroup"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [
+                        {
+                            "db": "hosts",
+                            "input_column": "id",
+                            "input_value": "id",
+                            "isList": false,
+                            "output_column": "addr",
+                            "output_value": "addr"
+                        }
+                    ],
+                    "bodyKeys": [
+                        "id",
+                        "group"
+                    ],
+                    "formatEN": "change host [addr] group =\u003e [group]",
+                    "formatZH": "切换主机[addr]分组 =\u003e [group]",
+                    "paramKeys": []
+                }
+            }
+        },
         "/log/operation": {
             "post": {
                 "security": [
@@ -556,6 +608,21 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.ChangeHostGroup": {
+            "type": "object",
+            "required": [
+                "groupID",
+                "id"
+            ],
+            "properties": {
+                "groupID": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.DashboardCurrent": {
             "type": "object",
             "properties": {

@@ -13,6 +13,7 @@ type ICommandService interface {
 	List() ([]dto.CommandInfo, error)
 	Create(commandDto dto.CommandOperate) error
 	Delete(ids []uint) error
+	Update(id uint, upMap map[string]interface{}) error
 }
 
 func NewICommandService() ICommandService {
@@ -58,4 +59,8 @@ func (u *CommandService) Delete(ids []uint) error {
 		return commandRepo.Delete(commonRepo.WithByID(ids[0]))
 	}
 	return commandRepo.Delete(commonRepo.WithIDsIn(ids))
+}
+
+func (u *CommandService) Update(id uint, upMap map[string]interface{}) error {
+	return commandRepo.Update(id, upMap)
 }

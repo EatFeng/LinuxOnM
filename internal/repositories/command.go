@@ -12,6 +12,7 @@ type ICommandRepo interface {
 	Get(opts ...DBOption) (models.Command, error)
 	Create(command *models.Command) error
 	Delete(opts ...DBOption) error
+	Update(id uint, vars map[string]interface{}) error
 }
 
 func NewICommandRepo() ICommandRepo {
@@ -48,4 +49,8 @@ func (u *CommandRepo) Delete(opts ...DBOption) error {
 		db = opt(db)
 	}
 	return db.Delete(&models.Command{}).Error
+}
+
+func (u *CommandRepo) Update(id uint, vars map[string]interface{}) error {
+	return global.DB.Model(&models.Command{}).Where("id = ?", id).Updates(vars).Error
 }

@@ -363,3 +363,37 @@ func (b *BaseApi) DeleteCommand(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// UpdateCommand
+// @Tags Command
+// @Summary Update command
+// @Description This function is dedicated to handling the update operation for quick commands.
+//
+//	             It starts by validating and binding the incoming JSON request data of type dto.CommandOperate. The dto.CommandOperate structure is designed to hold the necessary information for updating a quick command. It likely includes fields such as the unique identifier of the command (req.ID), its name (req.Name), the associated group ID (req.GroupID), and the actual command text (req.Command). These fields are crucial for precisely specifying the details that need to be modified for the existing quick command.
+//					Once the request data has been successfully validated and bound to the 'req' variable of type dto.CommandOperate, the function proceeds to prepare an update map. This map, named 'upMap', is used to define the specific fields and their new values that will be updated in the database. In this case, the 'upMap' contains key-value pairs where the keys are the field names ('name', 'group_id', 'command') and the values are retrieved from the corresponding fields of the 'req' object (req.Name, req.GroupID, req.Command respectively).
+//					After constructing the 'upMap', the function then calls the commandService.Update function, passing the command's ID (req.ID) along with the 'upMap' as arguments. The commandService.Update function is responsible for executing the actual update operations in the underlying database or relevant data storage. It undertakes several steps during this process. Firstly, it locates the existing quick command record in the database using the provided ID. Then, it validates the new values in the 'upMap' to ensure they comply with any predefined business rules or data integrity constraints (for example, checking if the new command name adheres to naming conventions or if the group ID is valid). Once the validation is successful, it updates the corresponding fields in the database record with the new values from the 'upMap'.
+//					If the update process within the commandService.Update function is completed without encountering any errors, a success response with no additional data is returned to indicate that the quick command has been successfully updated.
+//					However, if any issues arise during the validation and binding of the request data (such as incorrect JSON formatting, or the data not conforming to the validation rules defined for the dto.CommandOperate structure) or during the actual update process in the commandService.Update function (like database connection failures, violations of data integrity constraints, or issues with the update logic itself), appropriate error handling is carried out. In such cases, the helper.ErrorWithDetail function is called to send back an error response. This error response includes detailed error information such as an error code (constant.CodeErrInternalServer) and an error type (constant.ErrTypeInternalServer), along with the specific error message that occurred during the process.
+//
+// @Accept json
+// @Param request body dto.CommandOperate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /host/command/update [post]
+// @x-panel-log {"bodyKeys":["name"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"更新快捷命令 [name]","formatEN":"update quick command [name]"}
+func (b *BaseApi) UpdateCommand(c *gin.Context) {
+	var req dto.CommandOperate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	upMap := make(map[string]interface{})
+	upMap["name"] = req.Name
+	upMap["group_id"] = req.GroupID
+	upMap["command"] = req.Command
+	if err := commandService.Update(req.ID, upMap); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

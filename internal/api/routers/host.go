@@ -23,5 +23,6 @@ func (s *HostRouter) InitRouter(Router *gin.RouterGroup) {
 		hostRouter.GET("/command", baseApi.ListCommand)
 		hostRouter.POST("/command", baseApi.CreateCommand)
 		hostRouter.POST("/command/del", baseApi.DeleteCommand)
+		hostRouter.POST("/command/update", baseApi.UpdateCommand)
 	}
 }

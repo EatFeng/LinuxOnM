@@ -492,6 +492,48 @@
                 }
             }
         },
+        "/host/command/update": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This function is dedicated to handling the update operation for quick commands.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Command"
+                ],
+                "summary": "Update command",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommandOperate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [],
+                    "bodyKeys": [
+                        "name"
+                    ],
+                    "formatEN": "update quick command [name]",
+                    "formatZH": "更新快捷命令 [name]",
+                    "paramKeys": []
+                }
+            }
+        },
         "/host/del": {
             "post": {
                 "security": [

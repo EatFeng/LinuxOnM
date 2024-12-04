@@ -813,6 +813,34 @@ paths:
         formatEN: delete quick command [names]
         formatZH: 删除快捷命令 [names]
         paramKeys: []
+  /host/command/update:
+    post:
+      consumes:
+      - application/json
+      description: This function is dedicated to handling the update operation for
+        quick commands.
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CommandOperate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Update command
+      tags:
+      - Command
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - name
+        formatEN: update quick command [name]
+        formatZH: 更新快捷命令 [name]
+        paramKeys: []
   /host/del:
     post:
       consumes:

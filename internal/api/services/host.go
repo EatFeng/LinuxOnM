@@ -8,6 +8,7 @@ import (
 	"LinuxOnM/internal/utils/encrypt"
 	"LinuxOnM/internal/utils/ssh"
 	"encoding/base64"
+	"fmt"
 	"github.com/pkg/errors"
 )
 
@@ -18,6 +19,7 @@ type IHostService interface {
 	TestLocalConn(id uint) bool
 	TestByInfo(req dto.HostConnTest) bool
 	Create(hostDto dto.HostOperate) (*dto.HostInfo, error)
+	SearchForTree(search dto.SearchForTree) ([]dto.HostTree, error)
 }
 
 func NewIHostService() IHostService {
@@ -224,4 +226,34 @@ func (u *HostService) EncryptHost(itemVal string) (string, error) {
 	}
 	keyItem, err := encrypt.StringEncrypt(string(privateKey))
 	return keyItem, err
+}
+
+func (u *HostService) SearchForTree(search dto.SearchForTree) ([]dto.HostTree, error) {
+	hosts, err := hostRepo.GetList(hostRepo.WithByInfo(search.Info))
+	if err != nil {
+		return nil, err
+	}
+	groups, err := groupRepo.GetList(commonRepo.WithByType("host"))
+	if err != nil {
+		return nil, err
+	}
+	var datas []dto.HostTree
+	for _, group := range groups {
+		var data dto.HostTree
+		data.ID = group.ID + 10000
+		data.Label = group.Name
+		for _, host := range hosts {
+			label := fmt.Sprintf("%s@%s:%d", host.User, host.Addr, host.Port)
+			if len(host.Name) != 0 {
+				label = fmt.Sprintf("%s - %s@%s:%d", host.Name, host.User, host.Addr, host.Port)
+			}
+			if host.GroupID == group.ID {
+				data.Children = append(data.Children, dto.TreeChild{ID: host.ID, Label: label})
+			}
+		}
+		if len(data.Children) != 0 {
+			datas = append(datas, data)
+		}
+	}
+	return datas, err
 }

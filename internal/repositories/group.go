@@ -10,6 +10,7 @@ type GroupRepo struct{}
 
 type IGroupRepo interface {
 	Get(opts ...DBOption) (models.Group, error)
+	GetList(opts ...DBOption) ([]models.Group, error)
 	WithByHostDefault() DBOption
 }
 
@@ -25,6 +26,16 @@ func (u *GroupRepo) Get(opts ...DBOption) (models.Group, error) {
 	}
 	err := db.First(&group).Error
 	return group, err
+}
+
+func (u *GroupRepo) GetList(opts ...DBOption) ([]models.Group, error) {
+	var groups []models.Group
+	db := global.DB.Model(&models.Group{})
+	for _, opt := range opts {
+		db = opt(db)
+	}
+	err := db.Find(&groups).Error
+	return groups, err
 }
 
 func (u *GroupRepo) WithByHostDefault() DBOption {

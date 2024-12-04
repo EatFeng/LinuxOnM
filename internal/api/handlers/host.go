@@ -81,3 +81,34 @@ func (b *BaseApi) CreateHost(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, host)
 }
+
+// HostTree
+// @Tags Host
+// @Summary Load host tree
+// @Description This function is used to load the host information in a tree-like structure. It first validates and binds the incoming JSON request data of type dto.SearchForTree.
+//
+//	The dto.SearchForTree structure likely contains specific search criteria to filter the hosts. Then, it calls the SearchForTree function in the HostService.
+//	In the HostService.SearchForTree function, it retrieves the list of hosts from the database based on the provided search information and also fetches the list of host groups.
+//	It then constructs a hierarchical tree structure where each host group is a node and the hosts belonging to that group are its children. The details of each host node include its ID and a label that combines information like host name (if exists), user, address, and port.
+//	If the construction of the tree structure is successful and no errors occur during the database operations and data processing, it returns an array of dto.HostTree containing the complete host tree information.
+//	In case of any errors during the process, appropriate error handling is performed and an error response is sent.
+//
+// @Accept json
+// @Param request body dto.SearchForTree true "request"
+// @Success 200 {array} dto.HostTree
+// @Security ApiKeyAuth
+// @Router /hosts/tree [post]
+func (b *BaseApi) HostTree(c *gin.Context) {
+	var req dto.SearchForTree
+	if err := helper.CheckBind(&req, c); err != nil {
+		return
+	}
+
+	data, err := hostService.SearchForTree(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+
+	helper.SuccessWithData(c, data)
+}

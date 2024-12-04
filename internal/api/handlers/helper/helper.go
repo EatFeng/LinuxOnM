@@ -79,3 +79,11 @@ func GetParamID(c *gin.Context) (uint, error) {
 	intNum, _ := strconv.Atoi(idParam)
 	return uint(intNum), nil
 }
+
+func CheckBind(req interface{}, c *gin.Context) error {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		ErrorWithDetail(c, constant.CodeErrBadRequest, constant.ErrTypeInvalidParams, err)
+		return err
+	}
+	return nil
+}

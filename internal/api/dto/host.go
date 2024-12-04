@@ -45,3 +45,18 @@ type HostInfo struct {
 
 	Description string `json:"description"`
 }
+
+type SearchForTree struct {
+	Info string `json:"info"`
+}
+
+type HostTree struct {
+	ID       uint        `json:"id"`
+	Label    string      `json:"label"`
+	Children []TreeChild `json:"children"`
+}
+
+type TreeChild struct {
+	ID    uint   `json:"id"`
+	Label string `json:"label"`
+}

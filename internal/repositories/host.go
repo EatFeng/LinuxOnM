@@ -14,6 +14,7 @@ type IHostRepo interface {
 	Page(limit, offset int, opts ...DBOption) (int64, []models.Host, error)
 	Create(host *models.Host) error
 	Update(id uint, vars map[string]interface{}) error
+	Delete(opts ...DBOption) error
 
 	WithByAddr(addr string) DBOption
 	WithByUser(user string) DBOption
@@ -91,4 +92,12 @@ func (h *HostRepo) Page(page, size int, opts ...DBOption) (int64, []models.Host,
 	db = db.Count(&count)
 	err := db.Limit(size).Offset(size * (page - 1)).Find(&users).Error
 	return count, users, err
+}
+
+func (h *HostRepo) Delete(opts ...DBOption) error {
+	db := global.DB
+	for _, opt := range opts {
+		db = opt(db)
+	}
+	return db.Delete(&models.Host{}).Error
 }

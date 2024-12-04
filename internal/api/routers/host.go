@@ -12,6 +12,7 @@ func (s *HostRouter) InitRouter(Router *gin.RouterGroup) {
 	baseApi := handler.ApiGroupApp.BaseApi
 	{
 		hostRouter.POST("", baseApi.CreateHost)
+		hostRouter.POST("/del", baseApi.DeleteHost)
 		hostRouter.POST("/search", baseApi.SearchHost)
 		hostRouter.POST("/update", baseApi.UpdateHost)
 		hostRouter.POST("/update/group", baseApi.UpdateHostGroup)

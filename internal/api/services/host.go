@@ -20,6 +20,7 @@ type IHostService interface {
 	TestByInfo(req dto.HostConnTest) bool
 	Create(hostDto dto.HostOperate) (*dto.HostInfo, error)
 	Update(id uint, upMap map[string]interface{}) error
+	Delete(id []uint) error
 	SearchForTree(search dto.SearchForTree) ([]dto.HostTree, error)
 	SearchWithPage(search dto.SearchHostWithPage) (int64, interface{}, error)
 
@@ -306,4 +307,17 @@ func (u *HostService) SearchWithPage(search dto.SearchHostWithPage) (int64, inte
 
 func (u *HostService) Update(id uint, upMap map[string]interface{}) error {
 	return hostRepo.Update(id, upMap)
+}
+
+func (u *HostService) Delete(ids []uint) error {
+	hosts, _ := hostRepo.GetList(commonRepo.WithIDsIn(ids))
+	for _, host := range hosts {
+		if host.ID == 0 {
+			return constant.ErrRecordNotFound
+		}
+		if host.Addr == "127.0.0.1" {
+			return errors.New("the local connection information cannot be deleted!")
+		}
+	}
+	return hostRepo.Delete(commonRepo.WithIDsIn(ids))
 }

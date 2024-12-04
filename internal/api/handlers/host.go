@@ -263,3 +263,33 @@ func (b *BaseApi) UpdateHostGroup(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// DeleteHost
+// @Tags Host
+// @Summary Delete host
+// @Description This function is designed to handle the deletion of hosts. It operates in a way that first validates and binds the incoming JSON request data of type dto.BatchDeleteReq.
+//
+//	The dto.BatchDeleteReq structure is expected to contain a specific field (as per its definition) which is likely used to identify the hosts that need to be deleted. In this case, it probably has an 'Ids' field that holds the identifiers (such as unique IDs) of the hosts targeted for deletion.
+//	Once the request data has been successfully validated and bound to the 'req' variable of type dto.BatchDeleteReq, the function proceeds to call the hostService.Delete function, passing the list of host IDs (req.Ids) as an argument.
+//	The hostService.Delete function is responsible for executing the actual deletion operations in the underlying database or relevant data storage. This might involve performing necessary checks, such as ensuring that the hosts are eligible for deletion (for example, checking if they are not referenced by other critical components or operations), and then physically removing the corresponding host records from the database.
+//	If the deletion process within the hostService.Delete function is completed without encountering any errors, a success response with no additional data is returned to indicate that the hosts have been successfully deleted.
+//	However, if any issues arise during the validation and binding of the request data (for instance, if the format of the incoming JSON is incorrect or the data doesn't meet the validation requirements specified for the dto.BatchDeleteReq structure) or during the actual deletion process in the hostService.Delete function (like database connection problems or violations of deletion constraints), appropriate error handling is carried out. In such cases, the helper.ErrorWithDetail function is called to send back an error response. This error response includes detailed error information such as an error code (constant.CodeErrInternalServer) and an error type (constant.ErrTypeInternalServer), along with the specific error message that occurred during the process.
+//
+// @Accept json
+// @Param request body dto.BatchDeleteReq true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /hosts/del [post]
+// @x-panel-log {"bodyKeys":["ids"],"paramKeys":[],"BeforeFunctions":[{"input_column":"id","input_value":"ids","isList":true,"db":"hosts","output_column":"addr","output_value":"addrs"}],"formatZH":"删除主机 [addrs]","formatEN":"delete host [addrs]"}
+func (b *BaseApi) DeleteHost(c *gin.Context) {
+	var req dto.BatchDeleteReq
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := hostService.Delete(req.Ids); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

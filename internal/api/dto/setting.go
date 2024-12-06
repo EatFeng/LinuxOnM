@@ -51,3 +51,8 @@ type SettingInfo struct {
 	ProxyPasswd     string `json:"proxyPasswd"`
 	ProxyPasswdKeep string `json:"proxyPasswdKeep"`
 }
+
+type SettingUpdate struct {
+	Key   string `json:"key" validate:"required"`
+	Value string `json:"value"`
+}

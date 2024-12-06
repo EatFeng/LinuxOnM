@@ -12,6 +12,7 @@ type SettingRepo struct{}
 type ISettingRepo interface {
 	Get(opts ...DBOption) (models.Setting, error)
 	GetList(opts ...DBOption) ([]models.Setting, error)
+	Update(key, value string) error
 
 	WithByKey(key string) DBOption
 
@@ -45,6 +46,10 @@ func (u *SettingRepo) GetList(opts ...DBOption) ([]models.Setting, error) {
 	}
 	err := db.Find(&settings).Error
 	return settings, err
+}
+
+func (u *SettingRepo) Update(key, value string) error {
+	return global.DB.Model(&models.Setting{}).Where("key = ?", key).Updates(map[string]interface{}{"value": value}).Error
 }
 
 func (c *SettingRepo) WithByKey(key string) DBOption {

@@ -36,3 +36,7 @@ func (p *PSession) Set(sessionID string, user SessionUser, ttlSeconds int) error
 	p.ExpireTime = time.Now().Unix() + int64(ttlSeconds)
 	return p.store.SetWithTTL(sessionID, user, time.Second*time.Duration(ttlSeconds))
 }
+
+func (p *PSession) Clean() error {
+	return p.store.Clean()
+}

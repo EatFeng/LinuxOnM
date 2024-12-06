@@ -26,6 +26,10 @@ func (c *Cache) Get(key string) ([]byte, error) {
 	return result, err
 }
 
+func (c *Cache) Clean() error {
+	return c.db.DropAll()
+}
+
 func (c *Cache) SetWithTTL(key string, value interface{}, duration time.Duration) error {
 	err := c.db.Update(func(txn *badger.Txn) error {
 		v := []byte(fmt.Sprintf("%v", value))

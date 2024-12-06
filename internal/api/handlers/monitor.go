@@ -92,3 +92,28 @@ func (b *BaseApi) LoadMonitor(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, backdatas)
 }
+
+// CleanMonitor
+// @Tags Monitor
+// @Summary Clean monitor datas
+// @Description Delete all the existing monitor data.
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /host/monitor/clean [post]
+// @x-panel-log {"bodyKeys":[],"paramKeys":[],"BeforeFunctions":[],"formatZH":"清空监控数据","formatEN":"clean monitor datas"}
+func (b *BaseApi) CleanMonitor(c *gin.Context) {
+	if err := global.MonitorDB.Exec("DELETE FROM monitor_bases").Error; err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	if err := global.MonitorDB.Exec("DELETE FROM monitor_ios").Error; err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	if err := global.MonitorDB.Exec("DELETE FROM monitor_networks").Error; err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+
+	helper.SuccessWithData(c, nil)
+}

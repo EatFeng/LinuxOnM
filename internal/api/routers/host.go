@@ -29,5 +29,6 @@ func (s *HostRouter) InitRouter(Router *gin.RouterGroup) {
 		hostRouter.GET("/command/tree", baseApi.SearchCommandTree)
 		// host-monitor
 		hostRouter.POST("/monitor/search", baseApi.LoadMonitor)
+		hostRouter.POST("/monitor/clean", baseApi.CleanMonitor)
 	}
 }

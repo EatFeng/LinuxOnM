@@ -1,0 +1,36 @@
+package models
+
+import "time"
+
+type Cronjob struct {
+	BaseModel
+
+	Name string `gorm:"type:varchar(64);not null" json:"name"`
+	Type string `gorm:"type:varchar(64);not null" json:"type"`
+	Spec string `gorm:"type:varchar(64);not null" json:"spec"`
+
+	Command        string `gorm:"type:varchar(64)" json:"command"`
+	ContainerName  string `gorm:"type:varchar(64)" json:"containerName"`
+	Script         string `gorm:"longtext" json:"script"`
+	URL            string `gorm:"type:varchar(256)" json:"url"`
+	SourceDir      string `gorm:"type:varchar(256)" json:"sourceDir"`
+	ExclusionRules string `gorm:"longtext" json:"exclusionRules"`
+
+	Status   string       `gorm:"type:varchar(64)" json:"status"`
+	EntryIDs string       `gorm:"type:varchar(64)" json:"entryIDs"`
+	Records  []JobRecords `json:"records"`
+	Secret   string       `gorm:"type:varchar(64)" json:"secret"`
+}
+
+type JobRecords struct {
+	BaseModel
+
+	CronjobID uint      `gorm:"type:decimal" json:"cronjobID"`
+	StartTime time.Time `gorm:"type:datetime" json:"startTime"`
+	Interval  float64   `gorm:"type:float" json:"interval"`
+	Records   string    `gorm:"longtext" json:"records"`
+	FromLocal bool      `gorm:"type:varchar(64)" json:"source"`
+	File      string    `gorm:"type:varchar(256)" json:"file"`
+	Status    string    `gorm:"type:varchar(64)" json:"status"`
+	Message   string    `gorm:"longtext" json:"message"`
+}

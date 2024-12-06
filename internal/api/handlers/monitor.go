@@ -1,0 +1,94 @@
+package handlers
+
+import (
+	"LinuxOnM/internal/api/dto"
+	"LinuxOnM/internal/api/handlers/helper"
+	"LinuxOnM/internal/constant"
+	"LinuxOnM/internal/global"
+	"LinuxOnM/internal/models"
+	"LinuxOnM/internal/utils/common"
+	"github.com/gin-gonic/gin"
+	"time"
+)
+
+// LoadMonitor
+// @Tags Monitor
+// @Summary Load monitor data
+// @Description This function is responsible for retrieving monitor data based on the provided request parameters.
+//
+//	It first validates and binds the incoming JSON request body of type dto.MonitorSearch. This validation ensures that the incoming data adheres to the expected format and constraints defined for the MonitorSearch structure.
+//	After successful validation and binding, it proceeds to handle the time zone conversion for the provided start and end time in the request. It uses the time zone obtained from the common.LoadTimeZoneByCmd function and applies it to the req.StartTime and req.EndTime fields, ensuring that the time-based queries later in the function are performed in the correct time zone context.
+//	Then, depending on the value of the 'Param' field in the request, it queries different database tables to fetch relevant monitor data.
+//	If the 'Param' value is "all", "cpu", "memory", or "load", it queries the model.MonitorBase table. It fetches records within the specified time range (between req.StartTime and req.EndTime) from the database using the global.MonitorDB object. For each retrieved record, it constructs a dto.MonitorData object with the 'Param' set to "base", populates its 'Date' and 'Value' fields with the relevant data from the retrieved record, and appends this object to the backdatas slice.
+//	When the 'Param' value is "all" or "io", it queries the model.MonitorIO table following a similar process. It retrieves records within the given time range, constructs a dto.MonitorData object with 'Param' as "io", populates its fields with the retrieved data, and adds it to the backdatas slice. In case of any database query errors during this process, it calls the helper.ErrorWithDetail function to send back an error response with appropriate error code and type, along with the detailed error message.
+//	For the case where the 'Param' value is "all" or "network", it queries the model.MonitorNetwork table with an additional condition on the 'name' field (name = req.Info) along with the time range check. It follows the same pattern of constructing a dto.MonitorData object with 'Param' set to "network", populating its fields, and appending it to the backdatas slice. Again, if any errors occur during the database query, an error response is sent.
+//	Finally, if all the data retrieval operations are completed without errors, it sends back a success response with the collected monitor data in the backdatas slice using the helper.SuccessWithData function.
+//
+// @Param request body dto.MonitorSearch true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /host/monitor/search [post]
+func (b *BaseApi) LoadMonitor(c *gin.Context) {
+	var req dto.MonitorSearch
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	loc, _ := time.LoadLocation(common.LoadTimeZoneByCmd())
+	req.StartTime = req.StartTime.In(loc)
+	req.EndTime = req.EndTime.In(loc)
+
+	var backdatas []dto.MonitorData
+	if req.Param == "all" || req.Param == "cpu" || req.Param == "memory" || req.Param == "load" {
+		var bases []models.MonitorBase
+		if err := global.MonitorDB.
+			Where("created_at > ? AND created_at < ?", req.StartTime, req.EndTime).
+			Find(&bases).Error; err != nil {
+			helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+			return
+		}
+
+		var itemData dto.MonitorData
+		itemData.Param = "base"
+		for _, base := range bases {
+			itemData.Date = append(itemData.Date, base.CreatedAt)
+			itemData.Value = append(itemData.Value, base)
+		}
+		backdatas = append(backdatas, itemData)
+	}
+	if req.Param == "all" || req.Param == "io" {
+		var bases []models.MonitorIO
+		if err := global.MonitorDB.
+			Where("created_at > ? AND created_at < ?", req.StartTime, req.EndTime).
+			Find(&bases).Error; err != nil {
+			helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+			return
+		}
+
+		var itemData dto.MonitorData
+		itemData.Param = "io"
+		for _, base := range bases {
+			itemData.Date = append(itemData.Date, base.CreatedAt)
+			itemData.Value = append(itemData.Value, base)
+		}
+		backdatas = append(backdatas, itemData)
+	}
+	if req.Param == "all" || req.Param == "network" {
+		var bases []models.MonitorNetwork
+		if err := global.MonitorDB.
+			Where("name = ? AND created_at > ? AND created_at < ?", req.Info, req.StartTime, req.EndTime).
+			Find(&bases).Error; err != nil {
+			helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+			return
+		}
+
+		var itemData dto.MonitorData
+		itemData.Param = "network"
+		for _, base := range bases {
+			itemData.Date = append(itemData.Date, base.CreatedAt)
+			itemData.Value = append(itemData.Value, base)
+		}
+		backdatas = append(backdatas, itemData)
+	}
+	helper.SuccessWithData(c, backdatas)
+}

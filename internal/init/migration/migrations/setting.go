@@ -85,3 +85,19 @@ var AddTableSetting = &gormigrate.Migration{
 		return nil
 	},
 }
+
+var AddBindAndAllowIPs = &gormigrate.Migration{
+	ID: "20241205-add-cronjob-settings",
+	Migrate: func(tx *gorm.DB) error {
+		if err := tx.Create(&models.Setting{Key: "TimeZone", Value: common.LoadTimeZoneByCmd()}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&models.Setting{Key: "NtpSite", Value: "pool.ntp.org"}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&models.Setting{Key: "MonitorInterval", Value: "1"}).Error; err != nil {
+			return err
+		}
+		return nil
+	},
+}

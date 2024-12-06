@@ -65,3 +65,11 @@ func Execf(cmdStr string, a ...interface{}) (string, error) {
 func Exec(cmdStr string) (string, error) {
 	return ExecWithTimeOut(cmdStr, 20*time.Second)
 }
+
+func SudoHandleCmd() string {
+	cmd := exec.Command("sudo", "-n", "ls")
+	if err := cmd.Run(); err == nil {
+		return "sudo "
+	}
+	return ""
+}

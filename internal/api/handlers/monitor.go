@@ -8,6 +8,8 @@ import (
 	"LinuxOnM/internal/models"
 	"LinuxOnM/internal/utils/common"
 	"github.com/gin-gonic/gin"
+	"github.com/shirou/gopsutil/v3/net"
+	"sort"
 	"time"
 )
 
@@ -116,4 +118,22 @@ func (b *BaseApi) CleanMonitor(c *gin.Context) {
 	}
 
 	helper.SuccessWithData(c, nil)
+}
+
+// GetNetworkOptions
+// @Tags Monitor
+// @Summary Get network options.
+// @Description Retrieve available network options which include "all" and the names of network interfaces obtained from network statistics.
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /host/monitor/net_options [get]
+func (b *BaseApi) GetNetworkOptions(c *gin.Context) {
+	netStat, _ := net.IOCounters(true)
+	var options []string
+	options = append(options, "all")
+	for _, net := range netStat {
+		options = append(options, net.Name)
+	}
+	sort.Strings(options)
+	helper.SuccessWithData(c, options)
 }

@@ -30,5 +30,6 @@ func (s *HostRouter) InitRouter(Router *gin.RouterGroup) {
 		// host-monitor
 		hostRouter.POST("/monitor/search", baseApi.LoadMonitor)
 		hostRouter.POST("/monitor/clean", baseApi.CleanMonitor)
+		hostRouter.GET("/monitor/net_options", baseApi.GetNetworkOptions)
 	}
 }

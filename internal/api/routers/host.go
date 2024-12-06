@@ -31,5 +31,6 @@ func (s *HostRouter) InitRouter(Router *gin.RouterGroup) {
 		hostRouter.POST("/monitor/search", baseApi.LoadMonitor)
 		hostRouter.POST("/monitor/clean", baseApi.CleanMonitor)
 		hostRouter.GET("/monitor/net_options", baseApi.GetNetworkOptions)
+		hostRouter.GET("/monitor/io_options", baseApi.GetIOOptions)
 	}
 }

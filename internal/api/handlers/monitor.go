@@ -8,6 +8,7 @@ import (
 	"LinuxOnM/internal/models"
 	"LinuxOnM/internal/utils/common"
 	"github.com/gin-gonic/gin"
+	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/net"
 	"sort"
 	"time"
@@ -132,6 +133,24 @@ func (b *BaseApi) GetNetworkOptions(c *gin.Context) {
 	var options []string
 	options = append(options, "all")
 	for _, net := range netStat {
+		options = append(options, net.Name)
+	}
+	sort.Strings(options)
+	helper.SuccessWithData(c, options)
+}
+
+// GetIOOptions
+// @Tags Monitor
+// @Summary Get I/O options.
+// @Description Retrieve available I/O options which include "all" and the names of disk devices obtained from disk I/O counters.
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /host/monitor/io_options [get]
+func (b *BaseApi) GetIOOptions(c *gin.Context) {
+	diskStat, _ := disk.IOCounters()
+	var options []string
+	options = append(options, "all")
+	for _, net := range diskStat {
 		options = append(options, net.Name)
 	}
 	sort.Strings(options)

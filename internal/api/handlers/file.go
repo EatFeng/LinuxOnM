@@ -5,6 +5,8 @@ import (
 	"LinuxOnM/internal/api/handlers/helper"
 	"LinuxOnM/internal/constant"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"net/http"
 )
 
 // @Tags File
@@ -25,4 +27,10 @@ func (b *BaseApi) ReadFileByLine(c *gin.Context) {
 		return
 	}
 	helper.SuccessWithData(c, res)
+}
+
+var wsUpgrade = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }

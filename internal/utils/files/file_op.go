@@ -8,6 +8,13 @@ type FileOp struct {
 	Fs afero.Fs
 }
 
+type Process struct {
+	Total   uint64  `json:"total"`
+	Written uint64  `json:"written"`
+	Percent float64 `json:"percent"`
+	Name    string  `json:"name"`
+}
+
 func NewFileOp() FileOp {
 	return FileOp{
 		Fs: afero.NewOsFs(),

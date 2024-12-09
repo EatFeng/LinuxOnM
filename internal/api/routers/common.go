@@ -10,5 +10,6 @@ func commonGroups() []CommonRouter {
 		&HostRouter{},
 		&GroupRouter{},
 		&SettingRouter{},
+		&ProcessRouter{},
 	}
 }

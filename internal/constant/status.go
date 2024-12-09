@@ -8,4 +8,5 @@ const (
 	StatusSuccess = "success"
 	StatusEnable  = "Enable"
 	StatusRunning = "Running"
+	StatusWaiting = "Waiting"
 )

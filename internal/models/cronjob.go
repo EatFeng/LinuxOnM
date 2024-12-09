@@ -16,6 +16,13 @@ type Cronjob struct {
 	SourceDir      string `gorm:"type:varchar(256)" json:"sourceDir"`
 	ExclusionRules string `gorm:"longtext" json:"exclusionRules"`
 
+	// 已废弃
+	KeepLocal   bool   `gorm:"type:varchar(64)" json:"keepLocal"`
+	TargetDirID uint64 `gorm:"type:decimal" json:"targetDirID"`
+
+	DefaultDownload string `gorm:"type:varchar(64)" json:"defaultDownload"`
+	RetainCopies    uint64 `gorm:"type:decimal" json:"retainCopies"`
+
 	Status   string       `gorm:"type:varchar(64)" json:"status"`
 	EntryIDs string       `gorm:"type:varchar(64)" json:"entryIDs"`
 	Records  []JobRecords `json:"records"`

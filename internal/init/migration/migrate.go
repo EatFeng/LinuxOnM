@@ -14,6 +14,7 @@ func Init() {
 		migrations.EncryptHostPassword,
 		migrations.NewMonitorDB,
 		migrations.AddBindAndAllowIPs,
+		migrations.AddTableCronjob,
 	})
 	if err := m.Migrate(); err != nil {
 		global.LOG.Error(err)

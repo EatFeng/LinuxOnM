@@ -5,6 +5,7 @@ import (
 	"LinuxOnM/internal/constant"
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 	"time"
 )
@@ -72,4 +73,35 @@ func SudoHandleCmd() string {
 		return "sudo "
 	}
 	return ""
+}
+
+func ExecCronjobWithTimeOut(cmdStr, workdir, outPath string, timeout time.Duration) error {
+	file, err := os.OpenFile(outPath, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	cmd := exec.Command("bash", "-c", cmdStr)
+	cmd.Dir = workdir
+	cmd.Stdout = file
+	cmd.Stderr = file
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	done := make(chan error, 1)
+	go func() {
+		done <- cmd.Wait()
+	}()
+	after := time.After(timeout)
+	select {
+	case <-after:
+		_ = cmd.Process.Kill()
+		return buserr.New(constant.ErrCmdTimeout)
+	case err := <-done:
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

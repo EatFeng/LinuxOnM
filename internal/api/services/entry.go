@@ -9,4 +9,5 @@ var (
 	hostRepo    = repositories.NewIHostRepo()
 	groupRepo   = repositories.NewIGroupRepo()
 	commandRepo = repositories.NewICommandRepo()
+	cronjobRepo = repositories.NewICronjobRepo()
 )

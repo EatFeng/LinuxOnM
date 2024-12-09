@@ -21,6 +21,7 @@ type CronjobService struct{}
 type ICronjobService interface {
 	Create(cronjobDto dto.CronjobCreate) error
 	Update(id uint, req dto.CronjobUpdate) error
+	UpdateStatus(id uint, status string) error
 	SearchWithPage(search dto.PageCronjob) (int64, interface{}, error)
 
 	StartJob(cronjob *models.Cronjob, isUpdate bool) (string, error)
@@ -169,4 +170,29 @@ func (u *CronjobService) Update(id uint, req dto.CronjobUpdate) error {
 	upMap["retain_copies"] = req.RetainCopies
 	upMap["secret"] = req.Secret
 	return cronjobRepo.Update(id, upMap)
+}
+
+func (u *CronjobService) UpdateStatus(id uint, status string) error {
+	cronjob, _ := cronjobRepo.Get(commonRepo.WithByID(id))
+	if cronjob.ID == 0 {
+		return errors.WithMessage(constant.ErrRecordNotFound, "record not found")
+	}
+	var (
+		entryIDs string
+		err      error
+	)
+	if status == constant.StatusEnable {
+		entryIDs, err = u.StartJob(&cronjob, false)
+		if err != nil {
+			return err
+		}
+	} else {
+		ids := strings.Split(cronjob.EntryIDs, ",")
+		for _, id := range ids {
+			idItem, _ := strconv.Atoi(id)
+			global.Cron.Remove(cron.EntryID(idItem))
+		}
+		global.LOG.Infof("stop cronjob entryID: %s", cronjob.EntryIDs)
+	}
+	return cronjobRepo.Update(cronjob.ID, map[string]interface{}{"status": status, "entry_ids": entryIDs})
 }

@@ -79,3 +79,26 @@ func (b *BaseApi) UpdateCronjob(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// UpdateCronjobStatus
+// @Tags Cronjob
+// @Summary Update cronjob status
+// @Description 更新计划任务状态
+// @Accept json
+// @Param request body dto.CronjobUpdateStatus true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /cronjob/status [post]
+// @x-panel-log {"bodyKeys":["id","status"],"paramKeys":[],"BeforeFunctions":[{"input_column":"id","input_value":"id","isList":false,"db":"cronjobs","output_column":"name","output_value":"name"}],"formatZH":"修改计划任务 [name] 状态为 [status]","formatEN":"change the status of cronjob [name] to [status]."}
+func (b *BaseApi) UpdateCronjobStatus(c *gin.Context) {
+	var req dto.CronjobUpdateStatus
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := cronjobService.UpdateStatus(req.ID, req.Status); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

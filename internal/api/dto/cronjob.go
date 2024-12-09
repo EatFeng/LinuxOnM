@@ -60,3 +60,8 @@ type CronjobUpdate struct {
 	RetainCopies    int    `json:"retainCopies" validate:"number,min=1"`
 	Secret          string `json:"secret"`
 }
+
+type CronjobUpdateStatus struct {
+	ID     uint   `json:"id" validate:"required"`
+	Status string `json:"status" validate:"required"`
+}

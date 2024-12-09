@@ -87,3 +87,12 @@ func CheckBind(req interface{}, c *gin.Context) error {
 	}
 	return nil
 }
+
+func SuccessWithOutData(ctx *gin.Context) {
+	res := dto.Response{
+		Code:    constant.CodeSuccess,
+		Message: "success",
+	}
+	ctx.JSON(http.StatusOK, res)
+	ctx.Abort()
+}

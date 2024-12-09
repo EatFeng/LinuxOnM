@@ -56,3 +56,26 @@ func (b *BaseApi) SearchCronjob(c *gin.Context) {
 		Total: total,
 	})
 }
+
+// UpdateCronjob
+// @Tags Cronjob
+// @Summary Update cronjob
+// @Description This function is used to update an existing cronjob. It first binds and validates the incoming JSON request body of type dto.CronjobUpdate. Then, it attempts to update the corresponding cronjob record in the system.
+// @Accept json
+// @Param request body dto.CronjobUpdate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /cronjob/update [post]
+// @x-panel-log {"bodyKeys":["id"],"paramKeys":[],"BeforeFunctions":[{"input_column":"id","input_value":"id","isList":false,"db":"cronjobs","output_column":"name","output_value":"name"}],"formatZH":"更新计划任务 [name]","formatEN":"update cronjob [name]"}
+func (b *BaseApi) UpdateCronjob(c *gin.Context) {
+	var req dto.CronjobUpdate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := cronjobService.Update(req.ID, req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

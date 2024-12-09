@@ -20,6 +20,7 @@ type CronjobService struct{}
 
 type ICronjobService interface {
 	Create(cronjobDto dto.CronjobCreate) error
+	Update(id uint, req dto.CronjobUpdate) error
 	SearchWithPage(search dto.PageCronjob) (int64, interface{}, error)
 
 	StartJob(cronjob *models.Cronjob, isUpdate bool) (string, error)
@@ -126,4 +127,46 @@ func (u *CronjobService) SearchWithPage(search dto.PageCronjob) (int64, interfac
 		dtoCronjobs = append(dtoCronjobs, item)
 	}
 	return total, dtoCronjobs, err
+}
+
+func (u *CronjobService) Update(id uint, req dto.CronjobUpdate) error {
+	var cronjob models.Cronjob
+	if err := copier.Copy(&cronjob, &req); err != nil {
+		return errors.WithMessage(constant.ErrStructTransform, err.Error())
+	}
+	cronModel, err := cronjobRepo.Get(commonRepo.WithByID(id))
+	if err != nil {
+		return constant.ErrRecordNotFound
+	}
+	upMap := make(map[string]interface{})
+	cronjob.EntryIDs = cronModel.EntryIDs
+	cronjob.Type = cronModel.Type
+	spec := cronjob.Spec
+	if cronModel.Status == constant.StatusEnable {
+		newEntryIDs, err := u.StartJob(&cronjob, true)
+		if err != nil {
+			return err
+		}
+		upMap["entry_ids"] = newEntryIDs
+	} else {
+		ids := strings.Split(cronjob.EntryIDs, ",")
+		for _, id := range ids {
+			idItem, _ := strconv.Atoi(id)
+			global.Cron.Remove(cron.EntryID(idItem))
+		}
+	}
+
+	upMap["name"] = req.Name
+	upMap["spec"] = spec
+	upMap["script"] = req.Script
+	upMap["command"] = req.Command
+	upMap["container_name"] = req.ContainerName
+	upMap["exclusion_rules"] = req.ExclusionRules
+	upMap["url"] = req.URL
+	upMap["source_dir"] = req.SourceDir
+
+	upMap["default_download"] = req.DefaultDownload
+	upMap["retain_copies"] = req.RetainCopies
+	upMap["secret"] = req.Secret
+	return cronjobRepo.Update(id, upMap)
 }

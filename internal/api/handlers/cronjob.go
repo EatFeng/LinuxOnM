@@ -29,3 +29,30 @@ func (b *BaseApi) CreateCronjob(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// SearchCronjob
+// @Tags Cronjob
+// @Summary Page cronjob
+// @Description Get page of cronjob
+// @Accept json
+// @Param request body dto.PageCronjob true "request"
+// @Success 200 {object} dto.PageResult
+// @Security ApiKeyAuth
+// @Router /cronjob/search [post]
+func (b *BaseApi) SearchCronjob(c *gin.Context) {
+	var req dto.PageCronjob
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	total, list, err := cronjobService.SearchWithPage(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+
+	helper.SuccessWithData(c, dto.PageResult{
+		Items: list,
+		Total: total,
+	})
+}

@@ -20,6 +20,7 @@ type CronjobService struct{}
 
 type ICronjobService interface {
 	Create(cronjobDto dto.CronjobCreate) error
+	SearchWithPage(search dto.PageCronjob) (int64, interface{}, error)
 
 	StartJob(cronjob *models.Cronjob, isUpdate bool) (string, error)
 }
@@ -106,4 +107,23 @@ func mkdirAndWriteFile(cronjob *models.Cronjob, startTime time.Time, msg []byte)
 	_, _ = write.WriteString(string(msg))
 	write.Flush()
 	return path, nil
+}
+
+func (u *CronjobService) SearchWithPage(search dto.PageCronjob) (int64, interface{}, error) {
+	total, cronjobs, err := cronjobRepo.Page(search.Page, search.PageSize, commonRepo.WithLikeName(search.Info), commonRepo.WithOrderRuleBy(search.OrderBy, search.Order))
+	var dtoCronjobs []dto.CronjobInfo
+	for _, cronjob := range cronjobs {
+		var item dto.CronjobInfo
+		if err := copier.Copy(&item, &cronjob); err != nil {
+			return 0, nil, errors.WithMessage(constant.ErrStructTransform, err.Error())
+		}
+		record, _ := cronjobRepo.RecordFirst(cronjob.ID)
+		if record.ID != 0 {
+			item.LastRecordTime = record.StartTime.Format(constant.DateTimeLayout)
+		} else {
+			item.LastRecordTime = "-"
+		}
+		dtoCronjobs = append(dtoCronjobs, item)
+	}
+	return total, dtoCronjobs, err
 }

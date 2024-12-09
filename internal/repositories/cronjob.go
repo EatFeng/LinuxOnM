@@ -13,6 +13,8 @@ type CronjobRepo struct{}
 type ICronjobRepo interface {
 	Get(opts ...DBOption) (models.Cronjob, error)
 	Create(cronjob *models.Cronjob) error
+	Page(limit, offset int, opts ...DBOption) (int64, []models.Cronjob, error)
+	RecordFirst(id uint) (models.JobRecords, error)
 	WithByJobID(id int) DBOption
 	ListRecord(opts ...DBOption) ([]models.JobRecords, error)
 	StartRecords(cronjobID uint, fromLocal bool, targetPath string) models.JobRecords
@@ -37,6 +39,12 @@ func (u *CronjobRepo) Get(opts ...DBOption) (models.Cronjob, error) {
 
 func (u *CronjobRepo) Create(cronjob *models.Cronjob) error {
 	return global.DB.Create(cronjob).Error
+}
+
+func (u *CronjobRepo) RecordFirst(id uint) (models.JobRecords, error) {
+	var record models.JobRecords
+	err := global.DB.Where("cronjob_id = ?", id).Order("created_at desc").First(&record).Error
+	return record, err
 }
 
 func (c *CronjobRepo) WithByJobID(id int) DBOption {
@@ -89,4 +97,16 @@ func (u *CronjobRepo) EndRecords(record models.JobRecords, status, message, reco
 	if err := global.DB.Model(&models.JobRecords{}).Where("id = ?", record.ID).Updates(errMap).Error; err != nil {
 		global.LOG.Errorf("update record status failed, err: %v", err)
 	}
+}
+
+func (u *CronjobRepo) Page(page, size int, opts ...DBOption) (int64, []models.Cronjob, error) {
+	var cronjobs []models.Cronjob
+	db := global.DB.Model(&models.Cronjob{})
+	for _, opt := range opts {
+		db = opt(db)
+	}
+	count := int64(0)
+	db = db.Count(&count)
+	err := db.Limit(size).Offset(size * (page - 1)).Find(&cronjobs).Error
+	return count, cronjobs, err
 }

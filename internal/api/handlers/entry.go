@@ -19,4 +19,6 @@ var (
 	groupService     = services.NewIGroupService()
 	commandService   = services.NewICommandService()
 	settingService   = services.NewISettingService()
+	processService   = services.NewIProcessService()
+	cronjobService   = services.NewICronjobService()
 )

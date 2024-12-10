@@ -158,3 +158,21 @@ func (b *BaseApi) SearchJobRecords(c *gin.Context) {
 		Total: total,
 	})
 }
+
+// LoadRecordLog
+// @Tags Cronjob
+// @Summary Load Cronjob record log
+// @Description 获取计划任务记录日志
+// @Accept json
+// @Param request body dto.OperateByID true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /cronjob/records/log [post]
+func (b *BaseApi) LoadRecordLog(c *gin.Context) {
+	var req dto.OperateByID
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+	content := cronjobService.LoadRecordLog(req)
+	helper.SuccessWithData(c, content)
+}

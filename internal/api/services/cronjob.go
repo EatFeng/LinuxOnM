@@ -27,6 +27,7 @@ type ICronjobService interface {
 
 	StartJob(cronjob *models.Cronjob, isUpdate bool) (string, error)
 	SearchRecords(search dto.SearchRecord) (int64, interface{}, error)
+	LoadRecordLog(req dto.OperateByID) string
 }
 
 func NewICronjobService() ICronjobService {
@@ -226,4 +227,19 @@ func (u *CronjobService) SearchRecords(search dto.SearchRecord) (int64, interfac
 		dtoCronjobs = append(dtoCronjobs, item)
 	}
 	return total, dtoCronjobs, err
+}
+
+func (u *CronjobService) LoadRecordLog(req dto.OperateByID) string {
+	record, err := cronjobRepo.GetRecord(commonRepo.WithByID(req.ID))
+	if err != nil {
+		return ""
+	}
+	if _, err := os.Stat(record.Records); err != nil {
+		return ""
+	}
+	content, err := os.ReadFile(record.Records)
+	if err != nil {
+		return ""
+	}
+	return string(content)
 }

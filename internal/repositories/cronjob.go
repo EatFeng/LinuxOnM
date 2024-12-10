@@ -12,6 +12,7 @@ type CronjobRepo struct{}
 
 type ICronjobRepo interface {
 	Get(opts ...DBOption) (models.Cronjob, error)
+	GetRecord(opts ...DBOption) (models.JobRecords, error)
 	Create(cronjob *models.Cronjob) error
 	Update(id uint, vars map[string]interface{}) error
 	Page(limit, offset int, opts ...DBOption) (int64, []models.Cronjob, error)
@@ -38,6 +39,16 @@ func (u *CronjobRepo) Get(opts ...DBOption) (models.Cronjob, error) {
 	}
 	err := db.First(&cronjob).Error
 	return cronjob, err
+}
+
+func (u *CronjobRepo) GetRecord(opts ...DBOption) (models.JobRecords, error) {
+	var record models.JobRecords
+	db := global.DB
+	for _, opt := range opts {
+		db = opt(db)
+	}
+	err := db.First(&record).Error
+	return record, err
 }
 
 func (u *CronjobRepo) Create(cronjob *models.Cronjob) error {

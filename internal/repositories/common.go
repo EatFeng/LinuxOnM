@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"LinuxOnM/internal/constant"
+	"LinuxOnM/internal/global"
 	"fmt"
 	"gorm.io/gorm"
 	"time"
@@ -118,4 +119,12 @@ func (c *CommonRepository) WithByStatus(status string) DBOption {
 		}
 		return g.Where("status = ?", status)
 	}
+}
+
+func getDb(opts ...DBOption) *gorm.DB {
+	db := global.DB
+	for _, opt := range opts {
+		db = opt(db)
+	}
+	return db
 }

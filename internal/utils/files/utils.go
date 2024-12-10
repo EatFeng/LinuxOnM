@@ -3,7 +3,10 @@ package files
 import (
 	"bufio"
 	"io"
+	"net/http"
 	"os"
+	"os/user"
+	"strconv"
 )
 
 func ReadFileByLine(filename string, page, pageSize int, latest bool) (lines []string, isEndOfFile bool, total int, err error) {
@@ -69,4 +72,58 @@ func countLines(path string) (int, error) {
 		}
 		count++
 	}
+}
+
+func IsSymlink(mode os.FileMode) bool {
+	return mode&os.ModeSymlink != 0
+}
+
+const dotCharacter = 46
+
+func IsHidden(path string) bool {
+	return path[0] == dotCharacter
+}
+
+func IsBlockDevice(mode os.FileMode) bool {
+	return mode&os.ModeDevice != 0 && mode&os.ModeCharDevice == 0
+}
+
+func GetUsername(uid uint32) string {
+	usr, err := user.LookupId(strconv.Itoa(int(uid)))
+	if err != nil {
+		return ""
+	}
+	return usr.Username
+}
+
+func GetGroup(gid uint32) string {
+	usr, err := user.LookupGroupId(strconv.Itoa(int(gid)))
+	if err != nil {
+		return ""
+	}
+	return usr.Name
+}
+
+func GetMimeType(path string) string {
+	file, err := os.Open(path)
+	if err != nil {
+		return ""
+	}
+	defer file.Close()
+
+	buffer := make([]byte, 512)
+	_, err = file.Read(buffer)
+	if err != nil {
+		return ""
+	}
+	mimeType := http.DetectContentType(buffer)
+	return mimeType
+}
+
+func GetSymlink(path string) string {
+	linkPath, err := os.Readlink(path)
+	if err != nil {
+		return ""
+	}
+	return linkPath
 }

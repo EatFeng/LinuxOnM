@@ -28,10 +28,16 @@ var (
 
 // app
 var (
-	ErrCmdTimeout = "ErrCmdTimeout"
+	ErrCmdTimeout     = "ErrCmdTimeout"
+	ErrFileCanNotRead = "ErrFileCanNotRead"
 )
 
 var (
 	ErrEntrance    = "ErrEntrance"
 	ErrGroupIsUsed = "ErrGroupIsUsed"
+)
+
+// file
+var (
+	ErrLinkPathNotFound = "ErrLinkPathNotFound"
 )

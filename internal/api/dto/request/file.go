@@ -1,5 +1,11 @@
 package request
 
+import "LinuxOnM/internal/utils/files"
+
+type FileOption struct {
+	files.FileOption
+}
+
 type FileReadByLineReq struct {
 	Page     int    `json:"page" validate:"required"`
 	PageSize int    `json:"pageSize" validate:"required"`

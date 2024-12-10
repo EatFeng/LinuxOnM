@@ -12,5 +12,6 @@ func (f *FileRouter) InitRouter(Router *gin.RouterGroup) {
 	baseApi := handler.ApiGroupApp.BaseApi
 	{
 		fileRouter.POST("/read", baseApi.ReadFileByLine)
+		fileRouter.POST("/search", baseApi.ListFiles)
 	}
 }

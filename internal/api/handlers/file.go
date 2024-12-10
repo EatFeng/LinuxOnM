@@ -10,6 +10,26 @@ import (
 )
 
 // @Tags File
+// @Summary List files
+// @Accept json
+// @Param request body request.FileOption true "request"
+// @Success 200 {object} response.FileInfo
+// @Security ApiKeyAuth
+// @Router /files/search [post]
+func (b *BaseApi) ListFiles(c *gin.Context) {
+	var req request.FileOption
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+	files, err := fileService.GetFileList(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, files)
+}
+
+// @Tags File
 // @Summary Read file by Line
 // @Description 按行读取日志文件
 // @Param request body request.FileReadByLineReq true "request"

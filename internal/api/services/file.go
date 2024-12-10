@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -19,6 +20,7 @@ type FileService struct{}
 
 type IFileService interface {
 	ReadLogByLine(req request.FileReadByLineReq) (*response.FileLineContent, error)
+	GetFileList(op request.FileOption) (response.FileInfo, error)
 }
 
 func NewIFileService() IFileService {
@@ -74,4 +76,21 @@ func handleGunzip(path string) error {
 		return err
 	}
 	return nil
+}
+
+func (f *FileService) GetFileList(op request.FileOption) (response.FileInfo, error) {
+	var fileInfo response.FileInfo
+	data, err := os.Stat(op.Path)
+	if err != nil && os.IsNotExist(err) {
+		return fileInfo, nil
+	}
+	if !data.IsDir() {
+		op.FileOption.Path = filepath.Dir(op.FileOption.Path)
+	}
+	info, err := files.NewFileInfo(op.FileOption)
+	if err != nil {
+		return fileInfo, err
+	}
+	fileInfo.FileInfo = *info
+	return fileInfo, nil
 }

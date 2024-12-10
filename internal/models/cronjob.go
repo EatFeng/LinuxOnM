@@ -20,6 +20,7 @@ type Cronjob struct {
 	KeepLocal   bool   `gorm:"type:varchar(64)" json:"keepLocal"`
 	TargetDirID uint64 `gorm:"type:decimal" json:"targetDirID"`
 
+	BackupAccounts  string `gorm:"type:varchar(64)" json:"backupAccounts"`
 	DefaultDownload string `gorm:"type:varchar(64)" json:"defaultDownload"`
 	RetainCopies    uint64 `gorm:"type:decimal" json:"retainCopies"`
 

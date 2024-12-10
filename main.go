@@ -17,6 +17,7 @@ package main
 import (
 	"LinuxOnM/internal/cron"
 	"LinuxOnM/internal/global"
+	"LinuxOnM/internal/init/app"
 	"LinuxOnM/internal/init/db"
 	"LinuxOnM/internal/init/log"
 	"LinuxOnM/internal/init/migration"
@@ -34,6 +35,7 @@ func main() {
 	log.Init()
 	db.Init()
 	migration.Init()
+	app.Init()
 	validator.Init()
 	session.Init()
 	gin.SetMode("debug")

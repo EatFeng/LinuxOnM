@@ -21,10 +21,12 @@ type CronjobService struct{}
 type ICronjobService interface {
 	Create(cronjobDto dto.CronjobCreate) error
 	Update(id uint, req dto.CronjobUpdate) error
+	HandleOnce(id uint) error
 	UpdateStatus(id uint, status string) error
 	SearchWithPage(search dto.PageCronjob) (int64, interface{}, error)
 
 	StartJob(cronjob *models.Cronjob, isUpdate bool) (string, error)
+	SearchRecords(search dto.SearchRecord) (int64, interface{}, error)
 }
 
 func NewICronjobService() ICronjobService {
@@ -166,6 +168,7 @@ func (u *CronjobService) Update(id uint, req dto.CronjobUpdate) error {
 	upMap["url"] = req.URL
 	upMap["source_dir"] = req.SourceDir
 
+	upMap["backup_accounts"] = req.BackupAccounts
 	upMap["default_download"] = req.DefaultDownload
 	upMap["retain_copies"] = req.RetainCopies
 	upMap["secret"] = req.Secret
@@ -195,4 +198,32 @@ func (u *CronjobService) UpdateStatus(id uint, status string) error {
 		global.LOG.Infof("stop cronjob entryID: %s", cronjob.EntryIDs)
 	}
 	return cronjobRepo.Update(cronjob.ID, map[string]interface{}{"status": status, "entry_ids": entryIDs})
+}
+
+func (u *CronjobService) HandleOnce(id uint) error {
+	cronjob, _ := cronjobRepo.Get(commonRepo.WithByID(id))
+	if cronjob.ID == 0 {
+		return constant.ErrRecordNotFound
+	}
+	u.HandleJob(&cronjob)
+	return nil
+}
+
+func (u *CronjobService) SearchRecords(search dto.SearchRecord) (int64, interface{}, error) {
+	total, records, err := cronjobRepo.PageRecords(
+		search.Page,
+		search.PageSize,
+		commonRepo.WithByStatus(search.Status),
+		cronjobRepo.WithByJobID(search.CronjobID),
+		commonRepo.WithByDate(search.StartTime, search.EndTime))
+	var dtoCronjobs []dto.Record
+	for _, record := range records {
+		var item dto.Record
+		if err := copier.Copy(&item, &record); err != nil {
+			return 0, nil, errors.WithMessage(constant.ErrStructTransform, err.Error())
+		}
+		item.StartTime = record.StartTime.Format(constant.DateTimeLayout)
+		dtoCronjobs = append(dtoCronjobs, item)
+	}
+	return total, dtoCronjobs, err
 }

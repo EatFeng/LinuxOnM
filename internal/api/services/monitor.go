@@ -142,7 +142,6 @@ func (m *MonitorService) saveIODataToDB(ctx context.Context, interval float64) {
 				if err := settingRepo.BatchCreateMonitorIO(ioList); err != nil {
 					global.LOG.Errorf("Insert io monitoring data failed, err: %v", err)
 				}
-				global.LOG.Debugf("Insert io monitoring data successful!")
 				m.DiskIO <- ioStat2
 			}
 		}

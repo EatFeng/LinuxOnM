@@ -2,6 +2,7 @@ package files
 
 import (
 	"github.com/spf13/afero"
+	"io/fs"
 )
 
 type FileOp struct {
@@ -24,4 +25,8 @@ func NewFileOp() FileOp {
 func (f FileOp) Stat(dst string) bool {
 	info, _ := f.Fs.Stat(dst)
 	return info != nil
+}
+
+func (f FileOp) CreateDir(dst string, mode fs.FileMode) error {
+	return f.Fs.MkdirAll(dst, mode)
 }

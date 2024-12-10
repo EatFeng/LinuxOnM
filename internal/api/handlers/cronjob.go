@@ -4,13 +4,15 @@ import (
 	"LinuxOnM/internal/api/dto"
 	"LinuxOnM/internal/api/handlers/helper"
 	"LinuxOnM/internal/constant"
+	"LinuxOnM/internal/utils/common"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
 // CreateCronjob
 // @Tags Cronjob
 // @Summary Create cronjob
-// @Description Create a Cronjob
+// @Description 创建计划任务
 // @Accept json
 // @Param request body dto.CronjobCreate true "request"
 // @Success 200
@@ -33,7 +35,7 @@ func (b *BaseApi) CreateCronjob(c *gin.Context) {
 // SearchCronjob
 // @Tags Cronjob
 // @Summary Page cronjob
-// @Description Get page of cronjob
+// @Description 获取计划任务分页
 // @Accept json
 // @Param request body dto.PageCronjob true "request"
 // @Success 200 {object} dto.PageResult
@@ -60,7 +62,7 @@ func (b *BaseApi) SearchCronjob(c *gin.Context) {
 // UpdateCronjob
 // @Tags Cronjob
 // @Summary Update cronjob
-// @Description This function is used to update an existing cronjob. It first binds and validates the incoming JSON request body of type dto.CronjobUpdate. Then, it attempts to update the corresponding cronjob record in the system.
+// @Description 更新计划任务
 // @Accept json
 // @Param request body dto.CronjobUpdate true "request"
 // @Success 200
@@ -101,4 +103,58 @@ func (b *BaseApi) UpdateCronjobStatus(c *gin.Context) {
 		return
 	}
 	helper.SuccessWithData(c, nil)
+}
+
+// HandleOnce
+// @Tags Cronjob
+// @Summary Handle cronjob once
+// @Description 手动执行计划任务
+// @Accept json
+// @Param request body dto.OperateByID true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /cronjob/handle [post]
+// @x-panel-log {"bodyKeys":["id"],"paramKeys":[],"BeforeFunctions":[{"input_column":"id","input_value":"id","isList":false,"db":"cronjobs","output_column":"name","output_value":"name"}],"formatZH":"手动执行计划任务 [name]","formatEN":"manually execute the cronjob [name]"}
+func (b *BaseApi) HandleOnce(c *gin.Context) {
+	var req dto.OperateByID
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := cronjobService.HandleOnce(req.ID); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}
+
+// SearchJobRecords
+// @Tags Cronjob
+// @Summary Page job records
+// @Description 获取计划任务记录
+// @Accept json
+// @Param request body dto.SearchRecord true "request"
+// @Success 200 {object} dto.PageResult
+// @Security ApiKeyAuth
+// @Router /cronjob/record/search [post]
+func (b *BaseApi) SearchJobRecords(c *gin.Context) {
+	var req dto.SearchRecord
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	loc, _ := time.LoadLocation(common.LoadTimeZoneByCmd())
+	req.StartTime = req.StartTime.In(loc)
+	req.EndTime = req.EndTime.In(loc)
+
+	total, list, err := cronjobService.SearchRecords(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+
+	helper.SuccessWithData(c, dto.PageResult{
+		Items: list,
+		Total: total,
+	})
 }

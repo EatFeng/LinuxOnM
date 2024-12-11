@@ -18,5 +18,6 @@ func (s *CronjobRouter) InitRouter(Router *gin.RouterGroup) {
 		cmdRouter.POST("/handle", baseApi.HandleOnce)
 		cmdRouter.POST("/record/search", baseApi.SearchJobRecords)
 		cmdRouter.POST("/record/log", baseApi.LoadRecordLog)
+		cmdRouter.POST("/record/clean", baseApi.CleanRecord)
 	}
 }

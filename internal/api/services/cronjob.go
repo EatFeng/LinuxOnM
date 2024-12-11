@@ -28,6 +28,7 @@ type ICronjobService interface {
 	StartJob(cronjob *models.Cronjob, isUpdate bool) (string, error)
 	SearchRecords(search dto.SearchRecord) (int64, interface{}, error)
 	LoadRecordLog(req dto.OperateByID) string
+	CleanRecord(req dto.CronjobClean) error
 }
 
 func NewICronjobService() ICronjobService {
@@ -242,4 +243,41 @@ func (u *CronjobService) LoadRecordLog(req dto.OperateByID) string {
 		return ""
 	}
 	return string(content)
+}
+
+func (u *CronjobService) CleanRecord(req dto.CronjobClean) error {
+	cronjob, err := cronjobRepo.Get(commonRepo.WithByID(req.CronjobID))
+	if err != nil {
+		return err
+	}
+	if req.CleanData {
+		if hasBackup(cronjob.Type) {
+			accountMap, err := loadClientMap(cronjob.BackupAccounts)
+			if err != nil {
+				return err
+			}
+			cronjob.RetainCopies = 0
+			u.removeExpiredBackup(cronjob, accountMap, models.BackupRecord{})
+		} else {
+			u.removeExpiredLog(cronjob)
+		}
+	}
+	if req.IsDelete {
+		records, _ := backupRepo.ListRecord(backupRepo.WithByCronID(cronjob.ID))
+		for _, records := range records {
+			records.CronjobID = 0
+			_ = backupRepo.UpdateRecord(&records)
+		}
+	}
+	delRecords, err := cronjobRepo.ListRecord(cronjobRepo.WithByJobID(int(req.CronjobID)))
+	if err != nil {
+		return err
+	}
+	for _, del := range delRecords {
+		_ = os.RemoveAll(del.Records)
+	}
+	if err := cronjobRepo.DeleteRecord(cronjobRepo.WithByJobID(int(req.CronjobID))); err != nil {
+		return err
+	}
+	return nil
 }

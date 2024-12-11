@@ -3,7 +3,10 @@ package common
 import (
 	"LinuxOnM/internal/utils/cmd"
 	"fmt"
+	"io"
 	mathRand "math/rand"
+	"os"
+	"path"
 	"strings"
 	"time"
 )
@@ -55,4 +58,34 @@ func LoadTimeZoneByCmd() string {
 		return loc
 	}
 	return fields[2]
+}
+
+func CopyFile(src, dst string) error {
+	source, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer source.Close()
+
+	if path.Base(src) != path.Base(dst) {
+		dst = path.Join(dst, path.Base(src))
+	}
+	if _, err := os.Stat(path.Dir(dst)); err != nil {
+		if os.IsNotExist(err) {
+			_ = os.MkdirAll(path.Dir(dst), os.ModePerm)
+		}
+	}
+	target, err := os.OpenFile(dst+"_temp", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil {
+		return err
+	}
+	defer target.Close()
+
+	if _, err = io.Copy(target, source); err != nil {
+		return err
+	}
+	if err = os.Rename(dst+"_temp", dst); err != nil {
+		return err
+	}
+	return nil
 }

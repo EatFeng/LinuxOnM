@@ -18,6 +18,7 @@ var (
 	ErrCaptchaCode     = errors.New("ErrCaptchaCode")
 	ErrAuth            = errors.New("ErrAuth")
 	ErrInitialPassword = errors.New("ErrInitialPassword")
+	ErrNotSupportType  = errors.New("ErrNotSupportType")
 )
 
 // api

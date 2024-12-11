@@ -3,6 +3,7 @@ package repositories
 import (
 	"LinuxOnM/internal/constant"
 	"LinuxOnM/internal/global"
+	"context"
 	"fmt"
 	"gorm.io/gorm"
 	"time"
@@ -127,4 +128,15 @@ func getDb(opts ...DBOption) *gorm.DB {
 		db = opt(db)
 	}
 	return db
+}
+
+func getTx(ctx context.Context, opts ...DBOption) *gorm.DB {
+	tx, ok := ctx.Value(constant.DB).(*gorm.DB)
+	if ok {
+		for _, opt := range opts {
+			tx = opt(tx)
+		}
+		return tx
+	}
+	return getDb(opts...)
 }

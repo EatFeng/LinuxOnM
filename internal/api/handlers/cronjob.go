@@ -176,3 +176,27 @@ func (b *BaseApi) LoadRecordLog(c *gin.Context) {
 	content := cronjobService.LoadRecordLog(req)
 	helper.SuccessWithData(c, content)
 }
+
+// CleanRecord
+// @Tags Cronjob
+// @Summary Clean job records
+// @Description 清空计划任务记录
+// @Accept json
+// @Param request body dto.CronjobClean true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /cronjob/record/clean [post]
+// @x-panel-log {"bodyKeys":["id"],"paramKeys":[],"BeforeFunctions":[{"input_column":"id","input_value":"id","isList":false,"db":"cronjobs","output_column":"name","output_value":"name"}],"formatZH":"清空计划任务记录 [name]","formatEN":"clean cronjob [name] records"}
+func (b *BaseApi) CleanRecord(c *gin.Context) {
+	var req dto.CronjobClean
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := cronjobService.CleanRecord(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+
+	helper.SuccessWithData(c, nil)
+}

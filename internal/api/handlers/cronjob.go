@@ -200,3 +200,26 @@ func (b *BaseApi) CleanRecord(c *gin.Context) {
 
 	helper.SuccessWithData(c, nil)
 }
+
+// DeleteCronjob
+// @Tags Cronjob
+// @Summary Delete cronjob
+// @Description 删除计划任务
+// @Accept json
+// @Param request body dto.CronjobBatchDelete true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /cronjob/del [post]
+// @x-panel-log {"bodyKeys":["ids"],"paramKeys":[],"BeforeFunctions":[{"input_column":"id","input_value":"ids","isList":true,"db":"cronjobs","output_column":"name","output_value":"names"}],"formatZH":"删除计划任务 [names]","formatEN":"delete cronjob [names]"}
+func (b *BaseApi) DeleteCronjob(c *gin.Context) {
+	var req dto.CronjobBatchDelete
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := cronjobService.Delete(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

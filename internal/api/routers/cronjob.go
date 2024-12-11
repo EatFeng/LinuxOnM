@@ -12,6 +12,7 @@ func (s *CronjobRouter) InitRouter(Router *gin.RouterGroup) {
 	baseApi := handler.ApiGroupApp.BaseApi
 	{
 		cmdRouter.POST("", baseApi.CreateCronjob)
+		cmdRouter.POST("/del", baseApi.DeleteCronjob)
 		cmdRouter.POST("/search", baseApi.SearchCronjob)
 		cmdRouter.POST("/update", baseApi.UpdateCronjob)
 		cmdRouter.POST("/status", baseApi.UpdateCronjobStatus)

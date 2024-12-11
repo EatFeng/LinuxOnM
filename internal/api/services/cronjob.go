@@ -20,6 +20,7 @@ type CronjobService struct{}
 
 type ICronjobService interface {
 	Create(cronjobDto dto.CronjobCreate) error
+	Delete(req dto.CronjobBatchDelete) error
 	Update(id uint, req dto.CronjobUpdate) error
 	HandleOnce(id uint) error
 	UpdateStatus(id uint, status string) error
@@ -57,6 +58,29 @@ func (u *CronjobService) Create(cronjobDto dto.CronjobCreate) error {
 	if err := cronjobRepo.Create(&cronjob); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (u *CronjobService) Delete(req dto.CronjobBatchDelete) error {
+	for _, id := range req.IDs {
+		cronjob, _ := cronjobRepo.Get(commonRepo.WithByID(id))
+		if cronjob.ID == 0 {
+			return errors.New("find cronjob in db failed")
+		}
+		ids := strings.Split(cronjob.EntryIDs, ",")
+		for _, id := range ids {
+			idItem, _ := strconv.Atoi(id)
+			global.Cron.Remove(cron.EntryID(idItem))
+		}
+		global.LOG.Infof("stop cronjob entryID: %s", cronjob.EntryIDs)
+		if err := u.CleanRecord(dto.CronjobClean{CronjobID: id, CleanData: req.CleanData, IsDelete: true}); err != nil {
+			return err
+		}
+		if err := cronjobRepo.Delete(commonRepo.WithByID(id)); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

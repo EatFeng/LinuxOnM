@@ -7,6 +7,7 @@ import (
 	"LinuxOnM/internal/utils/encrypt"
 	"encoding/json"
 	"github.com/robfig/cron/v3"
+	"net"
 	"strconv"
 	"time"
 )
@@ -15,6 +16,7 @@ type SettingService struct{}
 
 type ISettingService interface {
 	GetSettingInfo() (*dto.SettingInfo, error)
+	LoadInterfaceAddr() ([]string, error)
 	Update(key, value string) error
 }
 
@@ -47,6 +49,25 @@ func (u *SettingService) GetSettingInfo() (*dto.SettingInfo, error) {
 
 	info.LocalTime = time.Now().Format("2006-01-02 15:04:05 MST -0700")
 	return &info, err
+}
+
+func (u *SettingService) LoadInterfaceAddr() ([]string, error) {
+	addrMap := make(map[string]struct{})
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return nil, err
+	}
+	for _, addr := range addrs {
+		ipNet, ok := addr.(*net.IPNet)
+		if ok && ipNet.IP.To16() != nil {
+			addrMap[ipNet.IP.String()] = struct{}{}
+		}
+	}
+	var data []string
+	for key := range addrMap {
+		data = append(data, key)
+	}
+	return data, nil
 }
 
 func (u *SettingService) Update(key, value string) error {

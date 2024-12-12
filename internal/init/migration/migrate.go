@@ -15,6 +15,7 @@ func Init() {
 		migrations.NewMonitorDB,
 		migrations.AddBindAndAllowIPs,
 		migrations.AddNewTableCronjob,
+		migrations.AddProxy,
 	})
 	if err := m.Migrate(); err != nil {
 		global.LOG.Error(err)

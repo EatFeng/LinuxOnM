@@ -101,3 +101,28 @@ var AddBindAndAllowIPs = &gormigrate.Migration{
 		return nil
 	},
 }
+
+var AddProxy = &gormigrate.Migration{
+	ID: "20241212-add-proxy-setting",
+	Migrate: func(tx *gorm.DB) error {
+		if err := tx.Create(&models.Setting{Key: "ProxyType", Value: ""}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&models.Setting{Key: "ProxyUrl", Value: ""}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&models.Setting{Key: "ProxyPort", Value: ""}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&models.Setting{Key: "ProxyUser", Value: ""}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&models.Setting{Key: "ProxyPasswd", Value: ""}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&models.Setting{Key: "ProxyPasswdKeep", Value: ""}).Error; err != nil {
+			return err
+		}
+		return nil
+	},
+}

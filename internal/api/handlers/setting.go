@@ -4,6 +4,7 @@ import (
 	"LinuxOnM/internal/api/dto"
 	"LinuxOnM/internal/api/handlers/helper"
 	"LinuxOnM/internal/constant"
+	"encoding/base64"
 	"github.com/gin-gonic/gin"
 )
 
@@ -114,6 +115,38 @@ func (b *BaseApi) HandlePasswordExpired(c *gin.Context) {
 	}
 
 	if err := settingService.HandlePasswordExpired(c, req.OldPassword, req.NewPassword); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}
+
+// UpdateProxy
+// @Tags System Setting
+// @Summary Update proxy setting
+// @Description 服务器代理配置
+// @Accept json
+// @Param request body dto.ProxyUpdate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /settings/update/proxy [post]
+// @x-panel-log {"bodyKeys":["proxyUrl","proxyPort"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"服务器代理配置 [proxyPort]:[proxyPort]","formatEN":"set proxy [proxyPort]:[proxyPort]."}
+func (b *BaseApi) UpdateProxy(c *gin.Context) {
+	var req dto.ProxyUpdate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if len(req.ProxyPasswd) != 0 && len(req.ProxyType) != 0 {
+		pass, err := base64.StdEncoding.DecodeString(req.ProxyPasswd)
+		if err != nil {
+			helper.ErrorWithDetail(c, constant.CodeErrBadRequest, constant.ErrTypeInvalidParams, err)
+			return
+		}
+		req.ProxyPasswd = string(pass)
+	}
+
+	if err := settingService.UpdateProxy(req); err != nil {
 		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
 		return
 	}

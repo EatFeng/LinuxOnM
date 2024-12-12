@@ -20,6 +20,7 @@ type ISettingService interface {
 	LoadInterfaceAddr() ([]string, error)
 	Update(key, value string) error
 	UpdatePassword(c *gin.Context, old, new string) error
+	UpdateProxy(req dto.ProxyUpdate) error
 	HandlePasswordExpired(c *gin.Context, old, new string) error
 }
 
@@ -132,6 +133,29 @@ func (u *SettingService) UpdatePassword(c *gin.Context, old, new string) error {
 		return err
 	}
 	_ = global.SESSION.Clean()
+	return nil
+}
+
+func (u *SettingService) UpdateProxy(req dto.ProxyUpdate) error {
+	if err := settingRepo.Update("ProxyUrl", req.ProxyUrl); err != nil {
+		return err
+	}
+	if err := settingRepo.Update("ProxyType", req.ProxyType); err != nil {
+		return err
+	}
+	if err := settingRepo.Update("ProxyPort", req.ProxyPort); err != nil {
+		return err
+	}
+	if err := settingRepo.Update("ProxyUser", req.ProxyUser); err != nil {
+		return err
+	}
+	pass, _ := encrypt.StringEncrypt(req.ProxyPasswd)
+	if err := settingRepo.Update("ProxyPasswd", pass); err != nil {
+		return err
+	}
+	if err := settingRepo.Update("ProxyPasswdKeep", req.ProxyPasswdKeep); err != nil {
+		return err
+	}
 	return nil
 }
 

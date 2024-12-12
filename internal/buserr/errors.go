@@ -35,3 +35,11 @@ func New(Key string) BusinessError {
 		Err:    nil,
 	}
 }
+
+func WithDetail(Key string, detail interface{}, err error) BusinessError {
+	return BusinessError{
+		Msg:    Key,
+		Detail: detail,
+		Err:    err,
+	}
+}

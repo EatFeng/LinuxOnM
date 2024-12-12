@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io"
 	mathRand "math/rand"
+	"net"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -88,4 +90,25 @@ func CopyFile(src, dst string) error {
 		return err
 	}
 	return nil
+}
+
+// ScanPort 该函数主要用于检测指定的端口是否处于被占用的状态
+func ScanPort(port int) bool {
+	ln, err := net.Listen("tcp", ":"+strconv.Itoa(port))
+	if err != nil {
+		return true
+	}
+	defer ln.Close()
+	return false
+}
+
+func RandStrAndNum(n int) string {
+	source := mathRand.NewSource(time.Now().UnixNano())
+	randGen := mathRand.New(source)
+	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = charset[randGen.Intn(len(charset)-1)]
+	}
+	return (string(b))
 }

@@ -27,12 +27,14 @@ var (
 	ErrTypeInternalServer  = "ErrInternalServer"
 	ErrTypeInvalidParams   = "ErrInvalidParams"
 	ErrTypePasswordExpired = "ErrPasswordExpired"
+	ErrCmdIllegal          = "ErrCmdIllegal"
 )
 
 // app
 var (
 	ErrCmdTimeout     = "ErrCmdTimeout"
 	ErrFileCanNotRead = "ErrFileCanNotRead"
+	ErrPortInUsed     = "ErrPortInUsed"
 )
 
 var (
@@ -44,4 +46,9 @@ var (
 var (
 	ErrLinkPathNotFound = "ErrLinkPathNotFound"
 	ErrFileIsExist      = "ErrFileIsExist"
+)
+
+// firewall
+var (
+	ErrFirewall = "ErrFirewall"
 )

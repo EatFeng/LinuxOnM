@@ -76,3 +76,7 @@ type BindInfo struct {
 	Ipv6        string `json:"ipv6" validate:"required,oneof=enable disable"`
 	BindAddress string `json:"bindAddress" validate:"required"`
 }
+
+type PortUpdate struct {
+	ServerPort uint `json:"serverPort" validate:"required,number,max=65535,min=1"`
+}

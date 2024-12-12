@@ -2,6 +2,7 @@ package configs
 
 type System struct {
 	Port        string `mapstructure:"port"`
+	Ipv6        string `mapstructure:"ipv6"`
 	BaseDir     string `mapstructure:"base_dir"`
 	Mode        string `mapstructure:"mode"`
 	Version     string `mapstructure:"version"`
@@ -16,4 +17,5 @@ type System struct {
 	EncryptKey  string `mapstructure:"encrypt_key"`
 	Cache       string `mapstructure:"cache"`
 	Backup      string `mapstructure:"backup"`
+	SSL         string `mapstructure:"ssl"`
 }

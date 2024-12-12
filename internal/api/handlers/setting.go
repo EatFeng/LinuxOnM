@@ -175,3 +175,26 @@ func (b *BaseApi) UpdateBindInfo(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// UpdatePort
+// @Tags System Setting
+// @Summary Update system port
+// @Description 更新系统端口
+// @Accept json
+// @Param request body dto.PortUpdate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /settings/update/port [post]
+// @x-panel-log {"bodyKeys":["serverPort"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"修改系统端口 => [serverPort]","formatEN":"update system port => [serverPort]"}
+func (b *BaseApi) UpdatePort(c *gin.Context) {
+	var req dto.PortUpdate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := settingService.UpdatePort(req.ServerPort); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

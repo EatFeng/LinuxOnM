@@ -12,6 +12,7 @@ type SettingRepo struct{}
 type ISettingRepo interface {
 	Get(opts ...DBOption) (models.Setting, error)
 	GetList(opts ...DBOption) ([]models.Setting, error)
+	Create(key, value string) error
 	Update(key, value string) error
 
 	WithByKey(key string) DBOption
@@ -46,6 +47,14 @@ func (u *SettingRepo) GetList(opts ...DBOption) ([]models.Setting, error) {
 	}
 	err := db.Find(&settings).Error
 	return settings, err
+}
+
+func (u *SettingRepo) Create(key, value string) error {
+	setting := &models.Setting{
+		Key:   key,
+		Value: value,
+	}
+	return global.DB.Create(setting).Error
 }
 
 func (u *SettingRepo) Update(key, value string) error {

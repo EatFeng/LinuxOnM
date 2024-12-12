@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -110,4 +111,19 @@ func HasNoPasswordSudo() bool {
 	cmd2 := exec.Command("sudo", "-n", "ls")
 	err2 := cmd2.Run()
 	return err2 == nil
+}
+
+func CheckIllegal(args ...string) bool {
+	if args == nil {
+		return false
+	}
+	for _, arg := range args {
+		if strings.Contains(arg, "&") || strings.Contains(arg, "|") || strings.Contains(arg, ";") ||
+			strings.Contains(arg, "$") || strings.Contains(arg, "'") || strings.Contains(arg, "`") ||
+			strings.Contains(arg, "(") || strings.Contains(arg, ")") || strings.Contains(arg, "\"") ||
+			strings.Contains(arg, "\n") || strings.Contains(arg, "\r") || strings.Contains(arg, ">") || strings.Contains(arg, "<") {
+			return true
+		}
+	}
+	return false
 }

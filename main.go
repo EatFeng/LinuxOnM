@@ -20,6 +20,7 @@ import (
 	"LinuxOnM/internal/init/app"
 	"LinuxOnM/internal/init/cache"
 	"LinuxOnM/internal/init/db"
+	"LinuxOnM/internal/init/hook"
 	"LinuxOnM/internal/init/log"
 	"LinuxOnM/internal/init/migration"
 	"LinuxOnM/internal/init/router"
@@ -42,7 +43,8 @@ func main() {
 	session.Init()
 	gin.SetMode("debug")
 	cron.Run()
-	
+	hook.Init()
+
 	rootRouter := router.Routers()
 
 	tcpItem := "tcp4"

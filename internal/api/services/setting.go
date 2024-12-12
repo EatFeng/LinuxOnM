@@ -2,10 +2,14 @@ package services
 
 import (
 	"LinuxOnM/internal/api/dto"
+	"LinuxOnM/internal/buserr"
 	"LinuxOnM/internal/constant"
 	"LinuxOnM/internal/global"
 	"LinuxOnM/internal/utils/cmd"
+	"LinuxOnM/internal/utils/common"
 	"LinuxOnM/internal/utils/encrypt"
+	"LinuxOnM/internal/utils/firewall"
+	fireClient "LinuxOnM/internal/utils/firewall/client"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron/v3"
@@ -23,6 +27,7 @@ type ISettingService interface {
 	UpdatePassword(c *gin.Context, old, new string) error
 	UpdateProxy(req dto.ProxyUpdate) error
 	UpdateBindInfo(req dto.BindInfo) error
+	UpdatePort(port uint) error
 	HandlePasswordExpired(c *gin.Context, old, new string) error
 }
 
@@ -170,7 +175,7 @@ func (u *SettingService) UpdateBindInfo(req dto.BindInfo) error {
 	}
 	go func() {
 		time.Sleep(1 * time.Second)
-		_, err := cmd.Exec("systemctl restart LinuxOnM.service")
+		_, err := cmd.Exec("sudo systemctl restart myapp_LinuxOnM.service")
 		if err != nil {
 			global.LOG.Errorf("restart system with new bind info failed, err: %v", err)
 		}
@@ -208,4 +213,49 @@ func (u *SettingService) HandlePasswordExpired(c *gin.Context, old, new string) 
 		return nil
 	}
 	return constant.ErrInitialPassword
+}
+
+func (u *SettingService) UpdatePort(port uint) error {
+	if common.ScanPort(int(port)) {
+		return buserr.WithDetail(constant.ErrPortInUsed, port, nil)
+	}
+	serverPort, err := settingRepo.Get(settingRepo.WithByKey("ServerPort"))
+	if err != nil {
+		return err
+	}
+	portValue, _ := strconv.Atoi(serverPort.Value)
+	if err := OperateFirewallPort([]int{portValue}, []int{int(port)}); err != nil {
+		global.LOG.Errorf("set system firewall ports failed, err: %v", err)
+	}
+	if err := settingRepo.Update("ServerPort", strconv.Itoa(int(port))); err != nil {
+		return err
+	}
+	go func() {
+		time.Sleep(1 * time.Second)
+		_, err := cmd.Exec("sudo systemctl restart myapp_LinuxOnM.service")
+		if err != nil {
+			global.LOG.Errorf("restart system port failed, err: %v", err)
+		}
+	}()
+	return nil
+}
+
+func OperateFirewallPort(oldPorts, newPorts []int) error {
+	client, err := firewall.NewFirewallClient()
+	if err != nil {
+		return err
+	}
+
+	for _, port := range oldPorts {
+		if err := client.Port(fireClient.FireInfo{Port: strconv.Itoa(port), Protocol: "tcp", Strategy: "accept"}, "remove"); err != nil {
+			return err
+		}
+	}
+
+	for _, port := range newPorts {
+		if err := client.Port(fireClient.FireInfo{Port: strconv.Itoa(port), Protocol: "tcp", Strategy: "accept"}, "add"); err != nil {
+			return err
+		}
+	}
+	return client.Reload()
 }

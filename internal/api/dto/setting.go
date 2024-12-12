@@ -71,3 +71,8 @@ type ProxyUpdate struct {
 	ProxyPasswd     string `json:"proxyPasswd"`
 	ProxyPasswdKeep string `json:"proxyPasswdKeep"`
 }
+
+type BindInfo struct {
+	Ipv6        string `json:"ipv6" validate:"required,oneof=enable disable"`
+	BindAddress string `json:"bindAddress" validate:"required"`
+}

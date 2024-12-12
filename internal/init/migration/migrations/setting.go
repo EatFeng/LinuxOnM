@@ -126,3 +126,16 @@ var AddProxy = &gormigrate.Migration{
 		return nil
 	},
 }
+
+var AddBindAddress = &gormigrate.Migration{
+	ID: "20241212-add-bind-address",
+	Migrate: func(tx *gorm.DB) error {
+		if err := tx.Create(&models.Setting{Key: "BindAddress", Value: "0.0.0.0"}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&models.Setting{Key: "Ipv6", Value: "disable"}).Error; err != nil {
+			return err
+		}
+		return nil
+	},
+}

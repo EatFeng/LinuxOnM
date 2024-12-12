@@ -4,6 +4,7 @@ import (
 	"LinuxOnM/internal/api/dto"
 	"LinuxOnM/internal/constant"
 	"LinuxOnM/internal/global"
+	"LinuxOnM/internal/utils/cmd"
 	"LinuxOnM/internal/utils/encrypt"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
@@ -21,6 +22,7 @@ type ISettingService interface {
 	Update(key, value string) error
 	UpdatePassword(c *gin.Context, old, new string) error
 	UpdateProxy(req dto.ProxyUpdate) error
+	UpdateBindInfo(req dto.BindInfo) error
 	HandlePasswordExpired(c *gin.Context, old, new string) error
 }
 
@@ -156,6 +158,24 @@ func (u *SettingService) UpdateProxy(req dto.ProxyUpdate) error {
 	if err := settingRepo.Update("ProxyPasswdKeep", req.ProxyPasswdKeep); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (u *SettingService) UpdateBindInfo(req dto.BindInfo) error {
+	if err := settingRepo.Update("Ipv6", req.Ipv6); err != nil {
+		return err
+	}
+	if err := settingRepo.Update("BindAddress", req.BindAddress); err != nil {
+		return err
+	}
+	go func() {
+		time.Sleep(1 * time.Second)
+		_, err := cmd.Exec("systemctl restart LinuxOnM.service")
+		if err != nil {
+			global.LOG.Errorf("restart system with new bind info failed, err: %v", err)
+		}
+	}()
+
 	return nil
 }
 

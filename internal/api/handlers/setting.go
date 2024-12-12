@@ -152,3 +152,26 @@ func (b *BaseApi) UpdateProxy(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// UpdateBindInfo
+// @Tags System Setting
+// @Summary Update system bind info
+// @Description 更新系统监听信息
+// @Accept json
+// @Param request body dto.BindInfo true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /settings/update/bind [post]
+// @x-panel-log {"bodyKeys":["ipv6", "bindAddress"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"修改系统监听信息 => ipv6: [ipv6], 监听 IP: [bindAddress]","formatEN":"update system bind info => ipv6: [ipv6], 监听 IP: [bindAddress]"}
+func (b *BaseApi) UpdateBindInfo(c *gin.Context) {
+	var req dto.BindInfo
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := settingService.UpdateBindInfo(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

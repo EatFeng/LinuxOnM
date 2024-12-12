@@ -48,6 +48,104 @@ definitions:
     - command
     - name
     type: object
+  dto.CronjobBatchDelete:
+    properties:
+      cleanData:
+        type: boolean
+      ids:
+        items:
+          type: integer
+        type: array
+    required:
+    - ids
+    type: object
+  dto.CronjobClean:
+    properties:
+      cleanData:
+        type: boolean
+      cronjobID:
+        type: integer
+      isDelete:
+        type: boolean
+    required:
+    - cronjobID
+    type: object
+  dto.CronjobCreate:
+    properties:
+      backupAccounts:
+        type: string
+      command:
+        type: string
+      containerName:
+        type: string
+      defaultDownload:
+        type: string
+      exclusionRules:
+        type: string
+      name:
+        type: string
+      retainCopies:
+        minimum: 1
+        type: integer
+      script:
+        type: string
+      secret:
+        type: string
+      sourceDir:
+        type: string
+      spec:
+        type: string
+      type:
+        type: string
+    required:
+    - name
+    - spec
+    - type
+    type: object
+  dto.CronjobUpdate:
+    properties:
+      backupAccounts:
+        type: string
+      command:
+        type: string
+      containerName:
+        type: string
+      defaultDownload:
+        type: string
+      exclusionRules:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      retainCopies:
+        minimum: 1
+        type: integer
+      script:
+        type: string
+      secret:
+        type: string
+      sourceDir:
+        type: string
+      spec:
+        type: string
+      url:
+        type: string
+    required:
+    - id
+    - name
+    - spec
+    type: object
+  dto.CronjobUpdateStatus:
+    properties:
+      id:
+        type: integer
+      status:
+        type: string
+    required:
+    - id
+    - status
+    type: object
   dto.DashboardCurrent:
     properties:
       cpuPercent:
@@ -298,6 +396,26 @@ definitions:
       password:
         type: string
     type: object
+  dto.MonitorSearch:
+    properties:
+      endTime:
+        type: string
+      info:
+        type: string
+      param:
+        enum:
+        - all
+        - cpu
+        - memory
+        - load
+        - io
+        - network
+        type: string
+      startTime:
+        type: string
+    required:
+    - param
+    type: object
   dto.OperateByID:
     properties:
       id:
@@ -320,11 +438,47 @@ definitions:
       platformFamily:
         type: string
     type: object
+  dto.PageCronjob:
+    properties:
+      info:
+        type: string
+      order:
+        enum:
+        - "null"
+        - ascending
+        - descending
+        type: string
+      orderBy:
+        enum:
+        - name
+        - status
+        - created_at
+        type: string
+      page:
+        type: integer
+      pageSize:
+        type: integer
+    required:
+    - order
+    - orderBy
+    - page
+    - pageSize
+    type: object
   dto.PageResult:
     properties:
       items: {}
       total:
         type: integer
+    type: object
+  dto.PasswordUpdate:
+    properties:
+      newPassword:
+        type: string
+      oldPassword:
+        type: string
+    required:
+    - newPassword
+    - oldPassword
     type: object
   dto.SSHHistory:
     properties:
@@ -439,6 +593,24 @@ definitions:
     - page
     - pageSize
     type: object
+  dto.SearchRecord:
+    properties:
+      cronjobID:
+        type: integer
+      endTime:
+        type: string
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      startTime:
+        type: string
+      status:
+        type: string
+    required:
+    - page
+    - pageSize
+    type: object
   dto.SearchSSHLog:
     properties:
       Status:
@@ -458,6 +630,100 @@ definitions:
     - page
     - pageSize
     type: object
+  dto.SettingInfo:
+    properties:
+      allowIPs:
+        type: string
+      bindAddress:
+        type: string
+      bindDomain:
+        type: string
+      complexityVerification:
+        type: string
+      defaultNetwork:
+        type: string
+      developerMode:
+        type: string
+      dockerSockPath:
+        type: string
+      email:
+        type: string
+      emailVars:
+        type: string
+      expirationDays:
+        type: string
+      expirationTime:
+        type: string
+      fileRecycleBin:
+        type: string
+      ipv6:
+        type: string
+      lastCleanData:
+        type: string
+      lastCleanSize:
+        type: string
+      lastCleanTime:
+        type: string
+      localTime:
+        type: string
+      menuTabs:
+        type: string
+      messageType:
+        type: string
+      monitorInterval:
+        type: string
+      monitorStatus:
+        type: string
+      monitorStoreDays:
+        type: string
+      ntpSite:
+        type: string
+      port:
+        type: string
+      proxyPasswd:
+        type: string
+      proxyPasswdKeep:
+        type: string
+      proxyPort:
+        type: string
+      proxyType:
+        type: string
+      proxyUrl:
+        type: string
+      proxyUser:
+        type: string
+      securityEntrance:
+        type: string
+      serverPort:
+        type: string
+      sessionTimeout:
+        type: string
+      snapshotIgnore:
+        type: string
+      ssl:
+        type: string
+      sslType:
+        type: string
+      systemIP:
+        type: string
+      systemVersion:
+        type: string
+      theme:
+        type: string
+      timeZone:
+        type: string
+      userName:
+        type: string
+    type: object
+  dto.SettingUpdate:
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+    required:
+    - key
+    type: object
   dto.TreeChild:
     properties:
       id:
@@ -472,6 +738,101 @@ definitions:
       name:
         type: string
       token:
+        type: string
+    type: object
+  files.FileInfo:
+    properties:
+      content:
+        type: string
+      extension:
+        type: string
+      favoriteID:
+        type: integer
+      gid:
+        type: string
+      group:
+        type: string
+      isDetail:
+        type: boolean
+      isDir:
+        type: boolean
+      isHidden:
+        type: boolean
+      isSymlink:
+        type: boolean
+      itemTotal:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/files.FileInfo'
+        type: array
+      linkPath:
+        type: string
+      mimeType:
+        type: string
+      modTime:
+        type: string
+      mode:
+        type: string
+      name:
+        type: string
+      path:
+        type: string
+      size:
+        type: integer
+      type:
+        type: string
+      uid:
+        type: string
+      updateTime:
+        type: string
+      user:
+        type: string
+    type: object
+  request.FileCreate:
+    properties:
+      content:
+        type: string
+      isDir:
+        type: boolean
+      isLink:
+        type: boolean
+      isSymlink:
+        type: boolean
+      linkPath:
+        type: string
+      mode:
+        type: integer
+      path:
+        type: string
+      sub:
+        type: boolean
+    required:
+    - path
+    type: object
+  request.FileOption:
+    properties:
+      containSub:
+        type: boolean
+      dir:
+        type: boolean
+      expand:
+        type: boolean
+      isDetail:
+        type: boolean
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      path:
+        type: string
+      search:
+        type: string
+      showHidden:
+        type: boolean
+      sortBy:
+        type: string
+      sortOrder:
         type: string
     type: object
   request.FileReadByLineReq:
@@ -492,6 +853,62 @@ definitions:
     - page
     - pageSize
     - type
+    type: object
+  request.ProcessReq:
+    properties:
+      PID:
+        type: integer
+    required:
+    - PID
+    type: object
+  response.FileInfo:
+    properties:
+      content:
+        type: string
+      extension:
+        type: string
+      favoriteID:
+        type: integer
+      gid:
+        type: string
+      group:
+        type: string
+      isDetail:
+        type: boolean
+      isDir:
+        type: boolean
+      isHidden:
+        type: boolean
+      isSymlink:
+        type: boolean
+      itemTotal:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/files.FileInfo'
+        type: array
+      linkPath:
+        type: string
+      mimeType:
+        type: string
+      modTime:
+        type: string
+      mode:
+        type: string
+      name:
+        type: string
+      path:
+        type: string
+      size:
+        type: integer
+      type:
+        type: string
+      uid:
+        type: string
+      updateTime:
+        type: string
+      user:
+        type: string
     type: object
 host: localhost:8848
 info:
@@ -531,6 +948,264 @@ paths:
       summary: User login
       tags:
       - Auth
+  /cronjob:
+    post:
+      consumes:
+      - application/json
+      description: 创建计划任务
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CronjobCreate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Create cronjob
+      tags:
+      - Cronjob
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - type
+        - name
+        formatEN: create cronjob [type][name]
+        formatZH: 创建计划任务 [type][name]
+        paramKeys: []
+  /cronjob/del:
+    post:
+      consumes:
+      - application/json
+      description: 删除计划任务
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CronjobBatchDelete'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Delete cronjob
+      tags:
+      - Cronjob
+      x-panel-log:
+        BeforeFunctions:
+        - db: cronjobs
+          input_column: id
+          input_value: ids
+          isList: true
+          output_column: name
+          output_value: names
+        bodyKeys:
+        - ids
+        formatEN: delete cronjob [names]
+        formatZH: 删除计划任务 [names]
+        paramKeys: []
+  /cronjob/handle:
+    post:
+      consumes:
+      - application/json
+      description: 手动执行计划任务
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.OperateByID'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Handle cronjob once
+      tags:
+      - Cronjob
+      x-panel-log:
+        BeforeFunctions:
+        - db: cronjobs
+          input_column: id
+          input_value: id
+          isList: false
+          output_column: name
+          output_value: name
+        bodyKeys:
+        - id
+        formatEN: manually execute the cronjob [name]
+        formatZH: 手动执行计划任务 [name]
+        paramKeys: []
+  /cronjob/record/clean:
+    post:
+      consumes:
+      - application/json
+      description: 清空计划任务记录
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CronjobClean'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Clean job records
+      tags:
+      - Cronjob
+      x-panel-log:
+        BeforeFunctions:
+        - db: cronjobs
+          input_column: id
+          input_value: id
+          isList: false
+          output_column: name
+          output_value: name
+        bodyKeys:
+        - id
+        formatEN: clean cronjob [name] records
+        formatZH: 清空计划任务记录 [name]
+        paramKeys: []
+  /cronjob/record/search:
+    post:
+      consumes:
+      - application/json
+      description: 获取计划任务记录
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SearchRecord'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PageResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Page job records
+      tags:
+      - Cronjob
+  /cronjob/records/log:
+    post:
+      consumes:
+      - application/json
+      description: 获取计划任务记录日志
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.OperateByID'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Load Cronjob record log
+      tags:
+      - Cronjob
+  /cronjob/search:
+    post:
+      consumes:
+      - application/json
+      description: 获取计划任务分页
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PageCronjob'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PageResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Page cronjob
+      tags:
+      - Cronjob
+  /cronjob/status:
+    post:
+      consumes:
+      - application/json
+      description: 更新计划任务状态
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CronjobUpdateStatus'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Update cronjob status
+      tags:
+      - Cronjob
+      x-panel-log:
+        BeforeFunctions:
+        - db: cronjobs
+          input_column: id
+          input_value: id
+          isList: false
+          output_column: name
+          output_value: name
+        bodyKeys:
+        - id
+        - status
+        formatEN: change the status of cronjob [name] to [status].
+        formatZH: 修改计划任务 [name] 状态为 [status]
+        paramKeys: []
+  /cronjob/update:
+    post:
+      consumes:
+      - application/json
+      description: 更新计划任务
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CronjobUpdate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Update cronjob
+      tags:
+      - Cronjob
+      x-panel-log:
+        BeforeFunctions:
+        - db: cronjobs
+          input_column: id
+          input_value: id
+          isList: false
+          output_column: name
+          output_value: name
+        bodyKeys:
+        - id
+        formatEN: update cronjob [name]
+        formatZH: 更新计划任务 [name]
+        paramKeys: []
   /dashboard/base/os:
     get:
       consumes:
@@ -588,6 +1263,53 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Read file by Line
+      tags:
+      - File
+  /files:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.FileCreate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Create file
+      tags:
+      - File
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - path
+        formatEN: Create dir or file [path]
+        formatZH: 创建文件/文件夹 [path]
+        paramKeys: []
+  /files/search:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.FileOption'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.FileInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: List files
       tags:
       - File
   /group:
@@ -973,6 +1695,66 @@ paths:
         formatEN: delete host [addrs]
         formatZH: 删除主机 [addrs]
         paramKeys: []
+  /host/monitor/clean:
+    post:
+      description: Delete all the existing monitor data.
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Clean monitor datas
+      tags:
+      - Monitor
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys: []
+        formatEN: clean monitor datas
+        formatZH: 清空监控数据
+        paramKeys: []
+  /host/monitor/io_options:
+    get:
+      description: Retrieve available I/O options which include "all" and the names
+        of disk devices obtained from disk I/O counters.
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Get I/O options.
+      tags:
+      - Monitor
+  /host/monitor/net_options:
+    get:
+      description: Retrieve available network options which include "all" and the
+        names of network interfaces obtained from network statistics.
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Get network options.
+      tags:
+      - Monitor
+  /host/monitor/search:
+    post:
+      description: This function is responsible for retrieving monitor data based
+        on the provided request parameters.
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MonitorSearch'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Load monitor data
+      tags:
+      - Monitor
   /host/search:
     post:
       consumes:
@@ -1209,4 +1991,119 @@ paths:
       summary: Page login logs
       tags:
       - Logs
+  /process/stop:
+    post:
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.ProcessReq'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Stop Process
+      tags:
+      - Process
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - PID
+        formatEN: 结束进程 [PID]
+        formatZH: 结束进程 [PID]
+        paramKeys: []
+  /setting/interface:
+    get:
+      consumes:
+      - application/json
+      description: 获取系统IPv4和IPv6地址信息
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Load system address
+      tags:
+      - System Setting
+  /setting/search:
+    post:
+      description: Retrieve the system setting information.
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SettingInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Load system setting information.
+      tags:
+      - System Setting
+  /setting/search/available:
+    get:
+      description: 获取系统可用状态
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Load system available status
+      tags:
+      - System Setting
+  /setting/update:
+    post:
+      consumes:
+      - application/json
+      description: Modify the system settings.
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SettingUpdate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Update system settings.
+      tags:
+      - System Setting
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - key
+        - value
+        formatEN: update system setting [key] => [value]
+        formatZH: 修改系统配置 [key] => [value]
+        paramKeys: []
+  /setting/update/password:
+    post:
+      consumes:
+      - application/json
+      description: 更新系统登录密码
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PasswordUpdate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Update system password
+      tags:
+      - System Setting
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys: []
+        formatEN: update system password
+        formatZH: 修改系统密码
+        paramKeys: []
 swagger: "2.0"

@@ -10,6 +10,12 @@ type Cache struct {
 	db *badger.DB
 }
 
+func NewCacheDB(db *badger.DB) *Cache {
+	return &Cache{
+		db: db,
+	}
+}
+
 func (c *Cache) Get(key string) ([]byte, error) {
 	var result []byte
 	err := c.db.View(func(txn *badger.Txn) error {

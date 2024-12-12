@@ -53,7 +53,7 @@ func (b *BaseApi) UpdateSetting(c *gin.Context) {
 // @Accept json
 // @Success 200
 // @Security ApiKeyAuth
-// @Router /settings/interface [get]
+// @Router /setting/interface [get]
 func (b *BaseApi) LoadInterfaceAddr(c *gin.Context) {
 	data, err := settingService.LoadInterfaceAddr()
 	if err != nil {
@@ -61,4 +61,38 @@ func (b *BaseApi) LoadInterfaceAddr(c *gin.Context) {
 		return
 	}
 	helper.SuccessWithData(c, data)
+}
+
+// GetSystemAvailable
+// @Tags System Setting
+// @Summary Load system available status
+// @Description 获取系统可用状态
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /setting/search/available [get]
+func (b *BaseApi) GetSystemAvailable(c *gin.Context) {
+	helper.SuccessWithData(c, nil)
+}
+
+// UpdatePassword
+// @Tags System Setting
+// @Summary Update system password
+// @Description 更新系统登录密码
+// @Accept json
+// @Param request body dto.PasswordUpdate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /setting/update/password [post]
+// @x-panel-log {"bodyKeys":[],"paramKeys":[],"BeforeFunctions":[],"formatZH":"修改系统密码","formatEN":"update system password"}
+func (b *BaseApi) UpdatePassword(c *gin.Context) {
+	var req dto.PasswordUpdate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := settingService.UpdatePassword(c, req.OldPassword, req.NewPassword); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
 }

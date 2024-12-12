@@ -6,6 +6,7 @@ import (
 	"LinuxOnM/internal/global"
 	"LinuxOnM/internal/utils/encrypt"
 	"encoding/json"
+	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron/v3"
 	"net"
 	"strconv"
@@ -18,6 +19,7 @@ type ISettingService interface {
 	GetSettingInfo() (*dto.SettingInfo, error)
 	LoadInterfaceAddr() ([]string, error)
 	Update(key, value string) error
+	UpdatePassword(c *gin.Context, old, new string) error
 }
 
 func NewISettingService() ISettingService {
@@ -122,4 +124,43 @@ func (u *SettingService) Update(key, value string) error {
 	}
 
 	return nil
+}
+
+func (u *SettingService) UpdatePassword(c *gin.Context, old, new string) error {
+	if err := u.HandlePasswordExpired(c, old, new); err != nil {
+		return err
+	}
+	_ = global.SESSION.Clean()
+	return nil
+}
+
+func (u *SettingService) HandlePasswordExpired(c *gin.Context, old, new string) error {
+	setting, err := settingRepo.Get(settingRepo.WithByKey("Password"))
+	if err != nil {
+		return err
+	}
+	passwordFromDB, err := encrypt.StringDecrypt(setting.Value)
+	if err != nil {
+		return err
+	}
+	if passwordFromDB == old {
+		newPassword, err := encrypt.StringEncrypt(new)
+		if err != nil {
+			return err
+		}
+		if err := settingRepo.Update("Password", newPassword); err != nil {
+			return err
+		}
+
+		expiredSetting, err := settingRepo.Get(settingRepo.WithByKey("ExpirationDays"))
+		if err != nil {
+			return err
+		}
+		timeout, _ := strconv.Atoi(expiredSetting.Value)
+		if err := settingRepo.Update("ExpirationTime", time.Now().AddDate(0, 0, timeout).Format(constant.DateTimeLayout)); err != nil {
+			return err
+		}
+		return nil
+	}
+	return constant.ErrInitialPassword
 }

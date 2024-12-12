@@ -13,7 +13,9 @@ func (s *SettingRouter) InitRouter(Router *gin.RouterGroup) {
 	baseApi := handler.ApiGroupApp.BaseApi
 	{
 		router.POST("/search", baseApi.GetSettingInfo)
+		settingRouter.GET("/search/available", baseApi.GetSystemAvailable)
 		settingRouter.POST("/update", baseApi.UpdateSetting)
 		settingRouter.GET("/interface", baseApi.LoadInterfaceAddr)
+		settingRouter.POST("/update/password", baseApi.UpdatePassword)
 	}
 }

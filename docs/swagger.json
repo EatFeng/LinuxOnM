@@ -55,6 +55,410 @@
                 }
             }
         },
+        "/cronjob": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "创建计划任务",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cronjob"
+                ],
+                "summary": "Create cronjob",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CronjobCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [],
+                    "bodyKeys": [
+                        "type",
+                        "name"
+                    ],
+                    "formatEN": "create cronjob [type][name]",
+                    "formatZH": "创建计划任务 [type][name]",
+                    "paramKeys": []
+                }
+            }
+        },
+        "/cronjob/del": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "删除计划任务",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cronjob"
+                ],
+                "summary": "Delete cronjob",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CronjobBatchDelete"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [
+                        {
+                            "db": "cronjobs",
+                            "input_column": "id",
+                            "input_value": "ids",
+                            "isList": true,
+                            "output_column": "name",
+                            "output_value": "names"
+                        }
+                    ],
+                    "bodyKeys": [
+                        "ids"
+                    ],
+                    "formatEN": "delete cronjob [names]",
+                    "formatZH": "删除计划任务 [names]",
+                    "paramKeys": []
+                }
+            }
+        },
+        "/cronjob/handle": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "手动执行计划任务",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cronjob"
+                ],
+                "summary": "Handle cronjob once",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.OperateByID"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [
+                        {
+                            "db": "cronjobs",
+                            "input_column": "id",
+                            "input_value": "id",
+                            "isList": false,
+                            "output_column": "name",
+                            "output_value": "name"
+                        }
+                    ],
+                    "bodyKeys": [
+                        "id"
+                    ],
+                    "formatEN": "manually execute the cronjob [name]",
+                    "formatZH": "手动执行计划任务 [name]",
+                    "paramKeys": []
+                }
+            }
+        },
+        "/cronjob/record/clean": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "清空计划任务记录",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cronjob"
+                ],
+                "summary": "Clean job records",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CronjobClean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [
+                        {
+                            "db": "cronjobs",
+                            "input_column": "id",
+                            "input_value": "id",
+                            "isList": false,
+                            "output_column": "name",
+                            "output_value": "name"
+                        }
+                    ],
+                    "bodyKeys": [
+                        "id"
+                    ],
+                    "formatEN": "clean cronjob [name] records",
+                    "formatZH": "清空计划任务记录 [name]",
+                    "paramKeys": []
+                }
+            }
+        },
+        "/cronjob/record/search": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取计划任务记录",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cronjob"
+                ],
+                "summary": "Page job records",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SearchRecord"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PageResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/cronjob/records/log": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取计划任务记录日志",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cronjob"
+                ],
+                "summary": "Load Cronjob record log",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.OperateByID"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/cronjob/search": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取计划任务分页",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cronjob"
+                ],
+                "summary": "Page cronjob",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PageCronjob"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PageResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/cronjob/status": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "更新计划任务状态",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cronjob"
+                ],
+                "summary": "Update cronjob status",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CronjobUpdateStatus"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [
+                        {
+                            "db": "cronjobs",
+                            "input_column": "id",
+                            "input_value": "id",
+                            "isList": false,
+                            "output_column": "name",
+                            "output_value": "name"
+                        }
+                    ],
+                    "bodyKeys": [
+                        "id",
+                        "status"
+                    ],
+                    "formatEN": "change the status of cronjob [name] to [status].",
+                    "formatZH": "修改计划任务 [name] 状态为 [status]",
+                    "paramKeys": []
+                }
+            }
+        },
+        "/cronjob/update": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "更新计划任务",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cronjob"
+                ],
+                "summary": "Update cronjob",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CronjobUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [
+                        {
+                            "db": "cronjobs",
+                            "input_column": "id",
+                            "input_value": "id",
+                            "isList": false,
+                            "output_column": "name",
+                            "output_value": "name"
+                        }
+                    ],
+                    "bodyKeys": [
+                        "id"
+                    ],
+                    "formatEN": "update cronjob [name]",
+                    "formatZH": "更新计划任务 [name]",
+                    "paramKeys": []
+                }
+            }
+        },
         "/dashboard/base/os": {
             "get": {
                 "security": [
@@ -147,6 +551,82 @@
                 "responses": {
                     "200": {
                         "description": "OK"
+                    }
+                }
+            }
+        },
+        "/files": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "File"
+                ],
+                "summary": "Create file",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.FileCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [],
+                    "bodyKeys": [
+                        "path"
+                    ],
+                    "formatEN": "Create dir or file [path]",
+                    "formatZH": "创建文件/文件夹 [path]",
+                    "paramKeys": []
+                }
+            }
+        },
+        "/files/search": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "File"
+                ],
+                "summary": "List files",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.FileOption"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.FileInfo"
+                        }
                     }
                 }
             }
@@ -646,6 +1126,100 @@
                 }
             }
         },
+        "/host/monitor/clean": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Delete all the existing monitor data.",
+                "tags": [
+                    "Monitor"
+                ],
+                "summary": "Clean monitor datas",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [],
+                    "bodyKeys": [],
+                    "formatEN": "clean monitor datas",
+                    "formatZH": "清空监控数据",
+                    "paramKeys": []
+                }
+            }
+        },
+        "/host/monitor/io_options": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieve available I/O options which include \"all\" and the names of disk devices obtained from disk I/O counters.",
+                "tags": [
+                    "Monitor"
+                ],
+                "summary": "Get I/O options.",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/host/monitor/net_options": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieve available network options which include \"all\" and the names of network interfaces obtained from network statistics.",
+                "tags": [
+                    "Monitor"
+                ],
+                "summary": "Get network options.",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/host/monitor/search": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This function is responsible for retrieving monitor data based on the provided request parameters.",
+                "tags": [
+                    "Monitor"
+                ],
+                "summary": "Load monitor data",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MonitorSearch"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/host/search": {
             "post": {
                 "security": [
@@ -1012,6 +1586,190 @@
                     }
                 }
             }
+        },
+        "/process/stop": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "tags": [
+                    "Process"
+                ],
+                "summary": "Stop Process",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ProcessReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [],
+                    "bodyKeys": [
+                        "PID"
+                    ],
+                    "formatEN": "结束进程 [PID]",
+                    "formatZH": "结束进程 [PID]",
+                    "paramKeys": []
+                }
+            }
+        },
+        "/setting/interface": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取系统IPv4和IPv6地址信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System Setting"
+                ],
+                "summary": "Load system address",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/setting/search": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieve the system setting information.",
+                "tags": [
+                    "System Setting"
+                ],
+                "summary": "Load system setting information.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SettingInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/setting/search/available": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取系统可用状态",
+                "tags": [
+                    "System Setting"
+                ],
+                "summary": "Load system available status",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/setting/update": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Modify the system settings.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System Setting"
+                ],
+                "summary": "Update system settings.",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SettingUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [],
+                    "bodyKeys": [
+                        "key",
+                        "value"
+                    ],
+                    "formatEN": "update system setting [key] =\u003e [value]",
+                    "formatZH": "修改系统配置 [key] =\u003e [value]",
+                    "paramKeys": []
+                }
+            }
+        },
+        "/setting/update/password": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "更新系统登录密码",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System Setting"
+                ],
+                "summary": "Update system password",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PasswordUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "x-panel-log": {
+                    "BeforeFunctions": [],
+                    "bodyKeys": [],
+                    "formatEN": "update system password",
+                    "formatZH": "修改系统密码",
+                    "paramKeys": []
+                }
+            }
         }
     },
     "definitions": {
@@ -1084,6 +1842,152 @@
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CronjobBatchDelete": {
+            "type": "object",
+            "required": [
+                "ids"
+            ],
+            "properties": {
+                "cleanData": {
+                    "type": "boolean"
+                },
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "dto.CronjobClean": {
+            "type": "object",
+            "required": [
+                "cronjobID"
+            ],
+            "properties": {
+                "cleanData": {
+                    "type": "boolean"
+                },
+                "cronjobID": {
+                    "type": "integer"
+                },
+                "isDelete": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "dto.CronjobCreate": {
+            "type": "object",
+            "required": [
+                "name",
+                "spec",
+                "type"
+            ],
+            "properties": {
+                "backupAccounts": {
+                    "type": "string"
+                },
+                "command": {
+                    "type": "string"
+                },
+                "containerName": {
+                    "type": "string"
+                },
+                "defaultDownload": {
+                    "type": "string"
+                },
+                "exclusionRules": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "retainCopies": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "script": {
+                    "type": "string"
+                },
+                "secret": {
+                    "type": "string"
+                },
+                "sourceDir": {
+                    "type": "string"
+                },
+                "spec": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CronjobUpdate": {
+            "type": "object",
+            "required": [
+                "id",
+                "name",
+                "spec"
+            ],
+            "properties": {
+                "backupAccounts": {
+                    "type": "string"
+                },
+                "command": {
+                    "type": "string"
+                },
+                "containerName": {
+                    "type": "string"
+                },
+                "defaultDownload": {
+                    "type": "string"
+                },
+                "exclusionRules": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "retainCopies": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "script": {
+                    "type": "string"
+                },
+                "secret": {
+                    "type": "string"
+                },
+                "sourceDir": {
+                    "type": "string"
+                },
+                "spec": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CronjobUpdateStatus": {
+            "type": "object",
+            "required": [
+                "id",
+                "status"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "status": {
                     "type": "string"
                 }
             }
@@ -1463,6 +2367,34 @@
                 }
             }
         },
+        "dto.MonitorSearch": {
+            "type": "object",
+            "required": [
+                "param"
+            ],
+            "properties": {
+                "endTime": {
+                    "type": "string"
+                },
+                "info": {
+                    "type": "string"
+                },
+                "param": {
+                    "type": "string",
+                    "enum": [
+                        "all",
+                        "cpu",
+                        "memory",
+                        "load",
+                        "io",
+                        "network"
+                    ]
+                },
+                "startTime": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.OperateByID": {
             "type": "object",
             "required": [
@@ -1497,12 +2429,63 @@
                 }
             }
         },
+        "dto.PageCronjob": {
+            "type": "object",
+            "required": [
+                "order",
+                "orderBy",
+                "page",
+                "pageSize"
+            ],
+            "properties": {
+                "info": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "string",
+                    "enum": [
+                        "null",
+                        "ascending",
+                        "descending"
+                    ]
+                },
+                "orderBy": {
+                    "type": "string",
+                    "enum": [
+                        "name",
+                        "status",
+                        "created_at"
+                    ]
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.PageResult": {
             "type": "object",
             "properties": {
                 "items": {},
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.PasswordUpdate": {
+            "type": "object",
+            "required": [
+                "newPassword",
+                "oldPassword"
+            ],
+            "properties": {
+                "newPassword": {
+                    "type": "string"
+                },
+                "oldPassword": {
+                    "type": "string"
                 }
             }
         },
@@ -1674,6 +2657,33 @@
                 }
             }
         },
+        "dto.SearchRecord": {
+            "type": "object",
+            "required": [
+                "page",
+                "pageSize"
+            ],
+            "properties": {
+                "cronjobID": {
+                    "type": "integer"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "startTime": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.SearchSSHLog": {
             "type": "object",
             "required": [
@@ -1698,6 +2708,148 @@
                 },
                 "pageSize": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.SettingInfo": {
+            "type": "object",
+            "properties": {
+                "allowIPs": {
+                    "type": "string"
+                },
+                "bindAddress": {
+                    "type": "string"
+                },
+                "bindDomain": {
+                    "type": "string"
+                },
+                "complexityVerification": {
+                    "type": "string"
+                },
+                "defaultNetwork": {
+                    "type": "string"
+                },
+                "developerMode": {
+                    "type": "string"
+                },
+                "dockerSockPath": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "emailVars": {
+                    "type": "string"
+                },
+                "expirationDays": {
+                    "type": "string"
+                },
+                "expirationTime": {
+                    "type": "string"
+                },
+                "fileRecycleBin": {
+                    "type": "string"
+                },
+                "ipv6": {
+                    "type": "string"
+                },
+                "lastCleanData": {
+                    "type": "string"
+                },
+                "lastCleanSize": {
+                    "type": "string"
+                },
+                "lastCleanTime": {
+                    "type": "string"
+                },
+                "localTime": {
+                    "type": "string"
+                },
+                "menuTabs": {
+                    "type": "string"
+                },
+                "messageType": {
+                    "type": "string"
+                },
+                "monitorInterval": {
+                    "type": "string"
+                },
+                "monitorStatus": {
+                    "type": "string"
+                },
+                "monitorStoreDays": {
+                    "type": "string"
+                },
+                "ntpSite": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "string"
+                },
+                "proxyPasswd": {
+                    "type": "string"
+                },
+                "proxyPasswdKeep": {
+                    "type": "string"
+                },
+                "proxyPort": {
+                    "type": "string"
+                },
+                "proxyType": {
+                    "type": "string"
+                },
+                "proxyUrl": {
+                    "type": "string"
+                },
+                "proxyUser": {
+                    "type": "string"
+                },
+                "securityEntrance": {
+                    "type": "string"
+                },
+                "serverPort": {
+                    "type": "string"
+                },
+                "sessionTimeout": {
+                    "type": "string"
+                },
+                "snapshotIgnore": {
+                    "type": "string"
+                },
+                "ssl": {
+                    "type": "string"
+                },
+                "sslType": {
+                    "type": "string"
+                },
+                "systemIP": {
+                    "type": "string"
+                },
+                "systemVersion": {
+                    "type": "string"
+                },
+                "theme": {
+                    "type": "string"
+                },
+                "timeZone": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SettingUpdate": {
+            "type": "object",
+            "required": [
+                "key"
+            ],
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
                 }
             }
         },
@@ -1726,6 +2878,150 @@
                 }
             }
         },
+        "files.FileInfo": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "extension": {
+                    "type": "string"
+                },
+                "favoriteID": {
+                    "type": "integer"
+                },
+                "gid": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "isDetail": {
+                    "type": "boolean"
+                },
+                "isDir": {
+                    "type": "boolean"
+                },
+                "isHidden": {
+                    "type": "boolean"
+                },
+                "isSymlink": {
+                    "type": "boolean"
+                },
+                "itemTotal": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/files.FileInfo"
+                    }
+                },
+                "linkPath": {
+                    "type": "string"
+                },
+                "mimeType": {
+                    "type": "string"
+                },
+                "modTime": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "string"
+                },
+                "updateTime": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.FileCreate": {
+            "type": "object",
+            "required": [
+                "path"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "isDir": {
+                    "type": "boolean"
+                },
+                "isLink": {
+                    "type": "boolean"
+                },
+                "isSymlink": {
+                    "type": "boolean"
+                },
+                "linkPath": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "integer"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "sub": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "request.FileOption": {
+            "type": "object",
+            "properties": {
+                "containSub": {
+                    "type": "boolean"
+                },
+                "dir": {
+                    "type": "boolean"
+                },
+                "expand": {
+                    "type": "boolean"
+                },
+                "isDetail": {
+                    "type": "boolean"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "search": {
+                    "type": "string"
+                },
+                "showHidden": {
+                    "type": "boolean"
+                },
+                "sortBy": {
+                    "type": "string"
+                },
+                "sortOrder": {
+                    "type": "string"
+                }
+            }
+        },
         "request.FileReadByLineReq": {
             "type": "object",
             "required": [
@@ -1750,6 +3046,91 @@
                     "type": "integer"
                 },
                 "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.ProcessReq": {
+            "type": "object",
+            "required": [
+                "PID"
+            ],
+            "properties": {
+                "PID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.FileInfo": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "extension": {
+                    "type": "string"
+                },
+                "favoriteID": {
+                    "type": "integer"
+                },
+                "gid": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "isDetail": {
+                    "type": "boolean"
+                },
+                "isDir": {
+                    "type": "boolean"
+                },
+                "isHidden": {
+                    "type": "boolean"
+                },
+                "isSymlink": {
+                    "type": "boolean"
+                },
+                "itemTotal": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/files.FileInfo"
+                    }
+                },
+                "linkPath": {
+                    "type": "string"
+                },
+                "mimeType": {
+                    "type": "string"
+                },
+                "modTime": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "string"
+                },
+                "updateTime": {
+                    "type": "string"
+                },
+                "user": {
                     "type": "string"
                 }
             }

@@ -89,4 +89,6 @@ func Init() {
 	global.CONF.System.DbPath = path.Join(global.CONF.System.DataDir, "db")
 	global.CONF.System.DbFile = dbfile
 	global.CONF.System.LogPath = path.Join(global.CONF.System.DataDir, "log")
+	global.CONF.System.Cache = path.Join(global.CONF.System.DataDir, "cache")
+	global.CONF.System.Backup = path.Join(global.CONF.System.DataDir, "backup")
 }

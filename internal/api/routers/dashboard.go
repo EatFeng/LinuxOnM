@@ -2,6 +2,7 @@ package routers
 
 import (
 	"LinuxOnM/internal/api/handlers"
+	"LinuxOnM/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -9,7 +10,7 @@ import (
 type DashboardRouter struct{}
 
 func (s *DashboardRouter) InitRouter(Router *gin.RouterGroup) {
-	cmdRouter := Router.Group("dashboard")
+	cmdRouter := Router.Group("dashboard").Use(middleware.PasswordExpired())
 
 	baseApi := handlers.ApiGroupApp.BaseApi
 	{

@@ -26,8 +26,6 @@ import (
 	"LinuxOnM/internal/init/session"
 	"LinuxOnM/internal/init/validator"
 	"LinuxOnM/internal/init/viper"
-	"LinuxOnM/internal/utils/encrypt"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net"
 	"net/http"
@@ -44,9 +42,7 @@ func main() {
 	session.Init()
 	gin.SetMode("debug")
 	cron.Run()
-
-	password_encrypt, err := encrypt.StringEncrypt("password")
-	fmt.Println(password_encrypt, err)
+	
 	rootRouter := router.Routers()
 
 	tcpItem := "tcp4"

@@ -20,6 +20,7 @@ type ISettingService interface {
 	LoadInterfaceAddr() ([]string, error)
 	Update(key, value string) error
 	UpdatePassword(c *gin.Context, old, new string) error
+	HandlePasswordExpired(c *gin.Context, old, new string) error
 }
 
 func NewISettingService() ISettingService {

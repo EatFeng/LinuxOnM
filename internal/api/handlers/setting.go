@@ -96,3 +96,26 @@ func (b *BaseApi) UpdatePassword(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// HandlePasswordExpired
+// @Tags System Setting
+// @Summary Reset system password expired
+// @Description 重置过期系统登录密码
+// @Accept json
+// @Param request body dto.PasswordUpdate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /setting/expired/handle [post]
+// @x-panel-log {"bodyKeys":[],"paramKeys":[],"BeforeFunctions":[],"formatZH":"重置过期密码","formatEN":"reset an expired Password"}
+func (b *BaseApi) HandlePasswordExpired(c *gin.Context) {
+	var req dto.PasswordUpdate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := settingService.HandlePasswordExpired(c, req.OldPassword, req.NewPassword); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

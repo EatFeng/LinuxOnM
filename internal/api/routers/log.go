@@ -2,6 +2,7 @@ package routers
 
 import (
 	handlers "LinuxOnM/internal/api/handlers"
+	"LinuxOnM/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -9,7 +10,7 @@ import (
 type LogRouter struct{}
 
 func (s *LogRouter) InitRouter(Router *gin.RouterGroup) {
-	operationRouter := Router.Group("log")
+	operationRouter := Router.Group("log").Use(middleware.PasswordExpired())
 	baseApi := handlers.ApiGroupApp.BaseApi
 	{
 		operationRouter.POST("/login", baseApi.GetLoginLog)

@@ -2,13 +2,14 @@ package routers
 
 import (
 	handler "LinuxOnM/internal/api/handlers"
+	"LinuxOnM/internal/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 type CronjobRouter struct{}
 
 func (s *CronjobRouter) InitRouter(Router *gin.RouterGroup) {
-	cmdRouter := Router.Group("cronjob")
+	cmdRouter := Router.Group("cronjob").Use(middleware.PasswordExpired())
 	baseApi := handler.ApiGroupApp.BaseApi
 	{
 		cmdRouter.POST("", baseApi.CreateCronjob)

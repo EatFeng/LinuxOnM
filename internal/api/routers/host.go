@@ -2,13 +2,14 @@ package routers
 
 import (
 	handler "LinuxOnM/internal/api/handlers"
+	"LinuxOnM/internal/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 type HostRouter struct{}
 
 func (s *HostRouter) InitRouter(Router *gin.RouterGroup) {
-	hostRouter := Router.Group("host")
+	hostRouter := Router.Group("host").Use(middleware.PasswordExpired())
 	baseApi := handler.ApiGroupApp.BaseApi
 	{
 		// host-terminal-terminal & host

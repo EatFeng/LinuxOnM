@@ -16,6 +16,7 @@ type SettingInfo struct {
 	Port           string `json:"port"`
 	Ipv6           string `json:"ipv6"`
 	BindAddress    string `json:"bindAddress"`
+	PanelName      string `json:"panelName"`
 	Theme          string `json:"theme"`
 	MenuTabs       string `json:"menuTabs"`
 	DefaultNetwork string `json:"defaultNetwork"`

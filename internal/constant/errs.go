@@ -7,6 +7,7 @@ const (
 	CodeSuccess           = 200
 	CodeErrBadRequest     = 400
 	CodeAuth              = 406
+	CodePasswordExpired   = 313
 )
 
 // internal
@@ -23,8 +24,9 @@ var (
 
 // api
 var (
-	ErrTypeInternalServer = "ErrInternalServer"
-	ErrTypeInvalidParams  = "ErrInvalidParams"
+	ErrTypeInternalServer  = "ErrInternalServer"
+	ErrTypeInvalidParams   = "ErrInvalidParams"
+	ErrTypePasswordExpired = "ErrPasswordExpired"
 )
 
 // app

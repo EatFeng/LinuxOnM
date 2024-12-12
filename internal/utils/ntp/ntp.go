@@ -69,15 +69,3 @@ func UpdateSystemTime(dateTime string) error {
 	}
 	return fmt.Errorf("the current system architecture %v does not support synchronization", system)
 }
-
-func UpdateSystemTimeZone(timezone string) error {
-	system := runtime.GOOS
-	if system == "linux" {
-		stdout, err := cmd.Execf(`%s timedatectl set-timezone "%s"`, cmd.SudoHandleCmd(), timezone)
-		if err != nil {
-			return fmt.Errorf("update system time zone failed, stdout: %s, err: %v", stdout, err)
-		}
-		return nil
-	}
-	return fmt.Errorf("the current system architecture %v does not support synchronization", system)
-}

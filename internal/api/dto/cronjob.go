@@ -11,7 +11,6 @@ type CronjobCreate struct {
 	Command        string `json:"command"`
 	ContainerName  string `json:"containerName"`
 	ExclusionRules string `json:"exclusionRules"`
-	URL            string `json:"url"`
 	SourceDir      string `json:"sourceDir"`
 
 	BackupAccounts  string `json:"backupAccounts"`

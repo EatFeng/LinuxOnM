@@ -6,6 +6,7 @@ import (
 	"LinuxOnM/internal/models"
 	"LinuxOnM/internal/repositories"
 	"LinuxOnM/internal/utils/cmd"
+	"LinuxOnM/internal/utils/ntp"
 	"LinuxOnM/internal/utils/storage_client"
 	"context"
 	"fmt"
@@ -38,6 +39,9 @@ func (u *CronjobService) HandleJob(cronjob *models.Cronjob) {
 				script = fmt.Sprintf("docker exec %s %s -c \"%s\"", cronjob.ContainerName, command, strings.ReplaceAll(cronjob.Script, "\"", "\\\""))
 			}
 			err = u.handleShell(cronjob.Type, cronjob.Name, script, record.Records)
+			u.removeExpiredLog(*cronjob)
+		case "ntp":
+			err = u.handleNtpSync()
 			u.removeExpiredLog(*cronjob)
 		}
 
@@ -166,6 +170,21 @@ func (u *CronjobService) removeExpiredBackup(cronjob models.Cronjob, accountMap 
 		}
 		_ = backupRepo.DeleteRecord(context.Background(), commonRepo.WithByID(records[i].ID))
 	}
+}
+
+func (u *CronjobService) handleNtpSync() error {
+	ntpServer, err := settingRepo.Get(settingRepo.WithByKey("NtpSite"))
+	if err != nil {
+		return err
+	}
+	ntime, err := ntp.GetRemoteTime(ntpServer.Value)
+	if err != nil {
+		return err
+	}
+	if err := ntp.UpdateSystemTime(ntime.Format(constant.DateTimeLayout)); err != nil {
+		return err
+	}
+	return nil
 }
 
 type cronjobUploadHelper struct {

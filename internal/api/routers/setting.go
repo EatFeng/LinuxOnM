@@ -14,5 +14,6 @@ func (s *SettingRouter) InitRouter(Router *gin.RouterGroup) {
 	{
 		router.POST("/search", baseApi.GetSettingInfo)
 		settingRouter.POST("/update", baseApi.UpdateSetting)
+		settingRouter.GET("/interface", baseApi.LoadInterfaceAddr)
 	}
 }

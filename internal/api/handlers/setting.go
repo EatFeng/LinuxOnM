@@ -45,3 +45,20 @@ func (b *BaseApi) UpdateSetting(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// LoadInterfaceAddr
+// @Tags System Setting
+// @Summary Load system address
+// @Description 获取系统IPv4和IPv6地址信息
+// @Accept json
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /settings/interface [get]
+func (b *BaseApi) LoadInterfaceAddr(c *gin.Context) {
+	data, err := settingService.LoadInterfaceAddr()
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, data)
+}

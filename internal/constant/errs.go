@@ -41,4 +41,5 @@ var (
 // file
 var (
 	ErrLinkPathNotFound = "ErrLinkPathNotFound"
+	ErrFileIsExist      = "ErrFileIsExist"
 )

@@ -9,6 +9,7 @@ import (
 	"LinuxOnM/internal/utils/cmd"
 	"LinuxOnM/internal/utils/files"
 	"fmt"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -21,6 +22,7 @@ type FileService struct{}
 type IFileService interface {
 	ReadLogByLine(req request.FileReadByLineReq) (*response.FileLineContent, error)
 	GetFileList(op request.FileOption) (response.FileInfo, error)
+	Create(op request.FileCreate) error
 }
 
 func NewIFileService() IFileService {
@@ -93,4 +95,33 @@ func (f *FileService) GetFileList(op request.FileOption) (response.FileInfo, err
 	}
 	fileInfo.FileInfo = *info
 	return fileInfo, nil
+}
+
+func (f *FileService) Create(op request.FileCreate) error {
+	if files.IsInvalidChar(op.Path) {
+		return buserr.New("ErrInvalidChar")
+	}
+	fo := files.NewFileOp()
+	if fo.Stat(op.Path) {
+		return buserr.New(constant.ErrFileIsExist)
+	}
+	mode := op.Mode
+	if mode == 0 {
+		fileInfo, err := os.Stat(filepath.Dir(op.Path))
+		if err == nil {
+			mode = int64(fileInfo.Mode().Perm())
+		} else {
+			mode = 0755
+		}
+	}
+	if op.IsDir {
+		return fo.CreateDirWithMode(op.Path, fs.FileMode(mode))
+	}
+	if op.IsLink {
+		if !fo.Stat(op.LinkPath) {
+			return buserr.New(constant.ErrLinkPathNotFound)
+		}
+		return fo.LinkFile(op.LinkPath, op.Path, op.IsSymlink)
+	}
+	return fo.CreateFileWithMode(op.Path, fs.FileMode(mode))
 }

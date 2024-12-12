@@ -105,3 +105,9 @@ func ExecCronjobWithTimeOut(cmdStr, workdir, outPath string, timeout time.Durati
 	}
 	return nil
 }
+
+func HasNoPasswordSudo() bool {
+	cmd2 := exec.Command("sudo", "-n", "ls")
+	err2 := cmd2.Run()
+	return err2 == nil
+}

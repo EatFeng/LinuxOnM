@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/user"
 	"strconv"
+	"strings"
 )
 
 func ReadFileByLine(filename string, page, pageSize int, latest bool) (lines []string, isEndOfFile bool, total int, err error) {
@@ -126,4 +127,8 @@ func GetSymlink(path string) string {
 		return ""
 	}
 	return linkPath
+}
+
+func IsInvalidChar(name string) bool {
+	return strings.Contains(name, "&")
 }

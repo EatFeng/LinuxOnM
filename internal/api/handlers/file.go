@@ -54,3 +54,24 @@ var wsUpgrade = websocket.Upgrader{
 		return true
 	},
 }
+
+// @Tags File
+// @Summary Create file
+// @Accept json
+// @Param request body request.FileCreate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /files [post]
+// @x-panel-log {"bodyKeys":["path"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"创建文件/文件夹 [path]","formatEN":"Create dir or file [path]"}
+func (b *BaseApi) CreateFile(c *gin.Context) {
+	var req request.FileCreate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+	err := fileService.Create(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

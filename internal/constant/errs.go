@@ -10,6 +10,7 @@ const (
 	CodePasswordExpired   = 313
 	CodeErrNotFound       = 404
 	CodeErrEntrance       = 312
+	CodeErrIP             = 310
 )
 
 // internal

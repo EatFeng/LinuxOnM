@@ -101,3 +101,12 @@ func ErrResponse(ctx *gin.Context, code int) {
 	ctx.JSON(code, nil)
 	ctx.Abort()
 }
+
+func SuccessWithMsg(ctx *gin.Context, msg string) {
+	res := dto.Response{
+		Code:    constant.CodeSuccess,
+		Message: msg,
+	}
+	ctx.JSON(http.StatusOK, res)
+	ctx.Abort()
+}

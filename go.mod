@@ -1,6 +1,6 @@
 module LinuxOnM
 
-go 1.23.3
+go 1.23.0
 
 require (
 	github.com/dgraph-io/badger/v4 v4.4.0

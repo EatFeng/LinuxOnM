@@ -2,10 +2,12 @@ package files
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"os/user"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -131,4 +133,27 @@ func GetSymlink(path string) string {
 
 func IsInvalidChar(name string) bool {
 	return strings.Contains(name, "&")
+}
+
+func GetParentMode(path string) (os.FileMode, error) {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return 0, err
+	}
+
+	for {
+		fileInfo, err := os.Stat(absPath)
+		if err == nil {
+			return fileInfo.Mode() & os.ModePerm, nil
+		}
+		if !os.IsNotExist(err) {
+			return 0, err
+		}
+
+		parentDir := filepath.Dir(absPath)
+		if parentDir == absPath {
+			return 0, fmt.Errorf("no existing directory found in the path: %s", path)
+		}
+		absPath = parentDir
+	}
 }

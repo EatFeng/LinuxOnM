@@ -185,3 +185,13 @@ var AddTheme = &gormigrate.Migration{
 		return nil
 	},
 }
+
+var AddNoAuthSetting = &gormigrate.Migration{
+	ID: "20241213-add-no-auth-setting",
+	Migrate: func(tx *gorm.DB) error {
+		if err := tx.Create(&models.Setting{Key: "NoAuthSetting", Value: "200"}).Error; err != nil {
+			return err
+		}
+		return nil
+	},
+}

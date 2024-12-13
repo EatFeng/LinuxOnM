@@ -5,6 +5,7 @@ import (
 	"LinuxOnM/internal/api/handlers/helper"
 	"LinuxOnM/internal/constant"
 	"LinuxOnM/internal/global"
+	"LinuxOnM/internal/middleware"
 	"LinuxOnM/internal/models"
 	"LinuxOnM/internal/utils/captcha"
 	"LinuxOnM/internal/utils/qqwry"
@@ -45,6 +46,34 @@ func (b *BaseApi) Login(c *gin.Context) {
 		return
 	}
 	helper.SuccessWithData(c, user)
+}
+
+// CheckIsSafety
+// @Tags Auth
+// @Summary Load safety status
+// @Description 获取系统安全登录状态
+// @Success 200
+// @Router /auth/is-safety [get]
+func (b *BaseApi) CheckIsSafety(c *gin.Context) {
+	code := c.DefaultQuery("code", "")
+	status, err := authService.CheckIsSafety(code)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	if status == "disable" && len(code) != 0 {
+		helper.ErrorWithDetail(c, constant.CodeErrNotFound, constant.ErrTypeInternalServer, err)
+		return
+	}
+	if status == "unpass" {
+		if middleware.LoadErrCode("err-entrance") != 200 {
+			helper.ErrResponse(c, middleware.LoadErrCode("err-entrance"))
+			return
+		}
+		helper.ErrorWithDetail(c, constant.CodeErrEntrance, constant.ErrTypeInternalServer, nil)
+		return
+	}
+	helper.SuccessWithOutData(c)
 }
 
 func saveLoginLog(c *gin.Context, err error) {

@@ -21,6 +21,7 @@ func Init() {
 		migrations.AddDefaultNetwork,
 		migrations.AddLaskInfo,
 		migrations.AddTheme,
+		migrations.AddNoAuthSetting,
 	})
 	if err := m.Migrate(); err != nil {
 		global.LOG.Error(err)

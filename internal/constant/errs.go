@@ -8,6 +8,8 @@ const (
 	CodeErrBadRequest     = 400
 	CodeAuth              = 406
 	CodePasswordExpired   = 313
+	CodeErrNotFound       = 404
+	CodeErrEntrance       = 312
 )
 
 // internal

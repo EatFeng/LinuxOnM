@@ -12,5 +12,6 @@ func (s *AuthRouter) InitRouter(Router *gin.RouterGroup) {
 	baseApi := handlers.ApiGroupApp.BaseApi
 	{
 		authRouter.POST("/login", baseApi.Login)
+		authRouter.GET("/is-safety", baseApi.CheckIsSafety)
 	}
 }

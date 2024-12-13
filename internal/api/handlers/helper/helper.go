@@ -96,3 +96,8 @@ func SuccessWithOutData(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 	ctx.Abort()
 }
+
+func ErrResponse(ctx *gin.Context, code int) {
+	ctx.JSON(code, nil)
+	ctx.Abort()
+}

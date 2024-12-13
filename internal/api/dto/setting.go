@@ -30,6 +30,7 @@ type SettingInfo struct {
 	BindDomain             string `json:"bindDomain"`
 	AllowIPs               string `json:"allowIPs"`
 	SecurityEntrance       string `json:"securityEntrance"`
+	NoAuthSetting          string `json:"noAuthSetting"`
 	ExpirationDays         string `json:"expirationDays"`
 	ExpirationTime         string `json:"expirationTime"`
 	ComplexityVerification string `json:"complexityVerification"`

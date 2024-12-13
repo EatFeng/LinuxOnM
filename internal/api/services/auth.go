@@ -18,6 +18,7 @@ type AuthService struct{}
 
 type IAuthService interface {
 	Login(c *gin.Context, info dto.Login, entrance string) (*dto.UserLoginInfo, error)
+	CheckIsSafety(code string) (string, error)
 }
 
 func NewIAuthService() IAuthService {
@@ -96,4 +97,18 @@ func (u *AuthService) generateSession(c *gin.Context, name, authMethod string) (
 	}
 
 	return &dto.UserLoginInfo{Name: name}, nil
+}
+
+func (u *AuthService) CheckIsSafety(code string) (string, error) {
+	status, err := settingRepo.Get(settingRepo.WithByKey("SecurityEntrance"))
+	if err != nil {
+		return "", err
+	}
+	if len(status.Value) == 0 {
+		return "disable", nil
+	}
+	if status.Value == code {
+		return "pass", nil
+	}
+	return "unpass", nil
 }

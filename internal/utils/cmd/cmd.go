@@ -113,6 +113,15 @@ func HasNoPasswordSudo() bool {
 	return err2 == nil
 }
 
+func ExecCmd(cmdStr string) error {
+	cmd := exec.Command("bash", "-c", cmdStr)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error : %v, output: %s", err, output)
+	}
+	return nil
+}
+
 func CheckIllegal(args ...string) bool {
 	if args == nil {
 		return false

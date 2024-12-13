@@ -12,4 +12,6 @@ var (
 	cronjobRepo  = repositories.NewICronjobRepo()
 	backupRepo   = repositories.NewIBackupRepo()
 	snapshotRepo = repositories.NewISnapshotRepo()
+
+	favoriteRepo = repositories.NewIFavoriteRepo()
 )

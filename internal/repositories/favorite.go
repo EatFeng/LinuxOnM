@@ -10,6 +10,7 @@ type FavoriteRepo struct{}
 type IFavoriteRepo interface {
 	GetFirst(opts ...DBOption) (models.Favorite, error)
 	WithByPath(path string) DBOption
+	Delete(opts ...DBOption) error
 }
 
 func NewIFavoriteRepo() IFavoriteRepo {
@@ -29,4 +30,9 @@ func (f *FavoriteRepo) WithByPath(path string) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("path = ?", path)
 	}
+}
+
+func (f *FavoriteRepo) Delete(opts ...DBOption) error {
+	db := getDb(opts...).Model(&models.Favorite{})
+	return db.Delete(&models.Favorite{}).Error
 }

@@ -22,6 +22,7 @@ func Init() {
 		migrations.AddLaskInfo,
 		migrations.AddTheme,
 		migrations.AddNoAuthSetting,
+		migrations.AddFavorite,
 	})
 	if err := m.Migrate(); err != nil {
 		global.LOG.Error(err)

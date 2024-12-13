@@ -75,3 +75,24 @@ func (b *BaseApi) CreateFile(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// @Tags File
+// @Summary Delete file
+// @Accept json
+// @Param request body request.FileDelete true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /files/del [post]
+// @x-panel-log {"bodyKeys":["path"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"删除文件/文件夹 [path]","formatEN":"Delete dir or file [path]"}
+func (b *BaseApi) DeleteFile(c *gin.Context) {
+	var req request.FileDelete
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+	err := fileService.Delete(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

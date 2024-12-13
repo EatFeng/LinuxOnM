@@ -5,5 +5,6 @@ import (
 )
 
 var (
-	DataDir = global.CONF.System.DataDir
+	DataDir       = global.CONF.System.DataDir
+	RecycleBinDir = "/opt/.LinuxOnM_clash"
 )

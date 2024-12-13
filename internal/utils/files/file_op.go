@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/afero"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -75,4 +76,41 @@ func (f FileOp) CreateFileWithMode(dst string, mode fs.FileMode) error {
 		return err
 	}
 	return file.Close()
+}
+
+func (f FileOp) DeleteDir(dst string) error {
+	return f.Fs.RemoveAll(dst)
+}
+
+func (f FileOp) DeleteFile(dst string) error {
+	return f.Fs.Remove(dst)
+}
+
+func (f FileOp) OpenFile(dst string) (fs.File, error) {
+	return f.Fs.Open(dst)
+}
+
+func (f FileOp) GetDirSize(path string) (float64, error) {
+	var size int64
+	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			size += info.Size()
+		}
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	return float64(size), nil
+}
+
+func (f FileOp) Mv(oldPath, dstPath string) error {
+	cmdStr := fmt.Sprintf(`mv '%s' '%s'`, oldPath, dstPath)
+	if err := cmd.ExecCmd(cmdStr); err != nil {
+		return err
+	}
+	return nil
 }

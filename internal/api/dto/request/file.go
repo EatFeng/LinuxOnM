@@ -25,3 +25,9 @@ type FileCreate struct {
 	LinkPath  string `json:"linkPath"`
 	Sub       bool   `json:"sub"`
 }
+
+type FileDelete struct {
+	Path        string `json:"path" validate:"required"`
+	IsDir       bool   `json:"isDir"`
+	ForceDelete bool   `json:"forceDelete"`
+}

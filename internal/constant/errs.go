@@ -48,6 +48,7 @@ var (
 var (
 	ErrLinkPathNotFound = "ErrLinkPathNotFound"
 	ErrFileIsExist      = "ErrFileIsExist"
+	ErrPathNotDelete    = "ErrPathNotDelete"
 )
 
 // firewall

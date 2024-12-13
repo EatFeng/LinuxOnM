@@ -23,6 +23,7 @@ type IFileService interface {
 	ReadLogByLine(req request.FileReadByLineReq) (*response.FileLineContent, error)
 	GetFileList(op request.FileOption) (response.FileInfo, error)
 	Create(op request.FileCreate) error
+	Delete(op request.FileDelete) error
 }
 
 func NewIFileService() IFileService {
@@ -124,4 +125,29 @@ func (f *FileService) Create(op request.FileCreate) error {
 		return fo.LinkFile(op.LinkPath, op.Path, op.IsSymlink)
 	}
 	return fo.CreateFileWithMode(op.Path, fs.FileMode(mode))
+}
+
+func (f *FileService) Delete(op request.FileDelete) error {
+	if op.IsDir {
+		excludeDir := global.CONF.System.DataDir
+		if filepath.Base(op.Path) == ".LinuxOnM_clash" || op.Path == excludeDir {
+			return buserr.New(constant.ErrPathNotDelete)
+		}
+	}
+	fo := files.NewFileOp()
+	recycleBinStatus, _ := settingRepo.Get(settingRepo.WithByKey("FileRecycleBin"))
+	if recycleBinStatus.Value == "disable" {
+		op.ForceDelete = true
+	}
+	if op.ForceDelete {
+		if op.IsDir {
+			return fo.DeleteDir(op.Path)
+		} else {
+			return fo.DeleteFile(op.Path)
+		}
+	}
+	if err := NewIRecycleBinService().Create(request.RecycleBinCreate{SourcePath: op.Path}); err != nil {
+		return err
+	}
+	return favoriteRepo.Delete(favoriteRepo.WithByPath(op.Path))
 }

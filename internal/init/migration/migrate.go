@@ -17,6 +17,10 @@ func Init() {
 		migrations.AddNewTableCronjob,
 		migrations.AddProxy,
 		migrations.AddBindAddress,
+		migrations.AddPanelName,
+		migrations.AddDefaultNetwork,
+		migrations.AddLaskInfo,
+		migrations.AddTheme,
 	})
 	if err := m.Migrate(); err != nil {
 		global.LOG.Error(err)

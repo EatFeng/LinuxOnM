@@ -139,3 +139,49 @@ var AddBindAddress = &gormigrate.Migration{
 		return nil
 	},
 }
+
+var AddPanelName = &gormigrate.Migration{
+	ID: "20241213-add-panelname-setting",
+	Migrate: func(tx *gorm.DB) error {
+		if err := tx.Create(&models.Setting{Key: "PanelName", Value: "LinuxOnM"}).Error; err != nil {
+			return err
+		}
+		return nil
+	},
+}
+
+var AddDefaultNetwork = &gormigrate.Migration{
+	ID: "20241213-add-default-network-setting",
+	Migrate: func(tx *gorm.DB) error {
+		if err := tx.Create(&models.Setting{Key: "DefaultNetwork", Value: "ens33"}).Error; err != nil {
+			return err
+		}
+		return nil
+	},
+}
+
+var AddLaskInfo = &gormigrate.Migration{
+	ID: "20241213-add-last-info-setting",
+	Migrate: func(tx *gorm.DB) error {
+		if err := tx.Create(&models.Setting{Key: "LastCleanTime", Value: ""}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&models.Setting{Key: "LastCleanSize", Value: ""}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&models.Setting{Key: "LastCleanData", Value: ""}).Error; err != nil {
+			return err
+		}
+		return nil
+	},
+}
+
+var AddTheme = &gormigrate.Migration{
+	ID: "20241213-add-theme-setting",
+	Migrate: func(tx *gorm.DB) error {
+		if err := tx.Create(&models.Setting{Key: "Theme", Value: "light"}).Error; err != nil {
+			return err
+		}
+		return nil
+	},
+}

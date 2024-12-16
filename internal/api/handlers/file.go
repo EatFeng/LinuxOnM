@@ -25,7 +25,7 @@ import (
 // @Param request body request.FileOption true "request"
 // @Success 200 {object} response.FileInfo
 // @Security ApiKeyAuth
-// @Router /files/search [post]
+// @Router /file/search [post]
 func (b *BaseApi) ListFiles(c *gin.Context) {
 	var req request.FileOption
 	if err := helper.CheckBindAndValidate(c, &req); err != nil {
@@ -71,7 +71,7 @@ var wsUpgrade = websocket.Upgrader{
 // @Param request body request.FileCreate true "request"
 // @Success 200
 // @Security ApiKeyAuth
-// @Router /files [post]
+// @Router /file [post]
 // @x-panel-log {"bodyKeys":["path"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"创建文件/文件夹 [path]","formatEN":"Create dir or file [path]"}
 func (b *BaseApi) CreateFile(c *gin.Context) {
 	var req request.FileCreate
@@ -92,7 +92,7 @@ func (b *BaseApi) CreateFile(c *gin.Context) {
 // @Param request body request.FileDelete true "request"
 // @Success 200
 // @Security ApiKeyAuth
-// @Router /files/del [post]
+// @Router /file/del [post]
 // @x-panel-log {"bodyKeys":["path"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"删除文件/文件夹 [path]","formatEN":"Delete dir or file [path]"}
 func (b *BaseApi) DeleteFile(c *gin.Context) {
 	var req request.FileDelete
@@ -112,7 +112,7 @@ func (b *BaseApi) DeleteFile(c *gin.Context) {
 // @Param file formData file true "request"
 // @Success 200
 // @Security ApiKeyAuth
-// @Router /files/upload [post]
+// @Router /file/upload [post]
 // @x-panel-log {"bodyKeys":["path"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"上传文件 [path]","formatEN":"Upload file [path]"}
 func (b *BaseApi) UploadFiles(c *gin.Context) {
 	form, err := c.MultipartForm()
@@ -220,7 +220,7 @@ func (b *BaseApi) UploadFiles(c *gin.Context) {
 // @Param request body request.FileContentReq true "request"
 // @Success 200 {object} response.FileInfo
 // @Security ApiKeyAuth
-// @Router /files/content [post]
+// @Router /file/content [post]
 // @x-panel-log {"bodyKeys":["path"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"获取文件内容 [path]","formatEN":"Load file content [path]"}
 func (b *BaseApi) GetContent(c *gin.Context) {
 	var req request.FileContentReq
@@ -241,7 +241,7 @@ func (b *BaseApi) GetContent(c *gin.Context) {
 // @Param request body request.FileRoleReq true "request"
 // @Success 200
 // @Security ApiKeyAuth
-// @Router /files/batch/role [post]
+// @Router /file/batch/role [post]
 // @x-panel-log {"bodyKeys":["paths","mode","user","group"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"批量修改文件权限和用户/组 [paths] => [mode]/[user]/[group]","formatEN":"Batch change file mode and owner [paths] => [mode]/[user]/[group]"}
 func (b *BaseApi) BatchChangeModeAndOwner(c *gin.Context) {
 	var req request.FileRoleReq
@@ -252,4 +252,43 @@ func (b *BaseApi) BatchChangeModeAndOwner(c *gin.Context) {
 		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
 	}
 	helper.SuccessWithOutData(c)
+}
+
+// @Tags File
+// @Summary Check file exist
+// @Accept json
+// @Param request body request.FilePathCheck true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /file/check [post]
+func (b *BaseApi) CheckFile(c *gin.Context) {
+	var req request.FilePathCheck
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+	if _, err := os.Stat(req.Path); err != nil {
+		helper.SuccessWithData(c, false)
+		return
+	}
+	helper.SuccessWithData(c, true)
+}
+
+// @Tags File
+// @Summary Move file
+// @Accept json
+// @Param request body request.FileMove true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /file/move [post]
+// @x-panel-log {"bodyKeys":["oldPaths","newPath"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"移动文件 [oldPaths] => [newPath]","formatEN":"Move [oldPaths] => [newPath]"}
+func (b *BaseApi) MoveFile(c *gin.Context) {
+	var req request.FileMove
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+	if err := fileService.MvFile(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
 }

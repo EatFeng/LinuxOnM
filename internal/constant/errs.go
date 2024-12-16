@@ -38,6 +38,7 @@ var (
 	ErrCmdTimeout     = "ErrCmdTimeout"
 	ErrFileCanNotRead = "ErrFileCanNotRead"
 	ErrPortInUsed     = "ErrPortInUsed"
+	ErrFileNotFound   = "ErrFileNotFound"
 )
 
 var (
@@ -51,6 +52,7 @@ var (
 	ErrFileIsExist      = "ErrFileIsExist"
 	ErrPathNotDelete    = "ErrPathNotDelete"
 	ErrPathNotFound     = "ErrPathNotFound"
+	ErrMovePathFailed   = "ErrMovePathFailed"
 )
 
 // firewall

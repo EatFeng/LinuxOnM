@@ -9,6 +9,7 @@ import (
 	"LinuxOnM/internal/utils/cmd"
 	"LinuxOnM/internal/utils/files"
 	"fmt"
+	"github.com/pkg/errors"
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
@@ -31,6 +32,7 @@ type IFileService interface {
 	Delete(op request.FileDelete) error
 	GetContent(op request.FileContentReq) (response.FileInfo, error)
 	BatchChangeModeAndOwner(op request.FileRoleReq) error
+	MvFile(m request.FileMove) error
 }
 
 func NewIFileService() IFileService {
@@ -203,4 +205,40 @@ func (f *FileService) BatchChangeModeAndOwner(op request.FileRoleReq) error {
 	}
 	return nil
 
+}
+
+func (f *FileService) MvFile(m request.FileMove) error {
+	fo := files.NewFileOp()
+	if !fo.Stat(m.NewPath) {
+		return buserr.New(constant.ErrPathNotFound)
+	}
+	for _, oldPath := range m.OldPaths {
+		if !fo.Stat(oldPath) {
+			return buserr.WithName(constant.ErrFileNotFound, oldPath)
+		}
+		if oldPath == m.NewPath || strings.Contains(m.NewPath, filepath.Clean(oldPath)+"/") {
+			return buserr.New(constant.ErrMovePathFailed)
+		}
+	}
+	if m.Type == "cut" {
+		return fo.Cut(m.OldPaths, m.NewPath, m.Name, m.Cover)
+	}
+	var errs []error
+	if m.Type == "copy" {
+		for _, src := range m.OldPaths {
+			if err := fo.CopyAndReName(src, m.NewPath, m.Name, m.Cover); err != nil {
+				errs = append(errs, err)
+				global.LOG.Errorf("copy file [%s] to [%s] failed, err: %s", src, m.NewPath, err.Error())
+			}
+		}
+	}
+
+	var errString string
+	for _, err := range errs {
+		errString += err.Error() + "\n"
+	}
+	if errString != "" {
+		return errors.New(errString)
+	}
+	return nil
 }

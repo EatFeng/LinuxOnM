@@ -53,3 +53,15 @@ type FileCompress struct {
 	Replace bool     `json:"replace"`
 	Secret  string   `json:"secret"`
 }
+
+type FilePathCheck struct {
+	Path string `json:"path" validate:"required"`
+}
+
+type FileMove struct {
+	Type     string   `json:"type" validate:"required"`
+	OldPaths []string `json:"oldPaths" validate:"required"`
+	NewPath  string   `json:"newPath" validate:"required"`
+	Name     string   `json:"name"`
+	Cover    bool     `json:"cover"`
+}

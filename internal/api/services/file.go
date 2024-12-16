@@ -9,12 +9,17 @@ import (
 	"LinuxOnM/internal/utils/cmd"
 	"LinuxOnM/internal/utils/files"
 	"fmt"
+	"golang.org/x/net/html/charset"
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/transform"
+	"io"
 	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 type FileService struct{}
@@ -24,6 +29,8 @@ type IFileService interface {
 	GetFileList(op request.FileOption) (response.FileInfo, error)
 	Create(op request.FileCreate) error
 	Delete(op request.FileDelete) error
+	GetContent(op request.FileContentReq) (response.FileInfo, error)
+	BatchChangeModeAndOwner(op request.FileRoleReq) error
 }
 
 func NewIFileService() IFileService {
@@ -150,4 +157,50 @@ func (f *FileService) Delete(op request.FileDelete) error {
 		return err
 	}
 	return favoriteRepo.Delete(favoriteRepo.WithByPath(op.Path))
+}
+
+func (f *FileService) GetContent(op request.FileContentReq) (response.FileInfo, error) {
+	info, err := files.NewFileInfo(files.FileOption{
+		Path:     op.Path,
+		Expand:   true,
+		IsDetail: op.IsDetail,
+	})
+	if err != nil {
+		return response.FileInfo{}, err
+	}
+
+	content := []byte(info.Content)
+	if len(content) > 1024 {
+		content = content[:1024]
+	}
+	if !utf8.Valid(content) {
+		_, decodeName, _ := charset.DetermineEncoding(content, "")
+		if decodeName == "windows-1252" {
+			reader := strings.NewReader(info.Content)
+			item := transform.NewReader(reader, simplifiedchinese.GBK.NewDecoder())
+			contents, err := io.ReadAll(item)
+			if err != nil {
+				return response.FileInfo{}, err
+			}
+			info.Content = string(contents)
+		}
+	}
+	return response.FileInfo{FileInfo: *info}, nil
+}
+
+func (f *FileService) BatchChangeModeAndOwner(op request.FileRoleReq) error {
+	fo := files.NewFileOp()
+	for _, path := range op.Paths {
+		if !fo.Stat(path) {
+			return buserr.New(constant.ErrPathNotFound)
+		}
+		if err := fo.ChownR(path, op.User, op.Group, op.Sub); err != nil {
+			return err
+		}
+		if err := fo.ChmodR(path, op.Mode, op.Sub); err != nil {
+			return err
+		}
+	}
+	return nil
+
 }

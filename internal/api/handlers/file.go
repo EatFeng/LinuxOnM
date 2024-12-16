@@ -213,3 +213,43 @@ func (b *BaseApi) UploadFiles(c *gin.Context) {
 		helper.SuccessWithMsg(c, fmt.Sprintf("%d files upload success", success))
 	}
 }
+
+// @Tags File
+// @Summary Load file content
+// @Accept json
+// @Param request body request.FileContentReq true "request"
+// @Success 200 {object} response.FileInfo
+// @Security ApiKeyAuth
+// @Router /files/content [post]
+// @x-panel-log {"bodyKeys":["path"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"获取文件内容 [path]","formatEN":"Load file content [path]"}
+func (b *BaseApi) GetContent(c *gin.Context) {
+	var req request.FileContentReq
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+	info, err := fileService.GetContent(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, info)
+}
+
+// @Tags File
+// @Summary Batch change file mode and owner
+// @Accept json
+// @Param request body request.FileRoleReq true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /files/batch/role [post]
+// @x-panel-log {"bodyKeys":["paths","mode","user","group"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"批量修改文件权限和用户/组 [paths] => [mode]/[user]/[group]","formatEN":"Batch change file mode and owner [paths] => [mode]/[user]/[group]"}
+func (b *BaseApi) BatchChangeModeAndOwner(c *gin.Context) {
+	var req request.FileRoleReq
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+	if err := fileService.BatchChangeModeAndOwner(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+	}
+	helper.SuccessWithOutData(c)
+}

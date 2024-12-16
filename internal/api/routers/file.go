@@ -17,5 +17,7 @@ func (f *FileRouter) InitRouter(Router *gin.RouterGroup) {
 		fileRouter.POST("", baseApi.CreateFile)
 		fileRouter.POST("/del", baseApi.DeleteFile)
 		fileRouter.POST("/upload", baseApi.UploadFiles)
+		fileRouter.POST("/content", baseApi.GetContent)
+		fileRouter.POST("/batch/role", baseApi.BatchChangeModeAndOwner)
 	}
 }

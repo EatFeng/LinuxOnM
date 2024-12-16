@@ -31,3 +31,25 @@ type FileDelete struct {
 	IsDir       bool   `json:"isDir"`
 	ForceDelete bool   `json:"forceDelete"`
 }
+
+type FileContentReq struct {
+	Path     string `json:"path" validate:"required"`
+	IsDetail bool   `json:"isDetail"`
+}
+
+type FileRoleReq struct {
+	Paths []string `json:"paths" validate:"required"`
+	Mode  int64    `json:"mode" validate:"required"`
+	User  string   `json:"user" validate:"required"`
+	Group string   `json:"group" validate:"required"`
+	Sub   bool     `json:"sub"`
+}
+
+type FileCompress struct {
+	Files   []string `json:"files" validate:"required"`
+	Dst     string   `json:"dst" validate:"required"`
+	Type    string   `json:"type" validate:"required"`
+	Name    string   `json:"name" validate:"required"`
+	Replace bool     `json:"replace"`
+	Secret  string   `json:"secret"`
+}

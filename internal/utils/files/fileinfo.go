@@ -443,3 +443,16 @@ func DetectBinary(buf []byte) bool {
 	return false
 
 }
+
+type CompressType string
+
+const (
+	Zip      CompressType = "zip"
+	Gz       CompressType = "gz"
+	Bz2      CompressType = "bz2"
+	Tar      CompressType = "tar"
+	TarGz    CompressType = "tar.gz"
+	Xz       CompressType = "xz"
+	SdkZip   CompressType = "sdkZip"
+	SdkTarGz CompressType = "sdkTarGz"
+)

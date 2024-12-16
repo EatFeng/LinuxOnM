@@ -114,3 +114,37 @@ func (f FileOp) Mv(oldPath, dstPath string) error {
 	}
 	return nil
 }
+
+func (f FileOp) ChownR(dst string, uid string, gid string, sub bool) error {
+	cmdStr := fmt.Sprintf(`chown %s:%s "%s"`, uid, gid, dst)
+	if sub {
+		cmdStr = fmt.Sprintf(`chown -R %s:%s "%s"`, uid, gid, dst)
+	}
+	if cmd.HasNoPasswordSudo() {
+		cmdStr = fmt.Sprintf("sudo %s", cmdStr)
+	}
+	if msg, err := cmd.ExecWithTimeOut(cmdStr, 10*time.Second); err != nil {
+		if msg != "" {
+			return errors.New(msg)
+		}
+		return err
+	}
+	return nil
+}
+
+func (f FileOp) ChmodR(dst string, mode int64, sub bool) error {
+	cmdStr := fmt.Sprintf(`chmod %v "%s"`, fmt.Sprintf("%04o", mode), dst)
+	if sub {
+		cmdStr = fmt.Sprintf(`chmod -R %v "%s"`, fmt.Sprintf("%04o", mode), dst)
+	}
+	if cmd.HasNoPasswordSudo() {
+		cmdStr = fmt.Sprintf("sudo %s", cmdStr)
+	}
+	if msg, err := cmd.ExecWithTimeOut(cmdStr, 10*time.Second); err != nil {
+		if msg != "" {
+			return errors.New(msg)
+		}
+		return err
+	}
+	return nil
+}

@@ -4,12 +4,14 @@ import "errors"
 
 const (
 	CodeErrInternalServer = 500
+	CodeGlobalLoading     = 407
 	CodeAuth              = 406
 	CodeErrNotFound       = 404
 	CodeErrUnauthorized   = 401
 	CodeErrBadRequest     = 400
 	CodePasswordExpired   = 313
 	CodeErrEntrance       = 312
+	CodeErrDomain         = 311
 	CodeErrIP             = 310
 	CodeSuccess           = 200
 )

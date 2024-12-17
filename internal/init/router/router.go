@@ -29,6 +29,8 @@ func Routers() *gin.Engine {
 
 	PrivateGroup := Router.Group("/api/handler")
 	PrivateGroup.Use(middleware.WhiteAllow())
+	PrivateGroup.Use(middleware.BindDomain())
+	PrivateGroup.Use(middleware.StatusGuard())
 	for _, router := range rou.RouterGroupApp {
 		router.InitRouter(PrivateGroup)
 	}

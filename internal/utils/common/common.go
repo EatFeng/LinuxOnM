@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -112,6 +113,15 @@ func RandStrAndNum(n int) string {
 		b[i] = charset[randGen.Intn(len(charset)-1)]
 	}
 	return (string(b))
+}
+
+func IsValidDomain(domain string) bool {
+	pattern := `^([\w\p{Han}\-\*]{1,100}\.){1,10}([\w\p{Han}\-]{1,24}|[\w\p{Han}\-]{1,24}\.[\w\p{Han}\-]{1,24})(:\d{1,5})?$`
+	match, err := regexp.MatchString(pattern, domain)
+	if err != nil {
+		return false
+	}
+	return match
 }
 
 func GetUuid() string {

@@ -37,6 +37,10 @@ func (p *PSession) Set(sessionID string, user SessionUser, ttlSeconds int) error
 	return p.store.SetWithTTL(sessionID, user, time.Second*time.Duration(ttlSeconds))
 }
 
+func (p *PSession) Delete(sessionID string) error {
+	return p.store.Del(sessionID)
+}
+
 func (p *PSession) Clean() error {
 	return p.store.Clean()
 }

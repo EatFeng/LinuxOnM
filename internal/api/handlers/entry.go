@@ -21,4 +21,5 @@ var (
 	settingService   = services.NewISettingService()
 	processService   = services.NewIProcessService()
 	cronjobService   = services.NewICronjobService()
+	firewallService  = services.NewIFirewallService()
 )

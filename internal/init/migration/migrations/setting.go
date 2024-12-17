@@ -1,6 +1,8 @@
 package migrations
 
 import (
+	"LinuxOnM/internal/api/dto/request"
+	"LinuxOnM/internal/api/services"
 	"LinuxOnM/internal/constant"
 	"LinuxOnM/internal/global"
 	"LinuxOnM/internal/models"
@@ -196,6 +198,62 @@ var AddNoAuthSetting = &gormigrate.Migration{
 	ID: "20241213-add-no-auth-setting",
 	Migrate: func(tx *gorm.DB) error {
 		if err := tx.Create(&models.Setting{Key: "NoAuthSetting", Value: "200"}).Error; err != nil {
+			return err
+		}
+		return nil
+	},
+}
+
+var AddWebsiteCA = &gormigrate.Migration{
+	ID: "20241216-add-website-ca",
+	Migrate: func(tx *gorm.DB) error {
+		if err := tx.AutoMigrate(&models.WebsiteCA{}); err != nil {
+			return err
+		}
+		return nil
+	},
+}
+
+var AddDefaultCA = &gormigrate.Migration{
+	ID: "20241216-add-default-ca",
+	Migrate: func(tx *gorm.DB) error {
+		caService := services.NewICertificateService()
+		if _, err := caService.Create(request.WebsiteCACreate{
+			CommonName:       "LinuxOnM-CA",
+			Country:          "CN",
+			KeyType:          "P256",
+			Name:             "LinuxOnM",
+			Organization:     "CGNDT@Shanghai",
+			OrganizationUint: "PRD@Software Room",
+			Province:         "Shanghai",
+			City:             "Shanghai",
+		}); err != nil {
+			return err
+		}
+		return nil
+	},
+}
+
+var AddWebsiteSSL = &gormigrate.Migration{
+	ID: "20241216-add-website-ssl",
+	Migrate: func(tx *gorm.DB) error {
+		if err := tx.AutoMigrate(&models.WebsiteSSL{}); err != nil {
+			return err
+		}
+		return nil
+	},
+}
+
+var AddSSLSetting = &gormigrate.Migration{
+	ID: "20241216-add-SSL-setting",
+	Migrate: func(tx *gorm.DB) error {
+		if err := tx.Create(&models.Setting{Key: "SSL", Value: "disable"}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&models.Setting{Key: "SSLType", Value: ""}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&models.Setting{Key: "SSLID", Value: ""}).Error; err != nil {
 			return err
 		}
 		return nil

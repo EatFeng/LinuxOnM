@@ -4,13 +4,16 @@ import "errors"
 
 const (
 	CodeErrInternalServer = 500
-	CodeSuccess           = 200
-	CodeErrBadRequest     = 400
+	CodeGlobalLoading     = 407
 	CodeAuth              = 406
-	CodePasswordExpired   = 313
 	CodeErrNotFound       = 404
+	CodeErrUnauthorized   = 401
+	CodeErrBadRequest     = 400
+	CodePasswordExpired   = 313
 	CodeErrEntrance       = 312
+	CodeErrDomain         = 311
 	CodeErrIP             = 310
+	CodeSuccess           = 200
 )
 
 // internal
@@ -23,6 +26,7 @@ var (
 	ErrAuth            = errors.New("ErrAuth")
 	ErrInitialPassword = errors.New("ErrInitialPassword")
 	ErrNotSupportType  = errors.New("ErrNotSupportType")
+	ErrTokenParse      = errors.New("ErrTokenParse")
 )
 
 // api
@@ -31,6 +35,8 @@ var (
 	ErrTypeInvalidParams   = "ErrInvalidParams"
 	ErrTypePasswordExpired = "ErrPasswordExpired"
 	ErrCmdIllegal          = "ErrCmdIllegal"
+	ErrNameIsExist         = "ErrNameIsExist"
+	ErrTypeNotLogin        = "ErrNotLogin"
 )
 
 // app

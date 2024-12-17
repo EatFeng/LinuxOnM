@@ -4,7 +4,10 @@ import (
 	"LinuxOnM/internal/buserr"
 	"LinuxOnM/internal/constant"
 	"bytes"
+	"context"
+	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -135,4 +138,22 @@ func CheckIllegal(args ...string) bool {
 		}
 	}
 	return false
+}
+
+func ExecShellWithTimeOut(cmdStr, workdir string, logger *log.Logger, timeout time.Duration) error {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "bash", "-c", cmdStr)
+	cmd.Dir = workdir
+	cmd.Stdout = logger.Writer()
+	cmd.Stderr = logger.Writer()
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	err := cmd.Wait()
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		return buserr.New(constant.ErrCmdTimeout)
+	}
+	return err
 }

@@ -58,10 +58,10 @@ func (u *AuthService) generateSession(c *gin.Context, name, authMethod string) (
 		return nil, err
 	}
 
-	//httpsSetting, err := settingRepo.Get(settingRepo.WithByKey("SSL"))
-	//if err != nil {
-	//	return nil, err
-	//}
+	httpsSetting, err := settingRepo.Get(settingRepo.WithByKey("SSL"))
+	if err != nil {
+		return nil, err
+	}
 
 	lifeTime, err := strconv.Atoi(setting.Value)
 	if err != nil {
@@ -84,7 +84,7 @@ func (u *AuthService) generateSession(c *gin.Context, name, authMethod string) (
 	sessionUser, err := global.SESSION.Get(sID)
 	if err != nil {
 		sID = uuid.New().String()
-		c.SetCookie(constant.SessionName, sID, 0, "", "", false, true)
+		c.SetCookie(constant.SessionName, sID, 0, "/", "", httpsSetting.Value == "enable", true)
 		err := global.SESSION.Set(sID, sessionUser, lifeTime)
 		if err != nil {
 			return nil, err

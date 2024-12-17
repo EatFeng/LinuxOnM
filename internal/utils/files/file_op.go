@@ -2,9 +2,11 @@ package files
 
 import (
 	"LinuxOnM/internal/utils/cmd"
+	"bufio"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
+	"io"
 	"io/fs"
 	"os"
 	"path"
@@ -116,10 +118,31 @@ func (f FileOp) Mv(oldPath, dstPath string) error {
 	return nil
 }
 
-func (f FileOp) ChownR(dst string, uid string, gid string, sub bool) error {
-	cmdStr := fmt.Sprintf(`chown %s:%s "%s"`, uid, gid, dst)
+func (f FileOp) WriteFile(dst string, in io.Reader, mode fs.FileMode) error {
+	file, err := f.Fs.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, mode)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if _, err = io.Copy(file, in); err != nil {
+		return err
+	}
+
+	if _, err = file.Stat(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (f FileOp) Rename(oldName string, newName string) error {
+	return f.Fs.Rename(oldName, newName)
+}
+
+func (f FileOp) ChmodR(dst string, mode int64, sub bool) error {
+	cmdStr := fmt.Sprintf(`chmod %v "%s"`, fmt.Sprintf("%04o", mode), dst)
 	if sub {
-		cmdStr = fmt.Sprintf(`chown -R %s:%s "%s"`, uid, gid, dst)
+		cmdStr = fmt.Sprintf(`chmod -R %v "%s"`, fmt.Sprintf("%04o", mode), dst)
 	}
 	if cmd.HasNoPasswordSudo() {
 		cmdStr = fmt.Sprintf("sudo %s", cmdStr)
@@ -133,10 +156,10 @@ func (f FileOp) ChownR(dst string, uid string, gid string, sub bool) error {
 	return nil
 }
 
-func (f FileOp) ChmodR(dst string, mode int64, sub bool) error {
-	cmdStr := fmt.Sprintf(`chmod %v "%s"`, fmt.Sprintf("%04o", mode), dst)
+func (f FileOp) ChownR(dst string, uid string, gid string, sub bool) error {
+	cmdStr := fmt.Sprintf(`chown %s:%s "%s"`, uid, gid, dst)
 	if sub {
-		cmdStr = fmt.Sprintf(`chmod -R %v "%s"`, fmt.Sprintf("%04o", mode), dst)
+		cmdStr = fmt.Sprintf(`chown -R %s:%s "%s"`, uid, gid, dst)
 	}
 	if cmd.HasNoPasswordSudo() {
 		cmdStr = fmt.Sprintf("sudo %s", cmdStr)
@@ -207,6 +230,21 @@ func (f FileOp) CopyAndReName(src, dst, name string, cover bool) error {
 		}
 		return cmd.ExecCmd(fmt.Sprintf(`cp -f '%s' '%s'`, src, dstPath))
 	}
+}
+
+func (f FileOp) SaveFile(dst string, content string, mode fs.FileMode) error {
+	if !f.Stat(path.Dir(dst)) {
+		_ = f.CreateDir(path.Dir(dst), mode.Perm())
+	}
+	file, err := f.Fs.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, mode)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	write := bufio.NewWriter(file)
+	_, _ = write.WriteString(content)
+	write.Flush()
+	return nil
 }
 
 func (f FileOp) Rename(oldName string, newName string) error {

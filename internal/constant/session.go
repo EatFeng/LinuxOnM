@@ -2,8 +2,9 @@ package constant
 
 const (
 	AuthMethodJWT = "jwt"
+	JWTHeaderName = "LinuxOnMAuthorization"
 	JWTBufferTime = 3600
 	JWTIssuer     = "@LinuxOnM"
 
-	SessionName = "p_session"
+	SessionName = "psession"
 )

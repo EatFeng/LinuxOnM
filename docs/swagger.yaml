@@ -1,5 +1,33 @@
 basePath: /api/handler
 definitions:
+  dto.AddrRuleOperate:
+    properties:
+      address:
+        type: string
+      description:
+        type: string
+      operation:
+        enum:
+        - add
+        - remove
+        type: string
+      strategy:
+        enum:
+        - accept
+        - drop
+        type: string
+    required:
+    - address
+    - operation
+    - strategy
+    type: object
+  dto.AddrRuleUpdate:
+    properties:
+      newRule:
+        $ref: '#/definitions/dto.AddrRuleOperate'
+      oldRule:
+        $ref: '#/definitions/dto.AddrRuleOperate'
+    type: object
   dto.BatchDeleteReq:
     properties:
       ids:
@@ -8,6 +36,30 @@ definitions:
         type: array
     required:
     - ids
+    type: object
+  dto.BatchRuleOperate:
+    properties:
+      rules:
+        items:
+          $ref: '#/definitions/dto.PortRuleOperate'
+        type: array
+      type:
+        type: string
+    required:
+    - type
+    type: object
+  dto.BindInfo:
+    properties:
+      bindAddress:
+        type: string
+      ipv6:
+        enum:
+        - enable
+        - disable
+        type: string
+    required:
+    - bindAddress
+    - ipv6
     type: object
   dto.ChangeHostGroup:
     properties:
@@ -238,6 +290,62 @@ definitions:
       usedPercent:
         type: number
     type: object
+  dto.FirewallBaseInfo:
+    properties:
+      name:
+        type: string
+      pingStatus:
+        type: string
+      status:
+        type: string
+      version:
+        type: string
+    type: object
+  dto.FirewallOperation:
+    properties:
+      operation:
+        enum:
+        - start
+        - stop
+        - restart
+        - disablePing
+        - enablePing
+        type: string
+    required:
+    - operation
+    type: object
+  dto.ForwardRuleOperate:
+    properties:
+      rules:
+        items:
+          properties:
+            num:
+              type: string
+            operation:
+              enum:
+              - add
+              - remove
+              type: string
+            port:
+              type: string
+            protocol:
+              enum:
+              - tcp
+              - udp
+              - tcp/udp
+              type: string
+            targetIP:
+              type: string
+            targetPort:
+              type: string
+          required:
+          - operation
+          - port
+          - protocol
+          - targetPort
+          type: object
+        type: array
+    type: object
   dto.GPUInfo:
     properties:
       fanSpeed:
@@ -389,7 +497,7 @@ definitions:
         type: string
       captchaID:
         type: string
-      ignore_capycha:
+      ignoreCaptcha:
         type: boolean
       name:
         type: string
@@ -480,6 +588,86 @@ definitions:
     - newPassword
     - oldPassword
     type: object
+  dto.PortRuleOperate:
+    properties:
+      address:
+        type: string
+      description:
+        type: string
+      operation:
+        enum:
+        - add
+        - remove
+        type: string
+      port:
+        type: string
+      protocol:
+        enum:
+        - tcp
+        - udp
+        - tcp/udp
+        type: string
+      strategy:
+        enum:
+        - accept
+        - drop
+        type: string
+    required:
+    - operation
+    - port
+    - protocol
+    - strategy
+    type: object
+  dto.PortRuleUpdate:
+    properties:
+      newRule:
+        $ref: '#/definitions/dto.PortRuleOperate'
+      oldRule:
+        $ref: '#/definitions/dto.PortRuleOperate'
+    type: object
+  dto.PortUpdate:
+    properties:
+      serverPort:
+        maximum: 65535
+        minimum: 1
+        type: integer
+    required:
+    - serverPort
+    type: object
+  dto.ProxyUpdate:
+    properties:
+      proxyPasswd:
+        type: string
+      proxyPasswdKeep:
+        type: string
+      proxyPort:
+        type: string
+      proxyType:
+        type: string
+      proxyUrl:
+        type: string
+      proxyUser:
+        type: string
+    type: object
+  dto.RuleSearch:
+    properties:
+      info:
+        type: string
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      status:
+        type: string
+      strategy:
+        type: string
+      type:
+        type: string
+    required:
+    - page
+    - pageSize
+    - type
+    type: object
   dto.SSHHistory:
     properties:
       address:
@@ -513,6 +701,33 @@ definitions:
         type: integer
       totalCount:
         type: integer
+    type: object
+  dto.SSLUpdate:
+    properties:
+      cert:
+        type: string
+      domain:
+        type: string
+      key:
+        type: string
+      ssl:
+        enum:
+        - enable
+        - disable
+        type: string
+      sslID:
+        type: integer
+      sslType:
+        enum:
+        - self
+        - select
+        - import
+        - import-paste
+        - import-local
+        type: string
+    required:
+    - ssl
+    - sslType
     type: object
   dto.SearchCommandWithPage:
     properties:
@@ -676,7 +891,11 @@ definitions:
         type: string
       monitorStoreDays:
         type: string
+      noAuthSetting:
+        type: string
       ntpSite:
+        type: string
+      panelName:
         type: string
       port:
         type: string
@@ -730,6 +949,26 @@ definitions:
         type: integer
       label:
         type: string
+    type: object
+  dto.UpdateFirewallDescription:
+    properties:
+      address:
+        type: string
+      description:
+        type: string
+      port:
+        type: string
+      protocol:
+        type: string
+      strategy:
+        enum:
+        - accept
+        - drop
+        type: string
+      type:
+        type: string
+    required:
+    - strategy
     type: object
   dto.UserLoginInfo:
     properties:
@@ -789,6 +1028,15 @@ definitions:
       user:
         type: string
     type: object
+  request.FileContentReq:
+    properties:
+      isDetail:
+        type: boolean
+      path:
+        type: string
+    required:
+    - path
+    type: object
   request.FileCreate:
     properties:
       content:
@@ -809,6 +1057,36 @@ definitions:
         type: boolean
     required:
     - path
+    type: object
+  request.FileDelete:
+    properties:
+      forceDelete:
+        type: boolean
+      isDir:
+        type: boolean
+      path:
+        type: string
+    required:
+    - path
+    type: object
+  request.FileMove:
+    properties:
+      cover:
+        type: boolean
+      name:
+        type: string
+      newPath:
+        type: string
+      oldPaths:
+        items:
+          type: string
+        type: array
+      type:
+        type: string
+    required:
+    - newPath
+    - oldPaths
+    - type
     type: object
   request.FileOption:
     properties:
@@ -835,6 +1113,13 @@ definitions:
       sortOrder:
         type: string
     type: object
+  request.FilePathCheck:
+    properties:
+      path:
+        type: string
+    required:
+    - path
+    type: object
   request.FileReadByLineReq:
     properties:
       ID:
@@ -853,6 +1138,26 @@ definitions:
     - page
     - pageSize
     - type
+    type: object
+  request.FileRoleReq:
+    properties:
+      group:
+        type: string
+      mode:
+        type: integer
+      paths:
+        items:
+          type: string
+        type: array
+      sub:
+        type: boolean
+      user:
+        type: string
+    required:
+    - group
+    - mode
+    - paths
+    - user
     type: object
   request.ProcessReq:
     properties:
@@ -923,6 +1228,15 @@ info:
   title: LinuxOnM API
   version: 1.0.0
 paths:
+  /auth/is-safety:
+    get:
+      description: 获取系统安全登录状态
+      responses:
+        "200":
+          description: OK
+      summary: Load safety status
+      tags:
+      - Auth
   /auth/login:
     post:
       consumes:
@@ -1075,6 +1389,26 @@ paths:
         formatEN: clean cronjob [name] records
         formatZH: 清空计划任务记录 [name]
         paramKeys: []
+  /cronjob/record/log:
+    post:
+      consumes:
+      - application/json
+      description: 获取计划任务记录日志
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.OperateByID'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Load Cronjob record log
+      tags:
+      - Cronjob
   /cronjob/record/search:
     post:
       consumes:
@@ -1095,26 +1429,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Page job records
-      tags:
-      - Cronjob
-  /cronjob/records/log:
-    post:
-      consumes:
-      - application/json
-      description: 获取计划任务记录日志
-      parameters:
-      - description: request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.OperateByID'
-      responses:
-        "200":
-          description: OK
-      security:
-      - ApiKeyAuth: []
-      summary: Load Cronjob record log
       tags:
       - Cronjob
   /cronjob/search:
@@ -1247,25 +1561,7 @@ paths:
       summary: Load dashboard current info
       tags:
       - Dashboard
-  /file/read:
-    post:
-      description: 按行读取日志文件
-      parameters:
-      - description: request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/request.FileReadByLineReq'
-      responses:
-        "200":
-          description: OK
-      security:
-      - ApiKeyAuth: []
-      summary: Read file by Line
-      tags:
-      - File
-  /files:
+  /file:
     post:
       consumes:
       - application/json
@@ -1291,7 +1587,154 @@ paths:
         formatEN: Create dir or file [path]
         formatZH: 创建文件/文件夹 [path]
         paramKeys: []
-  /files/search:
+  /file/batch/role:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.FileRoleReq'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Batch change file mode and owner
+      tags:
+      - File
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - paths
+        - mode
+        - user
+        - group
+        formatEN: Batch change file mode and owner [paths] => [mode]/[user]/[group]
+        formatZH: 批量修改文件权限和用户/组 [paths] => [mode]/[user]/[group]
+        paramKeys: []
+  /file/check:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.FilePathCheck'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Check file exist
+      tags:
+      - File
+  /file/content:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.FileContentReq'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.FileInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Load file content
+      tags:
+      - File
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - path
+        formatEN: Load file content [path]
+        formatZH: 获取文件内容 [path]
+        paramKeys: []
+  /file/del:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.FileDelete'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Delete file
+      tags:
+      - File
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - path
+        formatEN: Delete dir or file [path]
+        formatZH: 删除文件/文件夹 [path]
+        paramKeys: []
+  /file/move:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.FileMove'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Move file
+      tags:
+      - File
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - oldPaths
+        - newPath
+        formatEN: Move [oldPaths] => [newPath]
+        formatZH: 移动文件 [oldPaths] => [newPath]
+        paramKeys: []
+  /file/read:
+    post:
+      description: 按行读取日志文件
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.FileReadByLineReq'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Read file by Line
+      tags:
+      - File
+  /file/search:
     post:
       consumes:
       - application/json
@@ -1312,6 +1755,29 @@ paths:
       summary: List files
       tags:
       - File
+  /file/upload:
+    post:
+      parameters:
+      - description: request
+        in: formData
+        name: file
+        required: true
+        type: file
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Upload file
+      tags:
+      - File
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - path
+        formatEN: Upload file [path]
+        formatZH: 上传文件 [path]
+        paramKeys: []
   /group:
     post:
       consumes:
@@ -1341,32 +1807,7 @@ paths:
         formatEN: create group [name][type]
         formatZH: 创建组 [name][type]
         paramKeys: []
-  /group/search:
-    post:
-      consumes:
-      - application/json
-      description: This function is used to query and retrieve a list of system groups.
-        It first validates and binds the incoming JSON request data of type dto.GroupSearch.
-      parameters:
-      - description: request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.GroupSearch'
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/dto.GroupInfo'
-            type: array
-      security:
-      - ApiKeyAuth: []
-      summary: List groups
-      tags:
-      - System Group
-  /groups/del:
+  /group/del:
     post:
       consumes:
       - application/json
@@ -1407,7 +1848,32 @@ paths:
         formatEN: delete group [type][name]
         formatZH: 删除组 [type][name]
         paramKeys: []
-  /groups/update:
+  /group/search:
+    post:
+      consumes:
+      - application/json
+      description: This function is used to query and retrieve a list of system groups.
+        It first validates and binds the incoming JSON request data of type dto.GroupSearch.
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GroupSearch'
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.GroupInfo'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: List groups
+      tags:
+      - System Group
+  /group/update:
     post:
       consumes:
       - application/json
@@ -1695,6 +2161,233 @@ paths:
         formatEN: delete host [addrs]
         formatZH: 删除主机 [addrs]
         paramKeys: []
+  /host/firewall/base:
+    get:
+      description: 获取防火墙基础信息
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FirewallBaseInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Load firewall base info
+      tags:
+      - Firewall
+  /host/firewall/batch:
+    post:
+      consumes:
+      - application/json
+      description: 批量删除防火墙规则
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BatchRuleOperate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Create group
+      tags:
+      - Firewall
+  /host/firewall/forward:
+    post:
+      consumes:
+      - application/json
+      description: 更新防火墙端口转发规则
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ForwardRuleOperate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Create group
+      tags:
+      - Firewall
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - source_port
+        formatEN: update port forward rules [source_port]
+        formatZH: 更新端口转发规则 [source_port]
+        paramKeys: []
+  /host/firewall/ip:
+    post:
+      consumes:
+      - application/json
+      description: 创建防火墙 IP 规则
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AddrRuleOperate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Create group
+      tags:
+      - Firewall
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - strategy
+        - address
+        formatEN: create address rules [strategy][address]
+        formatZH: 添加 ip 规则 [strategy] [address]
+        paramKeys: []
+  /host/firewall/operate:
+    post:
+      consumes:
+      - application/json
+      description: 修改防火墙状态
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.FirewallOperation'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PageResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Page firewall status
+      tags:
+      - Firewall
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - operation
+        formatEN: '[operation] firewall'
+        formatZH: '[operation] 防火墙'
+        paramKeys: []
+  /host/firewall/port:
+    post:
+      consumes:
+      - application/json
+      description: 创建防火墙端口规则
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PortRuleOperate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Create group
+      tags:
+      - Firewall
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - port
+        - strategy
+        formatEN: create port rules [strategy][port]
+        formatZH: 添加端口规则 [strategy] [port]
+        paramKeys: []
+  /host/firewall/search:
+    post:
+      consumes:
+      - application/json
+      description: 获取防火墙规则列表分页
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RuleSearch'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PageResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Page firewall rules
+      tags:
+      - Firewall
+  /host/firewall/update/addr:
+    post:
+      consumes:
+      - application/json
+      description: 更新 ip 防火墙规则
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AddrRuleUpdate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Create group
+      tags:
+      - Firewall
+  /host/firewall/update/description:
+    post:
+      consumes:
+      - application/json
+      description: 更新防火墙描述
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateFirewallDescription'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Update rule description
+      tags:
+      - Firewall
+  /host/firewall/update/port:
+    post:
+      consumes:
+      - application/json
+      description: 更新端口防火墙规则
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PortRuleUpdate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Create group
+      tags:
+      - Firewall
   /host/monitor/clean:
     post:
       description: Delete all the existing monitor data.
@@ -1914,6 +2607,28 @@ paths:
         formatEN: change host [addr] group => [group]
         formatZH: 切换主机[addr]分组 => [group]
         paramKeys: []
+  /log/login:
+    post:
+      consumes:
+      - application/json
+      description: 获取系统登录日志列表分页
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SearchLoginLogWithPage'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PageResult'
+      security:
+      - ApiKeyAuth: []
+      summary: Page login logs
+      tags:
+      - Logs
   /log/operation:
     post:
       consumes:
@@ -1969,28 +2684,6 @@ paths:
       summary: Load system log files
       tags:
       - Logs
-  /logs/login:
-    post:
-      consumes:
-      - application/json
-      description: 获取系统登录日志列表分页
-      parameters:
-      - description: request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.SearchLoginLogWithPage'
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.PageResult'
-      security:
-      - ApiKeyAuth: []
-      summary: Page login logs
-      tags:
-      - Logs
   /process/stop:
     post:
       parameters:
@@ -2014,6 +2707,32 @@ paths:
         - PID
         formatEN: 结束进程 [PID]
         formatZH: 结束进程 [PID]
+        paramKeys: []
+  /setting/expired/handle:
+    post:
+      consumes:
+      - application/json
+      description: 重置过期系统登录密码
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PasswordUpdate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Reset system password expired
+      tags:
+      - System Setting
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys: []
+        formatEN: reset an expired Password
+        formatZH: 重置过期密码
         paramKeys: []
   /setting/interface:
     get:
@@ -2052,6 +2771,57 @@ paths:
       summary: Load system available status
       tags:
       - System Setting
+  /setting/ssl/download:
+    post:
+      description: 下载 SSL 证书
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Download system cert
+      tags:
+      - System Setting
+  /setting/ssl/info:
+    get:
+      description: 获取 SSL 证书信息
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SettingInfo'
+      security:
+      - ApiKeyAuth: []
+      summary: Load system cert info
+      tags:
+      - System Setting
+  /setting/ssl/update:
+    post:
+      consumes:
+      - application/json
+      description: 修改系统 SSL 状态
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SSLUpdate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Update system ssl
+      tags:
+      - System Setting
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - ssl
+        formatEN: update system ssl => [ssl]
+        formatZH: 修改系统 ssl => [ssl]
+        paramKeys: []
   /setting/update:
     post:
       consumes:
@@ -2080,6 +2850,34 @@ paths:
         formatEN: update system setting [key] => [value]
         formatZH: 修改系统配置 [key] => [value]
         paramKeys: []
+  /setting/update/bind:
+    post:
+      consumes:
+      - application/json
+      description: 更新系统监听信息
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BindInfo'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Update system bind info
+      tags:
+      - System Setting
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - ipv6
+        - bindAddress
+        formatEN: 'update system bind info => ipv6: [ipv6], 监听 IP: [bindAddress]'
+        formatZH: '修改系统监听信息 => ipv6: [ipv6], 监听 IP: [bindAddress]'
+        paramKeys: []
   /setting/update/password:
     post:
       consumes:
@@ -2105,5 +2903,60 @@ paths:
         bodyKeys: []
         formatEN: update system password
         formatZH: 修改系统密码
+        paramKeys: []
+  /setting/update/port:
+    post:
+      consumes:
+      - application/json
+      description: 更新系统端口
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PortUpdate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Update system port
+      tags:
+      - System Setting
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - serverPort
+        formatEN: update system port => [serverPort]
+        formatZH: 修改系统端口 => [serverPort]
+        paramKeys: []
+  /setting/update/proxy:
+    post:
+      consumes:
+      - application/json
+      description: 服务器代理配置
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ProxyUpdate'
+      responses:
+        "200":
+          description: OK
+      security:
+      - ApiKeyAuth: []
+      summary: Update proxy setting
+      tags:
+      - System Setting
+      x-panel-log:
+        BeforeFunctions: []
+        bodyKeys:
+        - proxyUrl
+        - proxyPort
+        formatEN: set proxy [proxyPort]:[proxyPort].
+        formatZH: 服务器代理配置 [proxyPort]:[proxyPort]
         paramKeys: []
 swagger: "2.0"

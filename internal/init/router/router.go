@@ -1,12 +1,16 @@
 package router
 
 import (
+	"LinuxOnM/docs"
 	rou "LinuxOnM/internal/api/routers"
 	"LinuxOnM/internal/middleware"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"net/http"
+
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func Routers() *gin.Engine {
@@ -18,6 +22,10 @@ func Routers() *gin.Engine {
 			"message": "The requested URL was not found on this server.",
 		})
 	})
+
+	swaggerRouter := Router.Group("linuxonm")
+	docs.SwaggerInfo.BasePath = "/api/handler"
+	swaggerRouter.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	PublicGroup := Router.Group("")
 	{

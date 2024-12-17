@@ -167,7 +167,7 @@ func (b *BaseApi) SearchJobRecords(c *gin.Context) {
 // @Param request body dto.OperateByID true "request"
 // @Success 200
 // @Security ApiKeyAuth
-// @Router /cronjob/records/log [post]
+// @Router /cronjob/record/log [post]
 func (b *BaseApi) LoadRecordLog(c *gin.Context) {
 	var req dto.OperateByID
 	if err := helper.CheckBindAndValidate(c, &req); err != nil {

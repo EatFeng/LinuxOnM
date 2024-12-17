@@ -14,7 +14,7 @@ import (
 // @Param request body dto.SearchLoginLogWithPage true "request"
 // @Success 200 {object} dto.PageResult
 // @Security ApiKeyAuth
-// @Router /logs/login [post]
+// @Router /log/login [post]
 func (b *BaseApi) GetLoginLog(c *gin.Context) {
 	var req dto.SearchLoginLogWithPage
 	if err := helper.CheckBindAndValidate(c, &req); err != nil {

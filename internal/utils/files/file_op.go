@@ -208,3 +208,7 @@ func (f FileOp) CopyAndReName(src, dst, name string, cover bool) error {
 		return cmd.ExecCmd(fmt.Sprintf(`cp -f '%s' '%s'`, src, dstPath))
 	}
 }
+
+func (f FileOp) Rename(oldName string, newName string) error {
+	return f.Fs.Rename(oldName, newName)
+}

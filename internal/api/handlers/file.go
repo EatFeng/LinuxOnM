@@ -292,3 +292,43 @@ func (b *BaseApi) MoveFile(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// @Tags File
+// @Summary Change file name
+// @Accept json
+// @Param request body request.FileRename true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /file/rename [post]
+// @x-panel-log {"bodyKeys":["oldName","newName"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"重命名 [oldName] => [newName]","formatEN":"Rename [oldName] => [newName]"}
+func (b *BaseApi) ChangeFileName(c *gin.Context) {
+	var req request.FileRename
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+	if err := fileService.ChangeName(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}
+
+// @Tags File
+// @Summary Load files tree
+// @Accept json
+// @Param request body request.FileOption true "request"
+// @Success 200 {array} response.FileTree
+// @Security ApiKeyAuth
+// @Router /file/tree [post]
+func (b *BaseApi) GetFileTree(c *gin.Context) {
+	var req request.FileOption
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+	tree, err := fileService.GetFileTree(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, tree)
+}

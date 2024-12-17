@@ -7,10 +7,12 @@ import (
 	"LinuxOnM/internal/constant"
 	"LinuxOnM/internal/global"
 	"LinuxOnM/internal/utils/cmd"
+	"LinuxOnM/internal/utils/common"
 	"LinuxOnM/internal/utils/files"
 	"fmt"
 	"github.com/pkg/errors"
 	"golang.org/x/net/html/charset"
+	"golang.org/x/sys/unix"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 	"io"
@@ -33,6 +35,12 @@ type IFileService interface {
 	GetContent(op request.FileContentReq) (response.FileInfo, error)
 	BatchChangeModeAndOwner(op request.FileRoleReq) error
 	MvFile(m request.FileMove) error
+	ChangeName(req request.FileRename) error
+	GetFileTree(op request.FileOption) ([]response.FileTree, error)
+}
+
+var filteredPaths = []string{
+	"/opt/.LinuxOnM_clash",
 }
 
 func NewIFileService() IFileService {
@@ -241,4 +249,85 @@ func (f *FileService) MvFile(m request.FileMove) error {
 		return errors.New(errString)
 	}
 	return nil
+}
+
+func (f *FileService) ChangeName(req request.FileRename) error {
+	if files.IsInvalidChar(req.NewName) {
+		return buserr.New("ErrInvalidChar")
+	}
+	fo := files.NewFileOp()
+	return fo.Rename(req.OldName, req.NewName)
+}
+
+func (f *FileService) GetFileTree(op request.FileOption) ([]response.FileTree, error) {
+	var treeArray []response.FileTree
+	if _, err := os.Stat(op.Path); err != nil && os.IsNotExist(err) {
+		return treeArray, nil
+	}
+	info, err := files.NewFileInfo(op.FileOption)
+	if err != nil {
+		return nil, err
+	}
+	node := response.FileTree{
+		ID:        common.GetUuid(),
+		Name:      info.Name,
+		Path:      info.Path,
+		IsDir:     info.IsDir,
+		Extension: info.Extension,
+	}
+	err = f.buildFileTree(&node, info.Items, op, 2)
+	if err != nil {
+		return nil, err
+	}
+	return append(treeArray, node), nil
+}
+
+func (f *FileService) buildFileTree(node *response.FileTree, items []*files.FileInfo, op request.FileOption, level int) error {
+	for _, v := range items {
+		if shouldFilterPath(v.Path) {
+			global.LOG.Infof("File Tree: Skipping %s due to filter\n", v.Path)
+			continue
+		}
+		childNode := response.FileTree{
+			ID:        common.GetUuid(),
+			Name:      v.Name,
+			Path:      v.Path,
+			IsDir:     v.IsDir,
+			Extension: v.Extension,
+		}
+		if level > 1 && v.IsDir {
+			if err := f.buildChildNode(&childNode, v, op, level); err != nil {
+				return err
+			}
+		}
+
+		node.Children = append(node.Children, childNode)
+	}
+	return nil
+}
+
+func shouldFilterPath(path string) bool {
+	cleanedPath := filepath.Clean(path)
+	for _, filteredPath := range filteredPaths {
+		cleanedFilteredPath := filepath.Clean(filteredPath)
+		if cleanedFilteredPath == cleanedPath || strings.HasPrefix(cleanedPath, cleanedFilteredPath+"/") {
+			return true
+		}
+	}
+	return false
+}
+
+func (f *FileService) buildChildNode(childNode *response.FileTree, fileInfo *files.FileInfo, op request.FileOption, level int) error {
+	op.Path = fileInfo.Path
+	subInfo, err := files.NewFileInfo(op.FileOption)
+	if err != nil {
+		if os.IsPermission(err) || errors.Is(err, unix.EACCES) {
+			global.LOG.Infof("File Tree: Skipping %s due to permission denied\n", fileInfo.Path)
+			return nil
+		}
+		global.LOG.Errorf("File Tree: Skipping %s due to error: %s\n", fileInfo.Path, err.Error())
+		return nil
+	}
+
+	return f.buildFileTree(childNode, subInfo.Items, op, level-1)
 }

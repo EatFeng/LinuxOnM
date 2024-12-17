@@ -65,3 +65,8 @@ type FileMove struct {
 	Name     string   `json:"name"`
 	Cover    bool     `json:"cover"`
 }
+
+type FileRename struct {
+	OldName string `json:"oldName" validate:"required"`
+	NewName string `json:"newName" validate:"required"`
+}

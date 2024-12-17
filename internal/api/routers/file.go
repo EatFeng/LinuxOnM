@@ -18,8 +18,10 @@ func (f *FileRouter) InitRouter(Router *gin.RouterGroup) {
 		fileRouter.POST("/del", baseApi.DeleteFile)
 		fileRouter.POST("/upload", baseApi.UploadFiles)
 		fileRouter.POST("/content", baseApi.GetContent)
+		fileRouter.POST("/tree", baseApi.GetFileTree)
 		fileRouter.POST("/batch/role", baseApi.BatchChangeModeAndOwner)
 		fileRouter.POST("/check", baseApi.CheckFile)
 		fileRouter.POST("/move", baseApi.MoveFile)
+		fileRouter.POST("/rename", baseApi.ChangeFileName)
 	}
 }

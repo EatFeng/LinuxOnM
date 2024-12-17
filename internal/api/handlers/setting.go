@@ -4,8 +4,11 @@ import (
 	"LinuxOnM/internal/api/dto"
 	"LinuxOnM/internal/api/handlers/helper"
 	"LinuxOnM/internal/constant"
+	"LinuxOnM/internal/global"
 	"encoding/base64"
 	"github.com/gin-gonic/gin"
+	"os"
+	"path"
 )
 
 // GetSettingInfo
@@ -129,7 +132,7 @@ func (b *BaseApi) HandlePasswordExpired(c *gin.Context) {
 // @Param request body dto.ProxyUpdate true "request"
 // @Success 200
 // @Security ApiKeyAuth
-// @Router /settings/update/proxy [post]
+// @Router /setting/update/proxy [post]
 // @x-panel-log {"bodyKeys":["proxyUrl","proxyPort"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"服务器代理配置 [proxyPort]:[proxyPort]","formatEN":"set proxy [proxyPort]:[proxyPort]."}
 func (b *BaseApi) UpdateProxy(c *gin.Context) {
 	var req dto.ProxyUpdate
@@ -161,7 +164,7 @@ func (b *BaseApi) UpdateProxy(c *gin.Context) {
 // @Param request body dto.BindInfo true "request"
 // @Success 200
 // @Security ApiKeyAuth
-// @Router /settings/update/bind [post]
+// @Router /setting/update/bind [post]
 // @x-panel-log {"bodyKeys":["ipv6", "bindAddress"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"修改系统监听信息 => ipv6: [ipv6], 监听 IP: [bindAddress]","formatEN":"update system bind info => ipv6: [ipv6], 监听 IP: [bindAddress]"}
 func (b *BaseApi) UpdateBindInfo(c *gin.Context) {
 	var req dto.BindInfo
@@ -184,7 +187,7 @@ func (b *BaseApi) UpdateBindInfo(c *gin.Context) {
 // @Param request body dto.PortUpdate true "request"
 // @Success 200
 // @Security ApiKeyAuth
-// @Router /settings/update/port [post]
+// @Router /setting/update/port [post]
 // @x-panel-log {"bodyKeys":["serverPort"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"修改系统端口 => [serverPort]","formatEN":"update system port => [serverPort]"}
 func (b *BaseApi) UpdatePort(c *gin.Context) {
 	var req dto.PortUpdate
@@ -202,12 +205,12 @@ func (b *BaseApi) UpdatePort(c *gin.Context) {
 // UpdateSSL
 // @Tags System Setting
 // @Summary Update system ssl
-// @Description 修改系统 ssl 登录
+// @Description 修改系统 ssl 状态
 // @Accept json
 // @Param request body dto.SSLUpdate true "request"
 // @Success 200
 // @Security ApiKeyAuth
-// @Router /settings/ssl/update [post]
+// @Router /setting/ssl/update [post]
 // @x-panel-log {"bodyKeys":["ssl"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"修改系统 ssl => [ssl]","formatEN":"update system ssl => [ssl]"}
 func (b *BaseApi) UpdateSSL(c *gin.Context) {
 	var req dto.SSLUpdate
@@ -220,4 +223,37 @@ func (b *BaseApi) UpdateSSL(c *gin.Context) {
 		return
 	}
 	helper.SuccessWithData(c, nil)
+}
+
+// LoadFromCert
+// @Tags System Setting
+// @Summary Load system cert info
+// @Description 获取证书信息
+// @Success 200 {object} dto.SettingInfo
+// @Security ApiKeyAuth
+// @Router /setting/ssl/info [get]
+func (b *BaseApi) LoadFromCert(c *gin.Context) {
+	info, err := settingService.LoadFromCert()
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, info)
+}
+
+// DownloadSSL
+// @Tags System Setting
+// @Summary Download system cert
+// @Description 下载证书
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /setting/ssl/download [post]
+func (b *BaseApi) DownloadSSL(c *gin.Context) {
+	pathItem := path.Join(global.CONF.System.BaseDir, "LinuxOnM/secret/server.crt")
+	if _, err := os.Stat(pathItem); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+
+	c.File(pathItem)
 }

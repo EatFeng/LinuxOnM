@@ -2,11 +2,14 @@ package files
 
 import (
 	"LinuxOnM/internal/utils/cmd"
+	"bufio"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
+	"io"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"time"
 )
@@ -112,5 +115,134 @@ func (f FileOp) Mv(oldPath, dstPath string) error {
 	if err := cmd.ExecCmd(cmdStr); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (f FileOp) WriteFile(dst string, in io.Reader, mode fs.FileMode) error {
+	file, err := f.Fs.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, mode)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if _, err = io.Copy(file, in); err != nil {
+		return err
+	}
+
+	if _, err = file.Stat(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (f FileOp) Rename(oldName string, newName string) error {
+	return f.Fs.Rename(oldName, newName)
+}
+
+func (f FileOp) ChmodR(dst string, mode int64, sub bool) error {
+	cmdStr := fmt.Sprintf(`chmod %v "%s"`, fmt.Sprintf("%04o", mode), dst)
+	if sub {
+		cmdStr = fmt.Sprintf(`chmod -R %v "%s"`, fmt.Sprintf("%04o", mode), dst)
+	}
+	if cmd.HasNoPasswordSudo() {
+		cmdStr = fmt.Sprintf("sudo %s", cmdStr)
+	}
+	if msg, err := cmd.ExecWithTimeOut(cmdStr, 10*time.Second); err != nil {
+		if msg != "" {
+			return errors.New(msg)
+		}
+		return err
+	}
+	return nil
+}
+
+func (f FileOp) ChownR(dst string, uid string, gid string, sub bool) error {
+	cmdStr := fmt.Sprintf(`chown %s:%s "%s"`, uid, gid, dst)
+	if sub {
+		cmdStr = fmt.Sprintf(`chown -R %s:%s "%s"`, uid, gid, dst)
+	}
+	if cmd.HasNoPasswordSudo() {
+		cmdStr = fmt.Sprintf("sudo %s", cmdStr)
+	}
+	if msg, err := cmd.ExecWithTimeOut(cmdStr, 10*time.Second); err != nil {
+		if msg != "" {
+			return errors.New(msg)
+		}
+		return err
+	}
+	return nil
+}
+
+func (f FileOp) Cut(oldPaths []string, dst, name string, cover bool) error {
+	for _, p := range oldPaths {
+		var dstPath string
+		if name != "" {
+			dstPath = filepath.Join(dst, name)
+			if f.Stat(dstPath) {
+				dstPath = dst
+			}
+		} else {
+			base := filepath.Base(p)
+			dstPath = filepath.Join(dst, base)
+		}
+		coverFlag := ""
+		if cover {
+			coverFlag = "-f"
+		}
+
+		cmdStr := fmt.Sprintf(`mv %s '%s' '%s'`, coverFlag, p, dstPath)
+		if err := cmd.ExecCmd(cmdStr); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (f FileOp) CopyAndReName(src, dst, name string, cover bool) error {
+	if src = path.Clean("/" + src); src == "" {
+		return os.ErrNotExist
+	}
+	if dst = path.Clean("/" + dst); dst == "" {
+		return os.ErrNotExist
+	}
+	if src == "/" || dst == "/" {
+		return os.ErrInvalid
+	}
+	if dst == src {
+		return os.ErrInvalid
+	}
+
+	srcInfo, err := f.Fs.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	if srcInfo.IsDir() {
+		dstPath := dst
+		if name != "" && !cover {
+			dstPath = filepath.Join(dst, name)
+		}
+		return cmd.ExecCmd(fmt.Sprintf(`cp -rf '%s' '%s'`, src, dstPath))
+	} else {
+		dstPath := filepath.Join(dst, name)
+		if cover {
+			dstPath = dst
+		}
+		return cmd.ExecCmd(fmt.Sprintf(`cp -f '%s' '%s'`, src, dstPath))
+	}
+}
+
+func (f FileOp) SaveFile(dst string, content string, mode fs.FileMode) error {
+	if !f.Stat(path.Dir(dst)) {
+		_ = f.CreateDir(path.Dir(dst), mode.Perm())
+	}
+	file, err := f.Fs.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, mode)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	write := bufio.NewWriter(file)
+	_, _ = write.WriteString(content)
+	write.Flush()
 	return nil
 }

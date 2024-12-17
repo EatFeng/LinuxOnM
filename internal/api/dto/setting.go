@@ -90,3 +90,12 @@ type SSLUpdate struct {
 	Key     string `json:"key"`
 	SSLID   uint   `json:"sslID"`
 }
+
+type SSLInfo struct {
+	Domain   string `json:"domain"`
+	Timeout  string `json:"timeout"`
+	RootPath string `json:"rootPath"`
+	Cert     string `json:"cert"`
+	Key      string `json:"key"`
+	SSLID    uint   `json:"sslID"`
+}

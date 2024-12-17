@@ -39,6 +39,7 @@ type ISettingService interface {
 	UpdatePort(port uint) error
 	HandlePasswordExpired(c *gin.Context, old, new string) error
 	UpdateSSL(c *gin.Context, req dto.SSLUpdate) error
+	LoadFromCert() (*dto.SSLInfo, error)
 }
 
 func NewISettingService() ISettingService {
@@ -385,4 +386,61 @@ func checkCertValid() error {
 	}
 
 	return nil
+}
+
+func (u *SettingService) LoadFromCert() (*dto.SSLInfo, error) {
+	ssl, err := settingRepo.Get(settingRepo.WithByKey("SSL"))
+	if err != nil {
+		return nil, err
+	}
+	if ssl.Value == "disable" {
+		return &dto.SSLInfo{}, nil
+	}
+	sslType, err := settingRepo.Get(settingRepo.WithByKey("SSLType"))
+	if err != nil {
+		return nil, err
+	}
+	var data dto.SSLInfo
+	switch sslType.Value {
+	case "self":
+		data, err = loadInfoFromCert()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &data, nil
+}
+
+func loadInfoFromCert() (dto.SSLInfo, error) {
+	var info dto.SSLInfo
+	certFile := path.Join(global.CONF.System.BaseDir, "LinuxOnM/secret/server.crt")
+	if _, err := os.Stat(certFile); err != nil {
+		return info, err
+	}
+	certData, err := os.ReadFile(certFile)
+	if err != nil {
+		return info, err
+	}
+	certBlock, _ := pem.Decode(certData)
+	if certBlock == nil {
+		return info, err
+	}
+	certObj, err := x509.ParseCertificate(certBlock.Bytes)
+	if err != nil {
+		return info, err
+	}
+	var domains []string
+	if len(certObj.IPAddresses) != 0 {
+		for _, ip := range certObj.IPAddresses {
+			domains = append(domains, ip.String())
+		}
+	}
+	if len(certObj.DNSNames) != 0 {
+		domains = append(domains, certObj.DNSNames...)
+	}
+	return dto.SSLInfo{
+		Domain:   strings.Join(domains, ","),
+		Timeout:  certObj.NotAfter.Format(constant.DateTimeLayout),
+		RootPath: path.Join(global.CONF.System.BaseDir, "LinuxOnM/secret/server.crt"),
+	}, nil
 }

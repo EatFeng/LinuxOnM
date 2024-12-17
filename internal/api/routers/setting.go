@@ -22,5 +22,7 @@ func (s *SettingRouter) InitRouter(Router *gin.RouterGroup) {
 		settingRouter.POST("/update/bind", baseApi.UpdateBindInfo)
 		settingRouter.POST("/update/port", baseApi.UpdatePort)
 		settingRouter.POST("/ssl/update", baseApi.UpdateSSL)
+		settingRouter.GET("/ssl/info", baseApi.LoadFromCert)
+		settingRouter.POST("/ssl/download", baseApi.DownloadSSL)
 	}
 }

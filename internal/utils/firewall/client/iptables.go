@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const NatChain = "1PANEL"
+const NatChain = "LINUXONM"
 
 var NatListRegex = regexp.MustCompile(`^(\d+)\s+(.+?)\s+(.+?)\s+(.+?)\s+(.+?)\s+(.+?)(?:\s+(.+?) .+?:(\d{1,5}(?::\d+)?).+?[ :](.+-.+|(?:.+:)?\d{1,5}(?:-\d{1,5})?))?$`)
 

@@ -18,4 +18,5 @@ type System struct {
 	Cache       string `mapstructure:"cache"`
 	Backup      string `mapstructure:"backup"`
 	SSL         string `mapstructure:"ssl"`
+	TmpDir      string `mapstructure:"tmp_dir"`
 }

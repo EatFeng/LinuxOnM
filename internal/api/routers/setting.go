@@ -2,7 +2,6 @@ package routers
 
 import (
 	handler "LinuxOnM/internal/api/handlers"
-	"LinuxOnM/internal/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,7 +9,7 @@ type SettingRouter struct{}
 
 func (s *SettingRouter) InitRouter(Router *gin.RouterGroup) {
 	router := Router.Group("setting")
-	settingRouter := Router.Group("setting").Use(middleware.PasswordExpired())
+	settingRouter := Router.Group("setting")
 	baseApi := handler.ApiGroupApp.BaseApi
 	{
 		router.POST("/search", baseApi.GetSettingInfo)
@@ -22,5 +21,6 @@ func (s *SettingRouter) InitRouter(Router *gin.RouterGroup) {
 		settingRouter.POST("/update/proxy", baseApi.UpdateProxy)
 		settingRouter.POST("/update/bind", baseApi.UpdateBindInfo)
 		settingRouter.POST("/update/port", baseApi.UpdatePort)
+		settingRouter.POST("/ssl/update", baseApi.UpdateSSL)
 	}
 }

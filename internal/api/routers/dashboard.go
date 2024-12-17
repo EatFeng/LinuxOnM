@@ -10,7 +10,9 @@ import (
 type DashboardRouter struct{}
 
 func (s *DashboardRouter) InitRouter(Router *gin.RouterGroup) {
-	cmdRouter := Router.Group("dashboard").Use(middleware.PasswordExpired())
+	cmdRouter := Router.Group("dashboard").
+		Use(middleware.PasswordExpired()).
+		Use(middleware.SessionAuth())
 
 	baseApi := handlers.ApiGroupApp.BaseApi
 	{

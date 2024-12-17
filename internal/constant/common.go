@@ -12,3 +12,8 @@ const (
 
 	DB DBContext = "db"
 )
+
+const (
+	SelfSigned = "selfSigned"
+	SSLReady   = "ready"
+)

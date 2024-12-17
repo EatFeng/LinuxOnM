@@ -81,3 +81,12 @@ type BindInfo struct {
 type PortUpdate struct {
 	ServerPort uint `json:"serverPort" validate:"required,number,max=65535,min=1"`
 }
+
+type SSLUpdate struct {
+	SSLType string `json:"sslType" validate:"required,oneof=self select import import-paste import-local"`
+	Domain  string `json:"domain"`
+	SSL     string `json:"ssl" validate:"required,oneof=enable disable"`
+	Cert    string `json:"cert"`
+	Key     string `json:"key"`
+	SSLID   uint   `json:"sslID"`
+}

@@ -25,11 +25,16 @@ import (
 	"LinuxOnM/internal/init/migration"
 	"LinuxOnM/internal/init/router"
 	"LinuxOnM/internal/init/session"
+	"LinuxOnM/internal/init/session/psession"
 	"LinuxOnM/internal/init/validator"
 	"LinuxOnM/internal/init/viper"
+	"crypto/tls"
+	"encoding/gob"
 	"github.com/gin-gonic/gin"
 	"net"
 	"net/http"
+	"os"
+	"path"
 )
 
 func main() {
@@ -39,6 +44,7 @@ func main() {
 	migration.Init()
 	app.Init()
 	validator.Init()
+	gob.Register(psession.SessionUser{})
 	cache.Init()
 	session.Init()
 	gin.SetMode("debug")
@@ -63,8 +69,33 @@ func main() {
 		*net.TCPListener
 	}
 
-	global.LOG.Infof("listen at http://%s:%s [%s]", global.CONF.System.BindAddress, global.CONF.System.Port, tcpItem)
-	if err := server.Serve(tcpKeepAliveListener{ln.(*net.TCPListener)}); err != nil {
-		panic(err)
+	if global.CONF.System.SSL == "enable" {
+		certPath := path.Join(global.CONF.System.BaseDir, "LinuxOnM/secret/server.crt")
+		keyPath := path.Join(global.CONF.System.BaseDir, "LinuxOnM/secret/server.key")
+		certificate, err := os.ReadFile(certPath)
+		if err != nil {
+			panic(err)
+		}
+		key, err := os.ReadFile(keyPath)
+		if err != nil {
+			panic(err)
+		}
+		cert, err := tls.X509KeyPair(certificate, key)
+		if err != nil {
+			panic(err)
+		}
+		server.TLSConfig = &tls.Config{
+			Certificates: []tls.Certificate{cert},
+		}
+		global.LOG.Infof("listen at https://%s:%s [%s]", global.CONF.System.BindAddress, global.CONF.System.Port, tcpItem)
+
+		if err := server.ServeTLS(tcpKeepAliveListener{ln.(*net.TCPListener)}, certPath, keyPath); err != nil {
+			panic(err)
+		}
+	} else {
+		global.LOG.Infof("listen at http://%s:%s [%s]", global.CONF.System.BindAddress, global.CONF.System.Port, tcpItem)
+		if err := server.Serve(tcpKeepAliveListener{ln.(*net.TCPListener)}); err != nil {
+			panic(err)
+		}
 	}
 }

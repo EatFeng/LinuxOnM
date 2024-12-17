@@ -16,6 +16,14 @@ func NewCacheDB(db *badger.DB) *Cache {
 	}
 }
 
+func (c *Cache) Set(key string, value interface{}) error {
+	err := c.db.Update(func(txn *badger.Txn) error {
+		v := []byte(fmt.Sprintf("%v", value))
+		return txn.Set([]byte(key), v)
+	})
+	return err
+}
+
 func (c *Cache) Get(key string) ([]byte, error) {
 	var result []byte
 	err := c.db.View(func(txn *badger.Txn) error {
@@ -43,4 +51,28 @@ func (c *Cache) SetWithTTL(key string, value interface{}, duration time.Duration
 		return txn.SetEntry(e)
 	})
 	return err
+}
+
+func (c *Cache) Del(key string) error {
+	err := c.db.Update(func(txn *badger.Txn) error {
+		return txn.Delete([]byte(key))
+	})
+	return err
+}
+
+func (c *Cache) PrefixScanKey(prefixStr string) ([]string, error) {
+	var res []string
+	err := c.db.View(func(txn *badger.Txn) error {
+		it := txn.NewIterator(badger.DefaultIteratorOptions)
+		defer it.Close()
+		prefix := []byte(prefixStr)
+		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
+			item := it.Item()
+			k := item.Key()
+			res = append(res, string(k))
+			return nil
+		}
+		return nil
+	})
+	return res, err
 }

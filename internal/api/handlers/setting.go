@@ -198,3 +198,26 @@ func (b *BaseApi) UpdatePort(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// UpdateSSL
+// @Tags System Setting
+// @Summary Update system ssl
+// @Description 修改系统 ssl 登录
+// @Accept json
+// @Param request body dto.SSLUpdate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /settings/ssl/update [post]
+// @x-panel-log {"bodyKeys":["ssl"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"修改系统 ssl => [ssl]","formatEN":"update system ssl => [ssl]"}
+func (b *BaseApi) UpdateSSL(c *gin.Context) {
+	var req dto.SSLUpdate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := settingService.UpdateSSL(c, req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

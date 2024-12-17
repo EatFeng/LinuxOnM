@@ -23,6 +23,10 @@ func Init() {
 		migrations.AddTheme,
 		migrations.AddNoAuthSetting,
 		migrations.AddFavorite,
+		migrations.AddWebsiteCA,
+		migrations.AddDefaultCA,
+		migrations.AddWebsiteSSL,
+		migrations.AddSSLSetting,
 	})
 	if err := m.Migrate(); err != nil {
 		global.LOG.Error(err)

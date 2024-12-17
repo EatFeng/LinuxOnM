@@ -205,7 +205,7 @@ func (b *BaseApi) UpdatePort(c *gin.Context) {
 // UpdateSSL
 // @Tags System Setting
 // @Summary Update system ssl
-// @Description 修改系统 ssl 状态
+// @Description 修改系统 SSL 状态
 // @Accept json
 // @Param request body dto.SSLUpdate true "request"
 // @Success 200
@@ -228,7 +228,7 @@ func (b *BaseApi) UpdateSSL(c *gin.Context) {
 // LoadFromCert
 // @Tags System Setting
 // @Summary Load system cert info
-// @Description 获取证书信息
+// @Description 获取 SSL 证书信息
 // @Success 200 {object} dto.SettingInfo
 // @Security ApiKeyAuth
 // @Router /setting/ssl/info [get]
@@ -244,7 +244,7 @@ func (b *BaseApi) LoadFromCert(c *gin.Context) {
 // DownloadSSL
 // @Tags System Setting
 // @Summary Download system cert
-// @Description 下载证书
+// @Description 下载 SSL 证书
 // @Success 200
 // @Security ApiKeyAuth
 // @Router /setting/ssl/download [post]

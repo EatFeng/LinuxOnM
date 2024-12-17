@@ -9,4 +9,6 @@ const (
 	StatusEnable  = "Enable"
 	StatusRunning = "Running"
 	StatusWaiting = "Waiting"
+	StatusNone    = "None"
+	StatusDisable = "Disable"
 )

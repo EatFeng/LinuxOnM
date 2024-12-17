@@ -246,7 +246,3 @@ func (f FileOp) SaveFile(dst string, content string, mode fs.FileMode) error {
 	write.Flush()
 	return nil
 }
-
-func (f FileOp) Rename(oldName string, newName string) error {
-	return f.Fs.Rename(oldName, newName)
-}

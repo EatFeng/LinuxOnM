@@ -37,6 +37,7 @@ type IFileService interface {
 	MvFile(m request.FileMove) error
 	ChangeName(req request.FileRename) error
 	GetFileTree(op request.FileOption) ([]response.FileTree, error)
+	Compress(c request.FileCompress) error
 }
 
 var filteredPaths = []string{
@@ -330,4 +331,12 @@ func (f *FileService) buildChildNode(childNode *response.FileTree, fileInfo *fil
 	}
 
 	return f.buildFileTree(childNode, subInfo.Items, op, level-1)
+}
+
+func (f *FileService) Compress(c request.FileCompress) error {
+	fo := files.NewFileOp()
+	if !c.Replace && fo.Stat(filepath.Join(c.Dst, c.Name)) {
+		return buserr.New(constant.ErrFileIsExist)
+	}
+	return fo.Compress(c.Files, c.Dst, c.Name, files.CompressType(c.Type), c.Secret)
 }

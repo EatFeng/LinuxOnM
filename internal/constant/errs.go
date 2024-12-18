@@ -59,6 +59,7 @@ var (
 	ErrPathNotDelete    = "ErrPathNotDelete"
 	ErrPathNotFound     = "ErrPathNotFound"
 	ErrMovePathFailed   = "ErrMovePathFailed"
+	ErrCmdNotFound      = "ErrCmdNotFound"
 )
 
 // firewall

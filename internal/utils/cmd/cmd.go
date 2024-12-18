@@ -157,3 +157,13 @@ func ExecShellWithTimeOut(cmdStr, workdir string, logger *log.Logger, timeout ti
 	}
 	return err
 }
+
+func ExecCmdWithDir(cmdStr, workDir string) error {
+	cmd := exec.Command("bash", "-c", cmdStr)
+	cmd.Dir = workDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error : %v, output: %s", err, output)
+	}
+	return nil
+}

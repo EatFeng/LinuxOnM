@@ -332,3 +332,24 @@ func (b *BaseApi) GetFileTree(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, tree)
 }
+
+// @Tags File
+// @Summary Compress file
+// @Accept json
+// @Param request body request.FileCompress true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /file/compress [post]
+// @x-panel-log {"bodyKeys":["name"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"压缩文件 [name]","formatEN":"Compress file [name]"}
+func (b *BaseApi) CompressFile(c *gin.Context) {
+	var req request.FileCompress
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+	err := fileService.Compress(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

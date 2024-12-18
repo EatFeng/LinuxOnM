@@ -2,8 +2,11 @@ package files
 
 import (
 	"LinuxOnM/internal/utils/cmd"
+	"archive/zip"
 	"bufio"
+	"context"
 	"fmt"
+	"github.com/mholt/archiver/v4"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 	"io"
@@ -11,6 +14,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -244,5 +248,119 @@ func (f FileOp) SaveFile(dst string, content string, mode fs.FileMode) error {
 	write := bufio.NewWriter(file)
 	_, _ = write.WriteString(content)
 	write.Flush()
+	return nil
+}
+
+func (f FileOp) Compress(srcRiles []string, dst string, name string, cType CompressType, secret string) error {
+	format := getFormat(cType)
+
+	fileMaps := make(map[string]string, len(srcRiles))
+	for _, s := range srcRiles {
+		base := filepath.Base(s)
+		fileMaps[s] = base
+	}
+
+	if !f.Stat(dst) {
+		_ = f.CreateDir(dst, 0755)
+	}
+
+	files, err := archiver.FilesFromDisk(nil, fileMaps)
+	if err != nil {
+		return err
+	}
+	dstFile := filepath.Join(dst, name)
+	out, err := f.Fs.Create(dstFile)
+	if err != nil {
+		return err
+	}
+
+	switch cType {
+	case Zip:
+		if err := ZipFile(files, out); err == nil {
+			return nil
+		}
+		_ = f.DeleteFile(dstFile)
+		return NewZipArchiver().Compress(srcRiles, dstFile, "")
+	case TarGz:
+		err = NewTarGzArchiver().Compress(srcRiles, dstFile, secret)
+		if err != nil {
+			_ = f.DeleteFile(dstFile)
+			return err
+		}
+	default:
+		err = format.Archive(context.Background(), out, files)
+		if err != nil {
+			_ = f.DeleteFile(dstFile)
+			return err
+		}
+	}
+	return nil
+}
+
+func getFormat(cType CompressType) archiver.CompressedArchive {
+	format := archiver.CompressedArchive{}
+	switch cType {
+	case Tar:
+		format.Archival = archiver.Tar{}
+	case TarGz, Gz:
+		format.Compression = archiver.Gz{}
+		format.Archival = archiver.Tar{}
+	case SdkTarGz:
+		format.Compression = archiver.Gz{}
+		format.Archival = archiver.Tar{}
+	case SdkZip, Zip:
+		format.Archival = archiver.Zip{
+			Compression: zip.Deflate,
+		}
+	case Bz2:
+		format.Compression = archiver.Bz2{}
+		format.Archival = archiver.Tar{}
+	case Xz:
+		format.Compression = archiver.Xz{}
+		format.Archival = archiver.Tar{}
+	}
+	return format
+}
+
+func ZipFile(files []archiver.File, dst afero.File) error {
+	zw := zip.NewWriter(dst)
+	defer zw.Close()
+
+	for _, file := range files {
+		hdr, err := zip.FileInfoHeader(file)
+		if err != nil {
+			return err
+		}
+		hdr.Method = zip.Deflate
+		hdr.Name = file.NameInArchive
+		if file.IsDir() {
+			if !strings.HasSuffix(hdr.Name, "/") {
+				hdr.Name += "/"
+			}
+		}
+		w, err := zw.CreateHeader(hdr)
+		if err != nil {
+			return err
+		}
+		if file.IsDir() {
+			continue
+		}
+
+		if file.LinkTarget != "" {
+			_, err = w.Write([]byte(filepath.ToSlash(file.LinkTarget)))
+			if err != nil {
+				return err
+			}
+		} else {
+			fileReader, err := file.Open()
+			if err != nil {
+				return err
+			}
+			_, err = io.Copy(w, fileReader)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }

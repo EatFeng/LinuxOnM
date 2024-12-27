@@ -6,9 +6,12 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	cZip "github.com/klauspost/compress/zip"
 	"github.com/mholt/archiver/v4"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/transform"
 	"io"
 	"io/fs"
 	"os"
@@ -363,4 +366,86 @@ func ZipFile(files []archiver.File, dst afero.File) error {
 		}
 	}
 	return nil
+}
+
+func (f FileOp) Decompress(srcFile string, dst string, cType CompressType, secret string) error {
+	if cType == Tar || cType == Zip || cType == TarGz {
+		shellArchiver, err := NewShellArchiver(cType)
+		if !f.Stat(dst) {
+			_ = f.CreateDir(dst, 0755)
+		}
+		if err == nil {
+			if err = shellArchiver.Extract(srcFile, dst, secret); err == nil {
+				return nil
+			}
+		}
+	}
+	return f.decompressWithSDK(srcFile, dst, cType)
+}
+
+func (f FileOp) decompressWithSDK(srcFile string, dst string, cType CompressType) error {
+	format := getFormat(cType)
+	handler := func(ctx context.Context, archFile archiver.File) error {
+		info := archFile.FileInfo
+		if isIgnoreFile(archFile.Name()) {
+			return nil
+		}
+		fileName := archFile.NameInArchive
+		var err error
+		if header, ok := archFile.Header.(cZip.FileHeader); ok {
+			if header.NonUTF8 && header.Flags == 0 {
+				fileName, err = decodeGBK(fileName)
+				if err != nil {
+					return err
+				}
+			}
+		}
+		filePath := filepath.Join(dst, fileName)
+		if archFile.FileInfo.IsDir() {
+			if err := f.Fs.MkdirAll(filePath, info.Mode()); err != nil {
+				return err
+			}
+			return nil
+		} else {
+			parentDir := path.Dir(filePath)
+			if !f.Stat(parentDir) {
+				if err := f.Fs.MkdirAll(parentDir, info.Mode()); err != nil {
+					return err
+				}
+			}
+		}
+		fr, err := archFile.Open()
+		if err != nil {
+			return err
+		}
+		defer fr.Close()
+		fw, err := f.Fs.OpenFile(filePath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, info.Mode())
+		if err != nil {
+			return err
+		}
+		defer fw.Close()
+		if _, err := io.Copy(fw, fr); err != nil {
+			return err
+		}
+
+		return nil
+	}
+	input, err := f.Fs.Open(srcFile)
+	if err != nil {
+		return err
+	}
+	return format.Extract(context.Background(), input, nil, handler)
+}
+
+func isIgnoreFile(name string) bool {
+	return strings.HasPrefix(name, "__MACOSX") || strings.HasSuffix(name, ".DS_Store") || strings.HasPrefix(name, "._")
+}
+
+func decodeGBK(input string) (string, error) {
+	decoder := simplifiedchinese.GBK.NewDecoder()
+	decoded, _, err := transform.String(decoder, input)
+	if err != nil {
+		return "", err
+	}
+	return decoded, nil
 }

@@ -39,3 +39,20 @@ func (t TarGzArchiver) Compress(sourcePaths []string, dstFile string, secret str
 	}
 	return nil
 }
+
+func (t TarGzArchiver) Extract(filePath, dstDir string, secret string) error {
+	var err error
+	commands := ""
+	if len(secret) != 0 {
+		extraCmd := fmt.Sprintf("openssl enc -d -aes-256-cbc -k '%s' -in '%s' | ", secret, filePath)
+		commands = fmt.Sprintf("%s tar -zxvf - -C '%s' > /dev/null 2>&1", extraCmd, dstDir)
+		global.LOG.Debug(strings.ReplaceAll(commands, fmt.Sprintf(" %s ", secret), "******"))
+	} else {
+		commands = fmt.Sprintf("tar -zxvf '%s' -C '%s' > /dev/null 2>&1", filePath, dstDir)
+		global.LOG.Debug(commands)
+	}
+	if err = cmd.ExecCmd(commands); err != nil {
+		return err
+	}
+	return nil
+}

@@ -42,3 +42,10 @@ func (z ZipArchiver) Compress(sourcePaths []string, dstFile string, _ string) er
 	}
 	return nil
 }
+
+func (z ZipArchiver) Extract(filePath, dstDir string, secret string) error {
+	if err := checkCmdAvailability("unzip"); err != nil {
+		return err
+	}
+	return cmd.ExecCmd(fmt.Sprintf("unzip -qo %s -d %s", filePath, dstDir))
+}

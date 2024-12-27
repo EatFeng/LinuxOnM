@@ -70,3 +70,10 @@ type FileRename struct {
 	OldName string `json:"oldName" validate:"required"`
 	NewName string `json:"newName" validate:"required"`
 }
+
+type FileDeCompress struct {
+	Dst    string `json:"dst"  validate:"required"`
+	Type   string `json:"type"  validate:"required"`
+	Path   string `json:"path" validate:"required"`
+	Secret string `json:"secret"`
+}

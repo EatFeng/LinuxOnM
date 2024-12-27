@@ -38,6 +38,7 @@ type IFileService interface {
 	ChangeName(req request.FileRename) error
 	GetFileTree(op request.FileOption) ([]response.FileTree, error)
 	Compress(c request.FileCompress) error
+	DeCompress(c request.FileDeCompress) error
 }
 
 var filteredPaths = []string{
@@ -339,4 +340,12 @@ func (f *FileService) Compress(c request.FileCompress) error {
 		return buserr.New(constant.ErrFileIsExist)
 	}
 	return fo.Compress(c.Files, c.Dst, c.Name, files.CompressType(c.Type), c.Secret)
+}
+
+func (f *FileService) DeCompress(c request.FileDeCompress) error {
+	fo := files.NewFileOp()
+	if c.Type == "tar" && len(c.Secret) != 0 {
+		c.Type = "tar.gz"
+	}
+	return fo.Decompress(c.Path, c.Dst, files.CompressType(c.Type), c.Secret)
 }

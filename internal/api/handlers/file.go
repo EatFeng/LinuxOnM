@@ -353,3 +353,24 @@ func (b *BaseApi) CompressFile(c *gin.Context) {
 	}
 	helper.SuccessWithData(c, nil)
 }
+
+// @Tags File
+// @Summary Decompress file
+// @Accept json
+// @Param request body request.FileDeCompress true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /file/decompress [post]
+// @x-panel-log {"bodyKeys":["path"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"解压 [path]","formatEN":"Decompress file [path]"}
+func (b *BaseApi) DeCompressFile(c *gin.Context) {
+	var req request.FileDeCompress
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+	err := fileService.DeCompress(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}

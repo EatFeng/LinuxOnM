@@ -62,6 +62,16 @@ var (
 	ErrCmdNotFound      = "ErrCmdNotFound"
 )
 
+// process
+var (
+	ErrProcessIsDocker = "ErrProcessIsDocker"
+	ErrStartService    = "ErrStartService"
+	ErrStopService     = "ErrStopService"
+	ErrEnableService   = "ErrEnableService"
+	ErrDisableService  = "ErrDisableService"
+	ErrReloadDaemon    = "ErrReloadDaemon"
+)
+
 // firewall
 var (
 	ErrFirewall = "ErrFirewall"

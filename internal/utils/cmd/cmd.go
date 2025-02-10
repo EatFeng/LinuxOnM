@@ -167,11 +167,3 @@ func ExecCmdWithDir(cmdStr, workDir string) error {
 	}
 	return nil
 }
-
-func Which(name string) bool {
-	stdout, err := Execf("which %s", name)
-	if err != nil || (len(strings.ReplaceAll(stdout, "\n", "")) == 0) {
-		return false
-	}
-	return true
-}

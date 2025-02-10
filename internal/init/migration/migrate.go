@@ -29,6 +29,7 @@ func Init() {
 		migrations.AddSSLSetting,
 		migrations.AddTableFirewall,
 		migrations.AddTableForward,
+		migrations.AddTableImageRepo,
 	})
 	if err := m.Migrate(); err != nil {
 		global.LOG.Error(err)

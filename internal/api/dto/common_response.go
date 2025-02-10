@@ -10,3 +10,7 @@ type PageResult struct {
 	Total int64       `json:"total"`
 	Items interface{} `json:"items"`
 }
+
+type Options struct {
+	Option string `json:"option"`
+}

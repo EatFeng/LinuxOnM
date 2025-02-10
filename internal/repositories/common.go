@@ -24,6 +24,7 @@ type ICommonRepository interface {
 	WithByStartDate(StartTime time.Time) DBOption
 	WithByFrom(from string) DBOption
 	WithByStatus(status string) DBOption
+	WithIdsIn(ids []uint) DBOption
 }
 
 type CommonRepository struct{}
@@ -139,4 +140,10 @@ func getTx(ctx context.Context, opts ...DBOption) *gorm.DB {
 		return tx
 	}
 	return getDb(opts...)
+}
+
+func (c *CommonRepository) WithIdsIn(ids []uint) DBOption {
+	return func(g *gorm.DB) *gorm.DB {
+		return g.Where("id in (?)", ids)
+	}
 }

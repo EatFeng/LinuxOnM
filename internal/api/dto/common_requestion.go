@@ -12,3 +12,8 @@ type BatchDeleteReq struct {
 type OperateByID struct {
 	ID uint `json:"id" validate:"required"`
 }
+
+type SearchWithPage struct {
+	PageInfo
+	Info string `json:"info"`
+}

@@ -22,4 +22,8 @@ var (
 	processService   = services.NewIProcessService()
 	cronjobService   = services.NewICronjobService()
 	firewallService  = services.NewIFirewallService()
+	containerService = services.NewIContainerService()
+	imageService     = services.NewIImageService()
+	dockerService    = services.NewIDockerService()
+	imageRepoService = services.NewIImageRepoService()
 )

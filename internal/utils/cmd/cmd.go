@@ -167,3 +167,23 @@ func ExecCmdWithDir(cmdStr, workDir string) error {
 	}
 	return nil
 }
+
+func ExecWithCheck(name string, a ...string) (string, error) {
+	cmd := exec.Command(name, a...)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+		return handleErr(stdout, stderr, err)
+	}
+	return stdout.String(), nil
+}
+
+func Which(name string) bool {
+	stdout, err := Execf("which %s", name)
+	if err != nil || (len(strings.ReplaceAll(stdout, "\n", "")) == 0 && strings.HasPrefix(stdout, "/")) {
+		return false
+	}
+	return true
+}

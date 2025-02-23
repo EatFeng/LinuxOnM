@@ -5,6 +5,7 @@ import (
 	"LinuxOnM/internal/api/handlers/helper"
 	"LinuxOnM/internal/constant"
 	"LinuxOnM/internal/global"
+
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -157,23 +158,6 @@ func (b *BaseApi) LoadResourceLimit(c *gin.Context) {
 		return
 	}
 	helper.SuccessWithData(c, data)
-}
-
-// ListImage
-// @Tags Container Image
-// @Summary load images options
-// @Description 获取镜像名称列表
-// @Produce json
-// @Success 200 {array} dto.Options
-// @Security ApiKeyAuth
-// @Router /container/image [get]
-func (b *BaseApi) ListImage(c *gin.Context) {
-	list, err := imageService.List()
-	if err != nil {
-		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
-		return
-	}
-	helper.SuccessWithData(c, list)
 }
 
 // ListNetwork

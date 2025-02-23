@@ -3,6 +3,7 @@ package routers
 import (
 	handler "LinuxOnM/internal/api/handlers"
 	"LinuxOnM/internal/middleware"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,6 +25,7 @@ func (s *ContainerRouter) InitRouter(Router *gin.RouterGroup) {
 		containerRouter.GET("/repo", baseApi.ListRepo)
 
 		containerRouter.GET("/image", baseApi.ListImage)
+		containerRouter.GET("/image/all", baseApi.ListAllImage)
 
 		containerRouter.GET("/network", baseApi.ListNetwork)
 

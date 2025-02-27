@@ -99,3 +99,15 @@ type ResourceLimit struct {
 	CPU    int    `json:"cpu"`
 	Memory uint64 `json:"memory"`
 }
+
+type ContainerOperation struct {
+	Names     []string `json:"names" validate:"required"`
+	Operation string   `json:"operation" validate:"required,oneof=start stop restart kill pause unpause remove"`
+}
+
+type ContainerLog struct {
+	Container     string `json:"container" validate:"required"`
+	Since         string `json:"since"`
+	Tail          uint   `json:"tail"`
+	ContainerType string `json:"containerType"`
+}

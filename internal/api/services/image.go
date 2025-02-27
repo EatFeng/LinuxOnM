@@ -5,6 +5,7 @@ import (
 	"LinuxOnM/internal/utils/docker"
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -17,6 +18,7 @@ type ImageService struct{}
 type IImageService interface {
 	List() ([]dto.Options, error)
 	ListAll() ([]dto.ImageInfo, error)
+	Page(req dto.SearchWithPage) (int64, interface{}, error)
 }
 
 func NewIImageService() IImageService {
@@ -70,6 +72,64 @@ func (u *ImageService) ListAll() ([]dto.ImageInfo, error) {
 		})
 	}
 	return records, nil
+}
+
+func (u *ImageService) Page(req dto.SearchWithPage) (int64, interface{}, error) {
+	var (
+		list      []image.Summary
+		records   []dto.ImageInfo
+		backDatas []dto.ImageInfo
+	)
+	client, err := docker.NewDockerClient()
+	if err != nil {
+		return 0, nil, err
+	}
+	defer client.Close()
+	list, err = client.ImageList(context.Background(), image.ListOptions{})
+	if err != nil {
+		return 0, nil, err
+	}
+	containers, _ := client.ContainerList(context.Background(), container.ListOptions{All: true})
+	if len(req.Info) != 0 {
+		length, count := len(list), 0
+		for count < length {
+			hasTag := false
+			for _, tag := range list[count].RepoTags {
+				if strings.Contains(tag, req.Info) {
+					hasTag = true
+					break
+				}
+			}
+			if !hasTag {
+				list = append(list[:count], list[(count+1):]...)
+				length--
+			} else {
+				count++
+			}
+		}
+	}
+
+	for _, image := range list {
+		size := formatFileSize(image.Size)
+		records = append(records, dto.ImageInfo{
+			ID:        image.ID,
+			Tags:      image.RepoTags,
+			IsUsed:    checkUsed(image.ID, containers),
+			CreatedAt: time.Unix(image.Created, 0),
+			Size:      size,
+		})
+	}
+	total, start, end := len(records), (req.Page-1)*req.PageSize, req.Page*req.PageSize
+	if start > total {
+		backDatas = make([]dto.ImageInfo, 0)
+	} else {
+		if end >= total {
+			end = total
+		}
+		backDatas = records[start:end]
+	}
+
+	return int64(total), backDatas, nil
 }
 
 func formatFileSize(fileSize int64) (size string) {

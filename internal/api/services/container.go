@@ -7,9 +7,26 @@ import (
 	"LinuxOnM/internal/global"
 	"LinuxOnM/internal/utils/cmd"
 	"LinuxOnM/internal/utils/docker"
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"sort"
+	"strconv"
+	"strings"
+	"sync"
+	"syscall"
+	"time"
+	"unicode/utf8"
+
+	"github.com/gin-gonic/gin"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
@@ -18,14 +35,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
-	"io"
-	"os/exec"
-	"sort"
-	"strings"
-	"sync"
-	"syscall"
-	"time"
-	"unicode/utf8"
 )
 
 type ContainerService struct{}
@@ -37,6 +46,9 @@ type IContainerService interface {
 	Page(req dto.PageContainer) (int64, interface{}, error)
 	List() ([]string, error)
 	ContainerLogs(wsConn *websocket.Conn, containerType, container, since, tail string, follow bool) error
+	DownloadContainerLogs(containerType, container, since, tail string, c *gin.Context) error
+	ContainerLogClean(req dto.OperationWithName) error
+	ContainerOperation(req dto.ContainerOperation) error
 	LoadResourceLimit() (*dto.ResourceLimit, error)
 	ListNetwork() ([]dto.Options, error)
 	ListVolume() ([]dto.Options, error)
@@ -393,6 +405,144 @@ func (u *ContainerService) ContainerLogs(wsConn *websocket.Conn, containerType, 
 	}()
 	_ = cmd.Wait()
 	return nil
+}
+
+func (u *ContainerService) DownloadContainerLogs(containerType, container, since, tail string, c *gin.Context) error {
+	if cmd.CheckIllegal(container, since, tail) {
+		return buserr.New(constant.ErrCmdIllegal)
+	}
+	commandName := "docker"
+	commandArg := []string{"logs", container}
+	if containerType == "compose" {
+		commandName = "docker-compose"
+		commandArg = []string{"-f", container, "logs"}
+	}
+	if tail != "0" {
+		commandArg = append(commandArg, "--tail")
+		commandArg = append(commandArg, tail)
+	}
+	if since != "all" {
+		commandArg = append(commandArg, "--since")
+		commandArg = append(commandArg, since)
+	}
+
+	cmd := exec.Command(commandName, commandArg...)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		_ = cmd.Process.Signal(syscall.SIGTERM)
+		return err
+	}
+	cmd.Stderr = cmd.Stdout
+	if err := cmd.Start(); err != nil {
+		_ = cmd.Process.Signal(syscall.SIGTERM)
+		return err
+	}
+
+	tempFile, err := os.CreateTemp("", "cmd_output_*.txt")
+	if err != nil {
+		return err
+	}
+	defer tempFile.Close()
+	defer func() {
+		if err := os.Remove(tempFile.Name()); err != nil {
+			global.LOG.Errorf("os.Remove() failed: %v", err)
+		}
+	}()
+	errCh := make(chan error)
+	go func() {
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			line := scanner.Text()
+			if _, err := tempFile.WriteString(line + "\n"); err != nil {
+				errCh <- err
+				return
+			}
+		}
+		if err := scanner.Err(); err != nil {
+			errCh <- err
+			return
+		}
+		errCh <- nil
+	}()
+	select {
+	case err := <-errCh:
+		if err != nil {
+			global.LOG.Errorf("Error: %v", err)
+		}
+	case <-time.After(3 * time.Second):
+		global.LOG.Errorf("Timeout reached")
+	}
+	info, _ := tempFile.Stat()
+
+	c.Header("Content-Length", strconv.FormatInt(info.Size(), 10))
+	c.Header("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(info.Name()))
+	http.ServeContent(c.Writer, c.Request, info.Name(), info.ModTime(), tempFile)
+	return nil
+}
+
+func (u *ContainerService) ContainerLogClean(req dto.OperationWithName) error {
+	client, err := docker.NewDockerClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+	ctx := context.Background()
+	containerItem, err := client.ContainerInspect(ctx, req.Name)
+	if err != nil {
+		return err
+	}
+	if err := client.ContainerStop(ctx, containerItem.ID, container.StopOptions{}); err != nil {
+		return err
+	}
+	file, err := os.OpenFile(containerItem.LogPath, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	if err = file.Truncate(0); err != nil {
+		return err
+	}
+	_, _ = file.Seek(0, 0)
+
+	files, _ := filepath.Glob(fmt.Sprintf("%s.*", containerItem.LogPath))
+	for _, file := range files {
+		_ = os.Remove(file)
+	}
+
+	if err := client.ContainerStart(ctx, containerItem.ID, container.StartOptions{}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *ContainerService) ContainerOperation(req dto.ContainerOperation) error {
+	var err error
+	ctx := context.Background()
+	client, err := docker.NewDockerClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+	for _, item := range req.Names {
+		global.LOG.Infof("start container %s operation %s", item, req.Operation)
+		switch req.Operation {
+		case constant.ContainerOpStart:
+			err = client.ContainerStart(ctx, item, container.StartOptions{})
+		case constant.ContainerOpStop:
+			err = client.ContainerStop(ctx, item, container.StopOptions{})
+		case constant.ContainerOpRestart:
+			err = client.ContainerRestart(ctx, item, container.StopOptions{})
+		case constant.ContainerOpKill:
+			err = client.ContainerKill(ctx, item, "SIGKILL")
+		case constant.ContainerOpPause:
+			err = client.ContainerPause(ctx, item)
+		case constant.ContainerOpUnpause:
+			err = client.ContainerUnpause(ctx, item)
+		case constant.ContainerOpRemove:
+			err = client.ContainerRemove(ctx, item, container.RemoveOptions{RemoveVolumes: true, Force: true})
+		}
+	}
+	return err
 }
 
 func calculateCPUPercentUnix(stats *container.StatsResponse) float64 {

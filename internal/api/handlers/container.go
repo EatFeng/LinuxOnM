@@ -5,6 +5,7 @@ import (
 	"LinuxOnM/internal/api/handlers/helper"
 	"LinuxOnM/internal/constant"
 	"LinuxOnM/internal/global"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -116,6 +117,28 @@ func (b *BaseApi) ContainerListStats(c *gin.Context) {
 	helper.SuccessWithData(c, data)
 }
 
+// @Tags Container
+// @Summary Operate Container
+// @Description 容器操作
+// @Accept json
+// @Param request body dto.ContainerOperation true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /containers/operate [post]
+// @x-panel-log {"bodyKeys":["names","operation"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"容器 [names] 执行 [operation]","formatEN":"container [operation] [names]"}
+func (b *BaseApi) ContainerOperation(c *gin.Context) {
+	var req dto.ContainerOperation
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := containerService.ContainerOperation(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}
+
 // ContainerLogs
 // @Tags Container
 // @Summary Container logs
@@ -143,6 +166,41 @@ func (b *BaseApi) ContainerLogs(c *gin.Context) {
 		_ = wsConn.WriteMessage(1, []byte(err.Error()))
 		return
 	}
+}
+
+// @Description 下载容器日志
+// @Router /containers/download/log [post]
+func (b *BaseApi) DownloadContainerLogs(c *gin.Context) {
+	var req dto.ContainerLog
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+	err := containerService.DownloadContainerLogs(req.ContainerType, req.Container, req.Since, strconv.Itoa(int(req.Tail)), c)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+	}
+}
+
+// @Tags Container
+// @Summary Clean container log
+// @Description 清理容器日志
+// @Accept json
+// @Param request body dto.OperationWithName true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /containers/clean/log [post]
+// @x-panel-log {"bodyKeys":["name"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"清理容器 [name] 日志","formatEN":"clean container [name] logs"}
+func (b *BaseApi) CleanContainerLog(c *gin.Context) {
+	var req dto.OperationWithName
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := containerService.ContainerLogClean(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
 }
 
 // LoadResourceLimit

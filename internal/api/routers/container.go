@@ -20,12 +20,16 @@ func (s *ContainerRouter) InitRouter(Router *gin.RouterGroup) {
 		containerRouter.POST("/list", baseApi.ListContainer)
 		containerRouter.GET("/list/stats", baseApi.ContainerListStats)
 		containerRouter.GET("/search/log", baseApi.ContainerLogs)
+		containerRouter.POST("/download/log", baseApi.DownloadContainerLogs)
+		containerRouter.POST("/clean/log", baseApi.CleanContainerLog)
 		containerRouter.GET("/limit", baseApi.LoadResourceLimit)
+		containerRouter.POST("/operate", baseApi.ContainerOperation)
 
 		containerRouter.GET("/repo", baseApi.ListRepo)
 
 		containerRouter.GET("/image", baseApi.ListImage)
 		containerRouter.GET("/image/all", baseApi.ListAllImage)
+		containerRouter.POST("/image/search", baseApi.SearchImage)
 
 		containerRouter.GET("/network", baseApi.ListNetwork)
 

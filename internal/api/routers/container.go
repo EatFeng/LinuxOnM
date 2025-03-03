@@ -33,6 +33,11 @@ func (s *ContainerRouter) InitRouter(Router *gin.RouterGroup) {
 		containerRouter.POST("/prune", baseApi.ContainerPrune)
 
 		containerRouter.GET("/repo", baseApi.ListRepo)
+		containerRouter.POST("/repo/status", baseApi.CheckRepoStatus)
+		containerRouter.POST("/repo/search", baseApi.SearchRepo)
+		containerRouter.POST("/repo", baseApi.CreateRepo)
+		containerRouter.POST("/repo/update", baseApi.UpdateRepo)
+		containerRouter.POST("/repo/del", baseApi.DeleteRepo)
 
 		containerRouter.GET("/image", baseApi.ListImage)
 		containerRouter.GET("/image/all", baseApi.ListAllImage)

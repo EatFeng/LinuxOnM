@@ -111,3 +111,38 @@ type ContainerLog struct {
 	Tail          uint   `json:"tail"`
 	ContainerType string `json:"containerType"`
 }
+
+type ContainerUpgrade struct {
+	Name      string `json:"name" validate:"required"`
+	Image     string `json:"image" validate:"required"`
+	ForcePull bool   `json:"forcePull"`
+}
+
+type InspectReq struct {
+	ID   string `json:"id" validate:"required"`
+	Type string `json:"type" validate:"required"`
+}
+
+type ContainerRename struct {
+	Name    string `json:"name" validate:"required"`
+	NewName string `json:"newName" validate:"required"`
+}
+
+type ContainerCommit struct {
+	ContainerId   string `json:"containerID" validate:"required"`
+	ContainerName string `json:"containerName"`
+	NewImageName  string `json:"newImageName"`
+	Comment       string `json:"comment"`
+	Author        string `json:"author"`
+	Pause         bool   `json:"pause"`
+}
+
+type ContainerPrune struct {
+	PruneType  string `json:"pruneType" validate:"required,oneof=container image volume network buildcache"`
+	WithTagAll bool   `json:"withTagAll"`
+}
+
+type ContainerPruneReport struct {
+	DeletedNumber  int `json:"deletedNumber"`
+	SpaceReclaimed int `json:"spaceReclaimed"`
+}

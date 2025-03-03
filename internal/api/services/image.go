@@ -4,13 +4,19 @@ import (
 	"LinuxOnM/internal/api/dto"
 	"LinuxOnM/internal/utils/docker"
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"os"
+	"path"
 	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/registry"
+	"github.com/docker/docker/pkg/homedir"
 )
 
 type ImageService struct{}
@@ -155,4 +161,50 @@ func checkUsed(imageID string, containers []types.Container) bool {
 		}
 	}
 	return false
+}
+
+func loadAuthInfo(image string) (bool, string) {
+	if !strings.Contains(image, "/") {
+		return false, ""
+	}
+	homeDir := homedir.Get()
+	confPath := path.Join(homeDir, ".docker/config.json")
+	configFileBytes, err := os.ReadFile(confPath)
+	if err != nil {
+		return false, ""
+	}
+	var config dockerConfig
+	if err = json.Unmarshal(configFileBytes, &config); err != nil {
+		return false, ""
+	}
+	var (
+		user   string
+		passwd string
+	)
+	imagePrefix := strings.Split(image, "/")[0]
+	if val, ok := config.Auths[imagePrefix]; ok {
+		itemByte, _ := base64.StdEncoding.DecodeString(val.Auth)
+		itemStr := string(itemByte)
+		if strings.Contains(itemStr, ":") {
+			user = strings.Split(itemStr, ":")[0]
+			passwd = strings.Split(itemStr, ":")[1]
+		}
+	}
+	authConfig := registry.AuthConfig{
+		Username: user,
+		Password: passwd,
+	}
+	encodedJSON, err := json.Marshal(authConfig)
+	if err != nil {
+		return false, ""
+	}
+	authStr := base64.URLEncoding.EncodeToString(encodedJSON)
+	return true, authStr
+}
+
+type dockerConfig struct {
+	Auths map[string]authConfig `json:"auths"`
+}
+type authConfig struct {
+	Auth string `json:"auth"`
 }

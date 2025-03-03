@@ -15,6 +15,9 @@ func (s *ContainerRouter) InitRouter(Router *gin.RouterGroup) {
 	{
 		containerRouter.GET("/stats/:id", baseApi.ContainerStats)
 
+		containerRouter.POST("", baseApi.ContainerCreate)
+		containerRouter.POST("/update", baseApi.ContainerUpdate)
+		containerRouter.POST("/upgrade", baseApi.ContainerUpgrade)
 		containerRouter.POST("/info", baseApi.ContainerInfo)
 		containerRouter.POST("/search", baseApi.SearchContainer)
 		containerRouter.POST("/list", baseApi.ListContainer)
@@ -24,6 +27,10 @@ func (s *ContainerRouter) InitRouter(Router *gin.RouterGroup) {
 		containerRouter.POST("/clean/log", baseApi.CleanContainerLog)
 		containerRouter.GET("/limit", baseApi.LoadResourceLimit)
 		containerRouter.POST("/operate", baseApi.ContainerOperation)
+		containerRouter.POST("/inspect", baseApi.Inspect)
+		containerRouter.POST("/rename", baseApi.ContainerRename)
+		containerRouter.POST("/commit", baseApi.ContainerCommit)
+		containerRouter.POST("/prune", baseApi.ContainerPrune)
 
 		containerRouter.GET("/repo", baseApi.ListRepo)
 

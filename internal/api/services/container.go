@@ -6,9 +6,11 @@ import (
 	"LinuxOnM/internal/constant"
 	"LinuxOnM/internal/global"
 	"LinuxOnM/internal/utils/cmd"
+	"LinuxOnM/internal/utils/common"
 	"LinuxOnM/internal/utils/docker"
 	"bufio"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -26,11 +28,17 @@ import (
 	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
+	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 	"github.com/shirou/gopsutil/v3/cpu"
@@ -41,6 +49,9 @@ type ContainerService struct{}
 
 type IContainerService interface {
 	ContainerStats(id string) (*dto.ContainerStats, error)
+	ContainerCreate(req dto.ContainerOperate) error
+	ContainerUpdate(req dto.ContainerOperate) error
+	ContainerUpgrade(req dto.ContainerUpgrade) error
 	ContainerInfo(req dto.OperationWithName) (*dto.ContainerOperate, error)
 	ContainerListStats() ([]dto.ContainerListStats, error)
 	Page(req dto.PageContainer) (int64, interface{}, error)
@@ -50,6 +61,10 @@ type IContainerService interface {
 	ContainerLogClean(req dto.OperationWithName) error
 	ContainerOperation(req dto.ContainerOperation) error
 	LoadResourceLimit() (*dto.ResourceLimit, error)
+	Inspect(req dto.InspectReq) (string, error)
+	ContainerRename(req dto.ContainerRename) error
+	ContainerCommit(req dto.ContainerCommit) error
+	Prune(req dto.ContainerPrune) (dto.ContainerPruneReport, error)
 	ListNetwork() ([]dto.Options, error)
 	ListVolume() ([]dto.Options, error)
 }
@@ -90,6 +105,150 @@ func (u *ContainerService) ContainerStats(id string) (*dto.ContainerStats, error
 	data.NetworkRX, data.NetworkTX = calculateNetwork(stats.Networks)
 	data.ShotTime = stats.Read
 	return &data, nil
+}
+
+func (u *ContainerService) ContainerCreate(req dto.ContainerOperate) error {
+	client, err := docker.NewDockerClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+	ctx := context.Background()
+	newContainer, _ := client.ContainerInspect(ctx, req.Name)
+	if newContainer.ContainerJSONBase != nil {
+		return buserr.New(constant.ErrContainerName)
+	}
+
+	if !checkImageExist(client, req.Image) || req.ForcePull {
+		if err := pullImages(ctx, client, req.Image); err != nil {
+			if !req.ForcePull {
+				return err
+			}
+			global.LOG.Errorf("force pull image %s failed, err: %v", req.Image, err)
+		}
+	}
+	imageInfo, _, err := client.ImageInspectWithRaw(ctx, req.Image)
+	if err != nil {
+		return err
+	}
+	if len(req.Entrypoint) == 0 {
+		req.Entrypoint = imageInfo.Config.Entrypoint
+	}
+	if len(req.Cmd) == 0 {
+		req.Cmd = imageInfo.Config.Cmd
+	}
+	config, hostConf, networkConf, err := loadConfigInfo(true, req, nil)
+	if err != nil {
+		return err
+	}
+	global.LOG.Infof("new container info %s has been made, now start to create", req.Name)
+	con, err := client.ContainerCreate(ctx, config, hostConf, networkConf, &v1.Platform{}, req.Name)
+	if err != nil {
+		_ = client.ContainerRemove(ctx, req.Name, container.RemoveOptions{RemoveVolumes: true, Force: true})
+		return err
+	}
+	global.LOG.Infof("create container %s successful! now check if the container is started and delete the container information if it is not.", req.Name)
+	if err := client.ContainerStart(ctx, con.ID, container.StartOptions{}); err != nil {
+		_ = client.ContainerRemove(ctx, req.Name, container.RemoveOptions{RemoveVolumes: true, Force: true})
+		return fmt.Errorf("create successful but start failed, err: %v", err)
+	}
+	return nil
+}
+
+func (u *ContainerService) ContainerUpdate(req dto.ContainerOperate) error {
+	client, err := docker.NewDockerClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+	ctx := context.Background()
+	newContainer, _ := client.ContainerInspect(ctx, req.Name)
+	if newContainer.ContainerJSONBase != nil && newContainer.ID != req.ContainerID {
+		return buserr.New(constant.ErrContainerName)
+	}
+
+	oldContainer, err := client.ContainerInspect(ctx, req.ContainerID)
+	if err != nil {
+		return err
+	}
+	if !checkImageExist(client, req.Image) || req.ForcePull {
+		if err := pullImages(ctx, client, req.Image); err != nil {
+			if !req.ForcePull {
+				return err
+			}
+			return fmt.Errorf("pull image %s failed, err: %v", req.Image, err)
+		}
+	}
+
+	if err := client.ContainerRemove(ctx, req.ContainerID, container.RemoveOptions{Force: true}); err != nil {
+		return err
+	}
+
+	config, hostConf, networkConf, err := loadConfigInfo(false, req, &oldContainer)
+	if err != nil {
+		reCreateAfterUpdate(req.Name, client, oldContainer.Config, oldContainer.HostConfig, oldContainer.NetworkSettings)
+		return err
+	}
+
+	global.LOG.Infof("new container info %s has been update, now start to recreate", req.Name)
+	con, err := client.ContainerCreate(ctx, config, hostConf, networkConf, &v1.Platform{}, req.Name)
+	if err != nil {
+		reCreateAfterUpdate(req.Name, client, oldContainer.Config, oldContainer.HostConfig, oldContainer.NetworkSettings)
+		return fmt.Errorf("update container failed, err: %v", err)
+	}
+	global.LOG.Infof("update container %s successful! now check if the container is started.", req.Name)
+	if err := client.ContainerStart(ctx, con.ID, container.StartOptions{}); err != nil {
+		return fmt.Errorf("update successful but start failed, err: %v", err)
+	}
+
+	return nil
+}
+
+func (u *ContainerService) ContainerUpgrade(req dto.ContainerUpgrade) error {
+	client, err := docker.NewDockerClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+	ctx := context.Background()
+	oldContainer, err := client.ContainerInspect(ctx, req.Name)
+	if err != nil {
+		return err
+	}
+	if !checkImageExist(client, req.Image) || req.ForcePull {
+		if err := pullImages(ctx, client, req.Image); err != nil {
+			if !req.ForcePull {
+				return err
+			}
+			return fmt.Errorf("pull image %s failed, err: %v", req.Image, err)
+		}
+	}
+	config := oldContainer.Config
+	config.Image = req.Image
+	hostConf := oldContainer.HostConfig
+	var networkConf network.NetworkingConfig
+	if oldContainer.NetworkSettings != nil {
+		for networkKey := range oldContainer.NetworkSettings.Networks {
+			networkConf.EndpointsConfig = map[string]*network.EndpointSettings{networkKey: {}}
+			break
+		}
+	}
+	if err := client.ContainerRemove(ctx, req.Name, container.RemoveOptions{Force: true}); err != nil {
+		return err
+	}
+
+	global.LOG.Infof("new container info %s has been update, now start to recreate", req.Name)
+	con, err := client.ContainerCreate(ctx, config, hostConf, &networkConf, &v1.Platform{}, req.Name)
+	if err != nil {
+		reCreateAfterUpdate(req.Name, client, oldContainer.Config, oldContainer.HostConfig, oldContainer.NetworkSettings)
+		return fmt.Errorf("upgrade container failed, err: %v", err)
+	}
+	global.LOG.Infof("upgrade container %s successful! now check if the container is started.", req.Name)
+	if err := client.ContainerStart(ctx, con.ID, container.StartOptions{}); err != nil {
+		return fmt.Errorf("upgrade successful but start failed, err: %v", err)
+	}
+
+	return nil
 }
 
 func (u *ContainerService) ContainerInfo(req dto.OperationWithName) (*dto.ContainerOperate, error) {
@@ -545,6 +704,105 @@ func (u *ContainerService) ContainerOperation(req dto.ContainerOperation) error 
 	return err
 }
 
+func (u *ContainerService) ContainerRename(req dto.ContainerRename) error {
+	ctx := context.Background()
+	client, err := docker.NewDockerClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	newContainer, _ := client.ContainerInspect(ctx, req.NewName)
+	if newContainer.ContainerJSONBase != nil {
+		return buserr.New(constant.ErrContainerName)
+	}
+	return client.ContainerRename(ctx, req.Name, req.NewName)
+}
+
+func (u *ContainerService) ContainerCommit(req dto.ContainerCommit) error {
+	ctx := context.Background()
+	client, err := docker.NewDockerClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+	options := container.CommitOptions{
+		Reference: req.NewImageName,
+		Comment:   req.Comment,
+		Author:    req.Author,
+		Changes:   nil,
+		Pause:     req.Pause,
+		Config:    nil,
+	}
+	_, err = client.ContainerCommit(ctx, req.ContainerId, options)
+	if err != nil {
+		return fmt.Errorf("failed to commit container, err: %v", err)
+	}
+	return nil
+}
+
+func (u *ContainerService) Prune(req dto.ContainerPrune) (dto.ContainerPruneReport, error) {
+	report := dto.ContainerPruneReport{}
+	client, err := docker.NewDockerClient()
+	if err != nil {
+		return report, err
+	}
+	defer client.Close()
+	pruneFilters := filters.NewArgs()
+	if req.WithTagAll {
+		pruneFilters.Add("dangling", "false")
+		if req.PruneType != "image" {
+			pruneFilters.Add("until", "24h")
+		}
+	}
+	switch req.PruneType {
+	case "container":
+		rep, err := client.ContainersPrune(context.Background(), pruneFilters)
+		if err != nil {
+			return report, err
+		}
+		report.DeletedNumber = len(rep.ContainersDeleted)
+		report.SpaceReclaimed = int(rep.SpaceReclaimed)
+	case "image":
+		rep, err := client.ImagesPrune(context.Background(), pruneFilters)
+		if err != nil {
+			return report, err
+		}
+		report.DeletedNumber = len(rep.ImagesDeleted)
+		report.SpaceReclaimed = int(rep.SpaceReclaimed)
+	case "network":
+		rep, err := client.NetworksPrune(context.Background(), pruneFilters)
+		if err != nil {
+			return report, err
+		}
+		report.DeletedNumber = len(rep.NetworksDeleted)
+	case "volume":
+		versions, err := client.ServerVersion(context.Background())
+		if err != nil {
+			return report, err
+		}
+		if common.ComparePanelVersion(versions.APIVersion, "1.42") {
+			pruneFilters.Add("all", "true")
+		}
+		rep, err := client.VolumesPrune(context.Background(), pruneFilters)
+		if err != nil {
+			return report, err
+		}
+		report.DeletedNumber = len(rep.VolumesDeleted)
+		report.SpaceReclaimed = int(rep.SpaceReclaimed)
+	case "buildcache":
+		opts := types.BuildCachePruneOptions{}
+		opts.All = true
+		rep, err := client.BuildCachePrune(context.Background(), opts)
+		if err != nil {
+			return report, err
+		}
+		report.DeletedNumber = len(rep.CachesDeleted)
+		report.SpaceReclaimed = int(rep.SpaceReclaimed)
+	}
+	return report, nil
+}
+
 func calculateCPUPercentUnix(stats *container.StatsResponse) float64 {
 	cpuPercent := 0.0
 	cpuDelta := float64(stats.CPUStats.CPUUsage.TotalUsage) - float64(stats.PreCPUStats.CPUUsage.TotalUsage)
@@ -746,4 +1004,241 @@ func (u *ContainerService) LoadResourceLimit() (*dto.ResourceLimit, error) {
 		Memory: memoryInfo.Total,
 	}
 	return &data, nil
+}
+
+func (u *ContainerService) Inspect(req dto.InspectReq) (string, error) {
+	client, err := docker.NewDockerClient()
+	if err != nil {
+		return "", err
+	}
+	defer client.Close()
+	var inspectInfo interface{}
+	switch req.Type {
+	case "container":
+		inspectInfo, err = client.ContainerInspect(context.Background(), req.ID)
+	case "image":
+		inspectInfo, _, err = client.ImageInspectWithRaw(context.Background(), req.ID)
+	case "network":
+		inspectInfo, err = client.NetworkInspect(context.TODO(), req.ID, types.NetworkInspectOptions{})
+	case "volume":
+		inspectInfo, err = client.VolumeInspect(context.TODO(), req.ID)
+	}
+	if err != nil {
+		return "", err
+	}
+	bytes, err := json.Marshal(inspectInfo)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
+}
+
+func checkImageExist(client *client.Client, imageItem string) bool {
+	images, err := client.ImageList(context.Background(), image.ListOptions{})
+	if err != nil {
+		return false
+	}
+
+	for _, img := range images {
+		for _, tag := range img.RepoTags {
+			if tag == imageItem || tag == imageItem+":latest" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func pullImages(ctx context.Context, client *client.Client, imageName string) error {
+	options := image.PullOptions{}
+	repos, _ := imageRepoRepo.List()
+	if len(repos) != 0 {
+		for _, repo := range repos {
+			if strings.HasPrefix(imageName, repo.DownloadUrl) && repo.Auth {
+				authConfig := registry.AuthConfig{
+					Username: repo.Username,
+					Password: repo.Password,
+				}
+				encodedJSON, err := json.Marshal(authConfig)
+				if err != nil {
+					return err
+				}
+				authStr := base64.URLEncoding.EncodeToString(encodedJSON)
+				options.RegistryAuth = authStr
+			}
+		}
+	} else {
+		hasAuth, authStr := loadAuthInfo(imageName)
+		if hasAuth {
+			options.RegistryAuth = authStr
+		}
+	}
+	out, err := client.ImagePull(ctx, imageName, options)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	_, err = io.Copy(io.Discard, out)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func loadConfigInfo(isCreate bool, req dto.ContainerOperate, oldContainer *types.ContainerJSON) (*container.Config, *container.HostConfig, *network.NetworkingConfig, error) {
+	var config container.Config
+	var hostConf container.HostConfig
+	if !isCreate {
+		config = *oldContainer.Config
+		hostConf = *oldContainer.HostConfig
+	}
+	var networkConf network.NetworkingConfig
+
+	portMap, err := checkPortStats(req.ExposedPorts)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	exposed := make(nat.PortSet)
+	for port := range portMap {
+		exposed[port] = struct{}{}
+	}
+	config.Image = req.Image
+	config.Cmd = req.Cmd
+	config.Entrypoint = req.Entrypoint
+	config.Env = req.Env
+	config.Labels = stringsToMap(req.Labels)
+	config.ExposedPorts = exposed
+	config.OpenStdin = req.OpenStdin
+	config.Tty = req.Tty
+
+	if len(req.Network) != 0 {
+		switch req.Network {
+		case "host", "none", "bridge":
+			hostConf.NetworkMode = container.NetworkMode(req.Network)
+		}
+		if req.Ipv4 != "" || req.Ipv6 != "" {
+			networkConf.EndpointsConfig = map[string]*network.EndpointSettings{
+				req.Network: {
+					IPAMConfig: &network.EndpointIPAMConfig{
+						IPv4Address: req.Ipv4,
+						IPv6Address: req.Ipv6,
+					},
+				}}
+		} else {
+			networkConf.EndpointsConfig = map[string]*network.EndpointSettings{req.Network: {}}
+		}
+	} else {
+		if req.Ipv4 != "" || req.Ipv6 != "" {
+			return nil, nil, nil, fmt.Errorf("please set up the network")
+		}
+		networkConf = network.NetworkingConfig{}
+	}
+
+	hostConf.Privileged = req.Privileged
+	hostConf.AutoRemove = req.AutoRemove
+	hostConf.CPUShares = req.CPUShares
+	hostConf.PublishAllPorts = req.PublishAllPorts
+	hostConf.RestartPolicy = container.RestartPolicy{Name: container.RestartPolicyMode(req.RestartPolicy)}
+	if req.RestartPolicy == "on-failure" {
+		hostConf.RestartPolicy.MaximumRetryCount = 5
+	}
+	hostConf.NanoCPUs = int64(req.NanoCPUs * 1000000000)
+	hostConf.Memory = int64(req.Memory * 1024 * 1024)
+	hostConf.MemorySwap = 0
+	hostConf.PortBindings = portMap
+	hostConf.Binds = []string{}
+	hostConf.Mounts = []mount.Mount{}
+	config.Volumes = make(map[string]struct{})
+	for _, volume := range req.Volumes {
+		if volume.Type == "volume" {
+			hostConf.Mounts = append(hostConf.Mounts, mount.Mount{
+				Type:   mount.Type(volume.Type),
+				Source: volume.SourceDir,
+				Target: volume.ContainerDir,
+			})
+			config.Volumes[volume.ContainerDir] = struct{}{}
+		} else {
+			hostConf.Binds = append(hostConf.Binds, fmt.Sprintf("%s:%s:%s", volume.SourceDir, volume.ContainerDir, volume.Mode))
+		}
+	}
+	return &config, &hostConf, &networkConf, nil
+}
+
+func checkPortStats(ports []dto.PortHelper) (nat.PortMap, error) {
+	portMap := make(nat.PortMap)
+	if len(ports) == 0 {
+		return portMap, nil
+	}
+	for _, port := range ports {
+		if strings.Contains(port.ContainerPort, "-") {
+			if !strings.Contains(port.HostPort, "-") {
+				return portMap, buserr.New(constant.ErrPortRules)
+			}
+			hostStart, _ := strconv.Atoi(strings.Split(port.HostPort, "-")[0])
+			hostEnd, _ := strconv.Atoi(strings.Split(port.HostPort, "-")[1])
+			containerStart, _ := strconv.Atoi(strings.Split(port.ContainerPort, "-")[0])
+			containerEnd, _ := strconv.Atoi(strings.Split(port.ContainerPort, "-")[1])
+			if (hostEnd-hostStart) <= 0 || (containerEnd-containerStart) <= 0 {
+				return portMap, buserr.New(constant.ErrPortRules)
+			}
+			if (containerEnd - containerStart) != (hostEnd - hostStart) {
+				return portMap, buserr.New(constant.ErrPortRules)
+			}
+			for i := 0; i <= hostEnd-hostStart; i++ {
+				bindItem := nat.PortBinding{HostPort: strconv.Itoa(hostStart + i), HostIP: port.HostIP}
+				portMap[nat.Port(fmt.Sprintf("%d/%s", containerStart+i, port.Protocol))] = []nat.PortBinding{bindItem}
+			}
+			for i := hostStart; i <= hostEnd; i++ {
+				if common.ScanPort(i) {
+					return portMap, buserr.WithDetail(constant.ErrPortInUsed, i, nil)
+				}
+			}
+		} else {
+			portItem := 0
+			if strings.Contains(port.HostPort, "-") {
+				portItem, _ = strconv.Atoi(strings.Split(port.HostPort, "-")[0])
+			} else {
+				portItem, _ = strconv.Atoi(port.HostPort)
+			}
+			if common.ScanPort(portItem) {
+				return portMap, buserr.WithDetail(constant.ErrPortInUsed, portItem, nil)
+			}
+			bindItem := nat.PortBinding{HostPort: strconv.Itoa(portItem), HostIP: port.HostIP}
+			portMap[nat.Port(fmt.Sprintf("%s/%s", port.ContainerPort, port.Protocol))] = []nat.PortBinding{bindItem}
+		}
+	}
+	return portMap, nil
+}
+
+func stringsToMap(list []string) map[string]string {
+	var labelMap = make(map[string]string)
+	for _, label := range list {
+		if strings.Contains(label, "=") {
+			sps := strings.SplitN(label, "=", 2)
+			labelMap[sps[0]] = sps[1]
+		}
+	}
+	return labelMap
+}
+
+func reCreateAfterUpdate(name string, client *client.Client, config *container.Config, hostConf *container.HostConfig, networkConf *types.NetworkSettings) {
+	ctx := context.Background()
+
+	var oldNetworkConf network.NetworkingConfig
+	if networkConf != nil {
+		for networkKey := range networkConf.Networks {
+			oldNetworkConf.EndpointsConfig = map[string]*network.EndpointSettings{networkKey: {}}
+			break
+		}
+	}
+
+	oldContainer, err := client.ContainerCreate(ctx, config, hostConf, &oldNetworkConf, &v1.Platform{}, name)
+	if err != nil {
+		global.LOG.Errorf("recreate after container update failed, err: %v", err)
+		return
+	}
+	if err := client.ContainerStart(ctx, oldContainer.ID, container.StartOptions{}); err != nil {
+		global.LOG.Errorf("restart after container update failed, err: %v", err)
+	}
+	global.LOG.Errorf("recreate after container update successful")
 }

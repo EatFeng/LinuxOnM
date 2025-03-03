@@ -34,6 +34,72 @@ func (b *BaseApi) ContainerStats(c *gin.Context) {
 	helper.SuccessWithData(c, result)
 }
 
+// @Tags Container
+// @Summary Create container
+// @Description 创建容器
+// @Accept json
+// @Param request body dto.ContainerOperate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /container [post]
+// @x-panel-log {"bodyKeys":["name","image"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"创建容器 [name][image]","formatEN":"create container [name][image]"}
+func (b *BaseApi) ContainerCreate(c *gin.Context) {
+	var req dto.ContainerOperate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := containerService.ContainerCreate(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}
+
+// @Tags Container
+// @Summary Update container
+// @Description 更新容器
+// @Accept json
+// @Param request body dto.ContainerOperate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /containers/update [post]
+// @x-panel-log {"bodyKeys":["name","image"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"更新容器 [name][image]","formatEN":"update container [name][image]"}
+func (b *BaseApi) ContainerUpdate(c *gin.Context) {
+	var req dto.ContainerOperate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := containerService.ContainerUpdate(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}
+
+// @Tags Container
+// @Summary Upgrade container
+// @Description 更新容器镜像
+// @Accept json
+// @Param request body dto.ContainerUpgrade true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /container/upgrade [post]
+// @x-panel-log {"bodyKeys":["name","image"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"更新容器镜像 [name][image]","formatEN":"upgrade container image [name][image]"}
+func (b *BaseApi) ContainerUpgrade(c *gin.Context) {
+	var req dto.ContainerUpgrade
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := containerService.ContainerUpgrade(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}
+
 // ContainerInfo
 // @Tags Container
 // @Summary Load container info
@@ -216,6 +282,93 @@ func (b *BaseApi) LoadResourceLimit(c *gin.Context) {
 		return
 	}
 	helper.SuccessWithData(c, data)
+}
+
+// @Tags Container
+// @Summary Container inspect
+// @Description 容器详情
+// @Accept json
+// @Param request body dto.InspectReq true "request"
+// @Success 200 {string} result
+// @Security ApiKeyAuth
+// @Router /container/inspect [post]
+func (b *BaseApi) Inspect(c *gin.Context) {
+	var req dto.InspectReq
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	result, err := containerService.Inspect(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, result)
+}
+
+// @Tags Container
+// @Summary Rename Container
+// @Description 容器重命名
+// @Accept json
+// @Param request body dto.ContainerRename true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /container/rename [post]
+// @x-panel-log {"bodyKeys":["name","newName"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"容器重命名 [name] => [newName]","formatEN":"rename container [name] => [newName]"}
+func (b *BaseApi) ContainerRename(c *gin.Context) {
+	var req dto.ContainerRename
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := containerService.ContainerRename(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}
+
+// @Tags Container
+// @Summary Commit Container
+// @Description 容器提交生成新镜像
+// @Accept json
+// @Param request body dto.ContainerCommit true "request"
+// @Success 200
+// @Router /container/commit [post]
+func (b *BaseApi) ContainerCommit(c *gin.Context) {
+	var req dto.ContainerCommit
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := containerService.ContainerCommit(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}
+
+// @Tags Container
+// @Summary Clean container
+// @Description 容器清理
+// @Accept json
+// @Param request body dto.ContainerPrune true "request"
+// @Success 200 {object} dto.ContainerPruneReport
+// @Security ApiKeyAuth
+// @Router /container/prune [post]
+// @x-panel-log {"bodyKeys":["pruneType"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"清理容器 [pruneType]","formatEN":"clean container [pruneType]"}
+func (b *BaseApi) ContainerPrune(c *gin.Context) {
+	var req dto.ContainerPrune
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	report, err := containerService.Prune(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, report)
 }
 
 // ListNetwork

@@ -45,6 +45,7 @@ var (
 	ErrFileCanNotRead = "ErrFileCanNotRead"
 	ErrPortInUsed     = "ErrPortInUsed"
 	ErrFileNotFound   = "ErrFileNotFound"
+	ErrContainerName  = "ErrContainerName"
 )
 
 var (
@@ -75,4 +76,12 @@ var (
 // firewall
 var (
 	ErrFirewall = "ErrFirewall"
+)
+
+// container
+var (
+	ErrInUsed       = "ErrInUsed"
+	ErrObjectInUsed = "ErrObjectInUsed"
+	ErrPortRules    = "ErrPortRules"
+	ErrPgImagePull  = "ErrPgImagePull"
 )

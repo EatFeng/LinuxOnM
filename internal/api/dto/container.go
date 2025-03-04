@@ -151,3 +151,48 @@ type BatchDelete struct {
 	Force bool     `json:"force"`
 	Names []string `json:"names" validate:"required"`
 }
+
+type NetworkCreate struct {
+	Name       string          `json:"name" validate:"required"`
+	Driver     string          `json:"driver" validate:"required"`
+	Options    []string        `json:"options"`
+	Ipv4       bool            `json:"ipv4"`
+	Subnet     string          `json:"subnet"`
+	Gateway    string          `json:"gateway"`
+	IPRange    string          `json:"ipRange"`
+	AuxAddress []SettingUpdate `json:"auxAddress"`
+
+	Ipv6         bool            `json:"ipv6"`
+	SubnetV6     string          `json:"subnetV6"`
+	GatewayV6    string          `json:"gatewayV6"`
+	IPRangeV6    string          `json:"ipRangeV6"`
+	AuxAddressV6 []SettingUpdate `json:"auxAddressV6"`
+	Labels       []string        `json:"labels"`
+}
+
+type Network struct {
+	ID         string    `json:"id"`
+	Name       string    `json:"name"`
+	Labels     []string  `json:"labels"`
+	Driver     string    `json:"driver"`
+	IPAMDriver string    `json:"ipamDriver"`
+	Subnet     string    `json:"subnet"`
+	Gateway    string    `json:"gateway"`
+	CreatedAt  time.Time `json:"createdAt"`
+	Attachable bool      `json:"attachable"`
+}
+
+type VolumeCreate struct {
+	Name    string   `json:"name" validate:"required"`
+	Driver  string   `json:"driver" validate:"required"`
+	Options []string `json:"options"`
+	Labels  []string `json:"labels"`
+}
+
+type Volume struct {
+	Name       string    `json:"name"`
+	Labels     []string  `json:"labels"`
+	Driver     string    `json:"driver"`
+	Mountpoint string    `json:"mountpoint"`
+	CreatedAt  time.Time `json:"createdAt"`
+}

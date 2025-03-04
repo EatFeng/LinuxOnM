@@ -66,7 +66,13 @@ type IContainerService interface {
 	ContainerCommit(req dto.ContainerCommit) error
 	Prune(req dto.ContainerPrune) (dto.ContainerPruneReport, error)
 	ListNetwork() ([]dto.Options, error)
+	PageNetwork(req dto.SearchWithPage) (int64, interface{}, error)
+	DeleteNetwork(req dto.BatchDelete) error
+	CreateNetwork(req dto.NetworkCreate) error
 	ListVolume() ([]dto.Options, error)
+	PageVolume(req dto.SearchWithPage) (int64, interface{}, error)
+	DeleteVolume(req dto.BatchDelete) error
+	CreateVolume(req dto.VolumeCreate) error
 }
 
 func NewIContainerService() IContainerService {

@@ -51,8 +51,14 @@ func (s *ContainerRouter) InitRouter(Router *gin.RouterGroup) {
 		containerRouter.POST("/image/build", baseApi.ImageBuild)
 
 		containerRouter.GET("/network", baseApi.ListNetwork)
+		containerRouter.POST("/network/del", baseApi.DeleteNetwork)
+		containerRouter.POST("/network/search", baseApi.SearchNetwork)
+		containerRouter.POST("/network", baseApi.CreateNetwork)
 
 		containerRouter.GET("/volume", baseApi.ListVolume)
+		containerRouter.POST("/volume/del", baseApi.DeleteVolume)
+		containerRouter.POST("/volume/search", baseApi.SearchVolume)
+		containerRouter.POST("/volume", baseApi.CreateVolume)
 
 		containerRouter.GET("/docker/status", baseApi.LoadDockerStatus)
 	}

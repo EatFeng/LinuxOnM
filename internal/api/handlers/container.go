@@ -389,6 +389,76 @@ func (b *BaseApi) ListNetwork(c *gin.Context) {
 	helper.SuccessWithData(c, list)
 }
 
+// @Tags Container Network
+// @Summary Delete network
+// @Description 删除容器网络
+// @Accept json
+// @Param request body dto.BatchDelete true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /container/network/del [post]
+// @x-panel-log {"bodyKeys":["names"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"删除容器网络 [names]","formatEN":"delete container network [names]"}
+func (b *BaseApi) DeleteNetwork(c *gin.Context) {
+	var req dto.BatchDelete
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := containerService.DeleteNetwork(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}
+
+// @Tags Container Network
+// @Summary Page networks
+// @Description 获取容器网络列表分页
+// @Accept json
+// @Param request body dto.SearchWithPage true "request"
+// @Produce json
+// @Success 200 {object} dto.PageResult
+// @Security ApiKeyAuth
+// @Router /container/network/search [post]
+func (b *BaseApi) SearchNetwork(c *gin.Context) {
+	var req dto.SearchWithPage
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	total, list, err := containerService.PageNetwork(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, dto.PageResult{
+		Items: list,
+		Total: total,
+	})
+}
+
+// @Tags Container Network
+// @Summary Create network
+// @Description 创建容器网络
+// @Accept json
+// @Param request body dto.NetworkCreate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /container/network [post]
+// @x-panel-log {"bodyKeys":["name"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"创建容器网络 name","formatEN":"create container network [name]"}
+func (b *BaseApi) CreateNetwork(c *gin.Context) {
+	var req dto.NetworkCreate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := containerService.CreateNetwork(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}
+
 // ListVolume
 // @Tags Container Volume
 // @Summary List volumes
@@ -405,4 +475,74 @@ func (b *BaseApi) ListVolume(c *gin.Context) {
 		return
 	}
 	helper.SuccessWithData(c, list)
+}
+
+// @Tags Container Volume
+// @Summary Delete volume
+// @Description 删除容器存储卷
+// @Accept json
+// @Param request body dto.BatchDelete true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /container/volume/del [post]
+// @x-panel-log {"bodyKeys":["names"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"删除容器存储卷 [names]","formatEN":"delete container volume [names]"}
+func (b *BaseApi) DeleteVolume(c *gin.Context) {
+	var req dto.BatchDelete
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := containerService.DeleteVolume(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}
+
+// @Tags Container Volume
+// @Summary Page volumes
+// @Description 获取容器存储卷分页
+// @Accept json
+// @Param request body dto.SearchWithPage true "request"
+// @Produce json
+// @Success 200 {object} dto.PageResult
+// @Security ApiKeyAuth
+// @Router /container/volume/search [post]
+func (b *BaseApi) SearchVolume(c *gin.Context) {
+	var req dto.SearchWithPage
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	total, list, err := containerService.PageVolume(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, dto.PageResult{
+		Items: list,
+		Total: total,
+	})
+}
+
+// @Tags Container Volume
+// @Summary Create volume
+// @Description 创建容器存储卷
+// @Accept json
+// @Param request body dto.VolumeCreate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /container/volume [post]
+// @x-panel-log {"bodyKeys":["name"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"创建容器存储卷 [name]","formatEN":"create container volume [name]"}
+func (b *BaseApi) CreateVolume(c *gin.Context) {
+	var req dto.VolumeCreate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := containerService.CreateVolume(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
 }

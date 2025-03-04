@@ -2,11 +2,16 @@ package services
 
 import (
 	"LinuxOnM/internal/api/dto"
+	"LinuxOnM/internal/buserr"
+	"LinuxOnM/internal/constant"
+	"LinuxOnM/internal/global"
 	"LinuxOnM/internal/utils/docker"
+	"bufio"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"strings"
@@ -16,7 +21,9 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/registry"
+	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/homedir"
+	"github.com/pkg/errors"
 )
 
 type ImageService struct{}
@@ -25,6 +32,13 @@ type IImageService interface {
 	List() ([]dto.Options, error)
 	ListAll() ([]dto.ImageInfo, error)
 	Page(req dto.SearchWithPage) (int64, interface{}, error)
+	ImageBuild(req dto.ImageBuild) (string, error)
+	ImagePull(req dto.ImagePull) (string, error)
+	ImageLoad(req dto.ImageLoad) error
+	ImageSave(req dto.ImageSave) error
+	ImagePush(req dto.ImagePush) (string, error)
+	ImageRemove(req dto.BatchDelete) error
+	ImageTag(req dto.ImageTag) error
 }
 
 func NewIImageService() IImageService {
@@ -136,6 +150,300 @@ func (u *ImageService) Page(req dto.SearchWithPage) (int64, interface{}, error) 
 	}
 
 	return int64(total), backDatas, nil
+}
+
+func (u *ImageService) ImageBuild(req dto.ImageBuild) (string, error) {
+	client, err := docker.NewDockerClient()
+	if err != nil {
+		return "", err
+	}
+	defer client.Close()
+	fileName := "Dockerfile"
+	if req.From == "edit" {
+		dir := fmt.Sprintf("%s/docker/build/%s", constant.DataDir, strings.ReplaceAll(req.Name, ":", "_"))
+		if _, err := os.Stat(dir); err != nil && os.IsNotExist(err) {
+			if err = os.MkdirAll(dir, os.ModePerm); err != nil {
+				return "", err
+			}
+		}
+
+		pathItem := fmt.Sprintf("%s/Dockerfile", dir)
+		file, err := os.OpenFile(pathItem, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+		if err != nil {
+			return "", err
+		}
+		defer file.Close()
+		write := bufio.NewWriter(file)
+		_, _ = write.WriteString(string(req.Dockerfile))
+		write.Flush()
+		req.Dockerfile = dir
+	} else {
+		fileName = path.Base(req.Dockerfile)
+		req.Dockerfile = path.Dir(req.Dockerfile)
+	}
+	tar, err := archive.TarWithOptions(req.Dockerfile+"/", &archive.TarOptions{})
+	if err != nil {
+		return "", err
+	}
+
+	opts := types.ImageBuildOptions{
+		Dockerfile: fileName,
+		Tags:       []string{req.Name},
+		Remove:     true,
+		Labels:     stringsToMap(req.Tags),
+	}
+
+	dockerLogDir := path.Join(global.CONF.System.TmpDir, "docker_logs")
+	if _, err := os.Stat(dockerLogDir); err != nil && os.IsNotExist(err) {
+		if err = os.MkdirAll(dockerLogDir, os.ModePerm); err != nil {
+			return "", err
+		}
+	}
+	logItem := fmt.Sprintf("%s/image_build_%s_%s.log", dockerLogDir, strings.ReplaceAll(req.Name, ":", "_"), time.Now().Format(constant.DateTimeSlimLayout))
+	file, err := os.OpenFile(logItem, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		return "", err
+	}
+	go func() {
+		defer file.Close()
+		defer tar.Close()
+		res, err := client.ImageBuild(context.Background(), tar, opts)
+		if err != nil {
+			global.LOG.Errorf("build image %s failed, err: %v", req.Name, err)
+			_, _ = file.WriteString("image build failed!")
+			return
+		}
+		defer res.Body.Close()
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			global.LOG.Errorf("build image %s failed, err: %v", req.Name, err)
+			_, _ = file.WriteString(fmt.Sprintf("build image %s failed, err: %v", req.Name, err))
+			_, _ = file.WriteString("image build failed!")
+			return
+		}
+
+		if strings.Contains(string(body), "errorDetail") || strings.Contains(string(body), "error:") {
+			global.LOG.Errorf("build image %s failed", req.Name)
+			_, _ = file.Write(body)
+			_, _ = file.WriteString("image build failed!")
+			return
+		}
+		global.LOG.Infof("build image %s successful!", req.Name)
+		_, _ = file.Write(body)
+		_, _ = file.WriteString("image build successful!")
+	}()
+
+	return path.Base(logItem), nil
+}
+
+func (u *ImageService) ImagePull(req dto.ImagePull) (string, error) {
+	client, err := docker.NewDockerClient()
+	if err != nil {
+		return "", err
+	}
+	defer client.Close()
+	dockerLogDir := path.Join(global.CONF.System.TmpDir, "docker_logs")
+	if _, err := os.Stat(dockerLogDir); err != nil && os.IsNotExist(err) {
+		if err = os.MkdirAll(dockerLogDir, os.ModePerm); err != nil {
+			return "", err
+		}
+	}
+	imageItemName := strings.ReplaceAll(path.Base(req.ImageName), ":", "_")
+	logItem := fmt.Sprintf("%s/image_pull_%s_%s.log", dockerLogDir, imageItemName, time.Now().Format(constant.DateTimeSlimLayout))
+	file, err := os.OpenFile(logItem, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		return "", err
+	}
+	options := image.PullOptions{}
+	if req.RepoID == 0 {
+		hasAuth, authStr := loadAuthInfo(req.ImageName)
+		if hasAuth {
+			options.RegistryAuth = authStr
+		}
+		go func() {
+			defer file.Close()
+			out, err := client.ImagePull(context.TODO(), req.ImageName, options)
+			if err != nil {
+				global.LOG.Errorf("image %s pull failed, err: %v", req.ImageName, err)
+				return
+			}
+			defer out.Close()
+			global.LOG.Infof("pull image %s successful!", req.ImageName)
+			_, _ = io.Copy(file, out)
+		}()
+		return path.Base(logItem), nil
+	}
+	repo, err := imageRepoRepo.Get(commonRepo.WithByID(req.RepoID))
+	if err != nil {
+		return "", err
+	}
+	if repo.Auth {
+		authConfig := registry.AuthConfig{
+			Username: repo.Username,
+			Password: repo.Password,
+		}
+		encodedJSON, err := json.Marshal(authConfig)
+		if err != nil {
+			return "", err
+		}
+		authStr := base64.StdEncoding.EncodeToString(encodedJSON)
+		options.RegistryAuth = authStr
+	}
+	image := repo.DownloadUrl + "/" + req.ImageName
+	go func() {
+		defer file.Close()
+		out, err := client.ImagePull(context.TODO(), image, options)
+		if err != nil {
+			_, _ = file.WriteString("image pull failed!")
+			_, _ = file.WriteString(fmt.Sprintf("image %s pull failed, err: %v", image, err))
+			return
+		}
+		defer out.Close()
+		global.LOG.Infof("pull image %s successful!", req.ImageName)
+		_, _ = io.Copy(file, out)
+		_, _ = file.WriteString("image pull successful!")
+	}()
+	return path.Base(logItem), nil
+}
+
+func (u *ImageService) ImageLoad(req dto.ImageLoad) error {
+	file, err := os.Open(req.Path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	client, err := docker.NewDockerClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	res, err := client.ImageLoad(context.TODO(), file)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	content, err := io.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+	if strings.Contains(string(content), "Error") {
+		return errors.New(string(content))
+	}
+	return nil
+}
+
+func (u *ImageService) ImageSave(req dto.ImageSave) error {
+	client, err := docker.NewDockerClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	out, err := client.ImageSave(context.TODO(), []string{req.TagName})
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	file, err := os.OpenFile(fmt.Sprintf("%s/%s.tar", req.Path, req.Name), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0666)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	if _, err = io.Copy(file, out); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *ImageService) ImageTag(req dto.ImageTag) error {
+	client, err := docker.NewDockerClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	if err := client.ImageTag(context.TODO(), req.SourceID, req.TargetName); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *ImageService) ImagePush(req dto.ImagePush) (string, error) {
+	client, err := docker.NewDockerClient()
+	if err != nil {
+		return "", err
+	}
+	defer client.Close()
+	repo, err := imageRepoRepo.Get(commonRepo.WithByID(req.RepoID))
+	if err != nil {
+		return "", err
+	}
+	options := image.PushOptions{All: true}
+	authConfig := registry.AuthConfig{
+		Username: repo.Username,
+		Password: repo.Password,
+	}
+	encodedJSON, err := json.Marshal(authConfig)
+	if err != nil {
+		return "", err
+	}
+	authStr := base64.URLEncoding.EncodeToString(encodedJSON)
+	options.RegistryAuth = authStr
+	newName := fmt.Sprintf("%s/%s", repo.DownloadUrl, req.Name)
+	if newName != req.TagName {
+		if err := client.ImageTag(context.TODO(), req.TagName, newName); err != nil {
+			return "", err
+		}
+	}
+
+	dockerLogDir := global.CONF.System.TmpDir + "/docker_logs"
+	if _, err := os.Stat(dockerLogDir); err != nil && os.IsNotExist(err) {
+		if err = os.MkdirAll(dockerLogDir, os.ModePerm); err != nil {
+			return "", err
+		}
+	}
+	imageItemName := strings.ReplaceAll(path.Base(req.Name), ":", "_")
+	logItem := fmt.Sprintf("%s/image_push_%s_%s.log", dockerLogDir, imageItemName, time.Now().Format(constant.DateTimeSlimLayout))
+	file, err := os.OpenFile(logItem, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		return "", err
+	}
+	go func() {
+		defer file.Close()
+		out, err := client.ImagePush(context.TODO(), newName, options)
+		if err != nil {
+			global.LOG.Errorf("image %s push failed, err: %v", req.TagName, err)
+			_, _ = file.WriteString("image push failed!")
+			return
+		}
+		defer out.Close()
+		global.LOG.Infof("push image %s successful!", req.Name)
+		_, _ = io.Copy(file, out)
+		_, _ = file.WriteString("image push successful!")
+	}()
+
+	return path.Base(logItem), nil
+}
+
+func (u *ImageService) ImageRemove(req dto.BatchDelete) error {
+	client, err := docker.NewDockerClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+	for _, id := range req.Names {
+		if _, err := client.ImageRemove(context.TODO(), id, image.RemoveOptions{Force: req.Force, PruneChildren: true}); err != nil {
+			if strings.Contains(err.Error(), "image is being used") || strings.Contains(err.Error(), "is using") {
+				if strings.Contains(id, "sha256:") {
+					return buserr.New(constant.ErrObjectInUsed)
+				}
+				return buserr.WithDetail(constant.ErrInUsed, id, nil)
+			}
+			return err
+		}
+	}
+	return nil
 }
 
 func formatFileSize(fileSize int64) (size string) {

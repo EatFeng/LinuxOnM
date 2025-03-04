@@ -4,6 +4,7 @@ import (
 	"LinuxOnM/internal/global"
 	"LinuxOnM/internal/models"
 	"context"
+
 	"github.com/docker/docker/api/types/network"
 
 	"github.com/docker/docker/api/types/container"
@@ -90,7 +91,7 @@ func (c Client) ListAllContainers() ([]types.Container, error) {
 }
 
 func (c Client) CreateNetwork(name string) error {
-	_, err := c.cli.NetworkCreate(context.Background(), name, types.NetworkCreate{
+	_, err := c.cli.NetworkCreate(context.Background(), name, network.CreateOptions{
 		Driver: "bridge",
 	})
 	return err

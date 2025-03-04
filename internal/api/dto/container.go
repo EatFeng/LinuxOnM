@@ -146,3 +146,8 @@ type ContainerPruneReport struct {
 	DeletedNumber  int `json:"deletedNumber"`
 	SpaceReclaimed int `json:"spaceReclaimed"`
 }
+
+type BatchDelete struct {
+	Force bool     `json:"force"`
+	Names []string `json:"names" validate:"required"`
+}

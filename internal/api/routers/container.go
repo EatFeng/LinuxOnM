@@ -42,6 +42,13 @@ func (s *ContainerRouter) InitRouter(Router *gin.RouterGroup) {
 		containerRouter.GET("/image", baseApi.ListImage)
 		containerRouter.GET("/image/all", baseApi.ListAllImage)
 		containerRouter.POST("/image/search", baseApi.SearchImage)
+		containerRouter.POST("/image/pull", baseApi.ImagePull)
+		containerRouter.POST("/image/push", baseApi.ImagePush)
+		containerRouter.POST("/image/save", baseApi.ImageSave)
+		containerRouter.POST("/image/load", baseApi.ImageLoad)
+		containerRouter.POST("/image/remove", baseApi.ImageRemove)
+		containerRouter.POST("/image/tag", baseApi.ImageTag)
+		containerRouter.POST("/image/build", baseApi.ImageBuild)
 
 		containerRouter.GET("/network", baseApi.ListNetwork)
 

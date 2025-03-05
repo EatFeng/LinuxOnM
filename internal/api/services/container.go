@@ -59,6 +59,7 @@ type IContainerService interface {
 	ContainerLogs(wsConn *websocket.Conn, containerType, container, since, tail string, follow bool) error
 	DownloadContainerLogs(containerType, container, since, tail string, c *gin.Context) error
 	ContainerLogClean(req dto.OperationWithName) error
+	LoadContainerLogs(req dto.OperationWithNameAndType) string
 	ContainerOperation(req dto.ContainerOperation) error
 	LoadResourceLimit() (*dto.ResourceLimit, error)
 	Inspect(req dto.InspectReq) (string, error)
@@ -73,6 +74,11 @@ type IContainerService interface {
 	PageVolume(req dto.SearchWithPage) (int64, interface{}, error)
 	DeleteVolume(req dto.BatchDelete) error
 	CreateVolume(req dto.VolumeCreate) error
+	PageCompose(req dto.SearchWithPage) (int64, interface{}, error)
+	CreateCompose(req dto.ComposeCreate) (string, error)
+	ComposeOperation(req dto.ComposeOperation) error
+	TestCompose(req dto.ComposeCreate) (bool, error)
+	ComposeUpdate(req dto.ComposeUpdate) error
 }
 
 func NewIContainerService() IContainerService {
@@ -1247,4 +1253,41 @@ func reCreateAfterUpdate(name string, client *client.Client, config *container.C
 		global.LOG.Errorf("restart after container update failed, err: %v", err)
 	}
 	global.LOG.Errorf("recreate after container update successful")
+}
+
+func (u *ContainerService) LoadContainerLogs(req dto.OperationWithNameAndType) string {
+	filePath := ""
+	if req.Type == "compose-detail" {
+		cli, err := docker.NewDockerClient()
+		if err != nil {
+			return ""
+		}
+		defer cli.Close()
+		options := container.ListOptions{All: true}
+		options.Filters = filters.NewArgs()
+		options.Filters.Add("label", fmt.Sprintf("%s=%s", composeProjectLabel, req.Name))
+		containers, err := cli.ContainerList(context.Background(), options)
+		if err != nil {
+			return ""
+		}
+		for _, container := range containers {
+			config := container.Labels[composeConfigLabel]
+			workdir := container.Labels[composeWorkdirLabel]
+			if len(config) != 0 && len(workdir) != 0 && strings.Contains(config, workdir) {
+				filePath = config
+				break
+			} else {
+				filePath = workdir
+				break
+			}
+		}
+	}
+	if _, err := os.Stat(filePath); err != nil {
+		return ""
+	}
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return ""
+	}
+	return string(content)
 }

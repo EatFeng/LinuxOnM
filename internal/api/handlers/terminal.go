@@ -2,17 +2,20 @@ package handlers
 
 import (
 	"LinuxOnM/internal/global"
+	"LinuxOnM/internal/utils/cmd"
 	"LinuxOnM/internal/utils/copier"
 	"LinuxOnM/internal/utils/ssh"
 	"LinuxOnM/internal/utils/terminal"
 	"encoding/base64"
 	"encoding/json"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 var upGrader = websocket.Upgrader{
@@ -114,4 +117,108 @@ func wshandleError(ws *websocket.Conn, err error) bool {
 		return true
 	}
 	return false
+}
+
+func (b *BaseApi) ContainerWsSsh(c *gin.Context) {
+	wsConn, err := upGrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		global.LOG.Errorf("gin context http handler failed, err: %v", err)
+		return
+	}
+	defer wsConn.Close()
+
+	containerID := c.Query("containerid")
+	command := c.Query("command")
+	user := c.Query("user")
+	if len(command) == 0 || len(containerID) == 0 {
+		if wshandleError(wsConn, errors.New("error param of command or containerID")) {
+			return
+		}
+	}
+	cols, err := strconv.Atoi(c.DefaultQuery("cols", "80"))
+	if wshandleError(wsConn, errors.WithMessage(err, "invalid param cols in request")) {
+		return
+	}
+	rows, err := strconv.Atoi(c.DefaultQuery("rows", "40"))
+	if wshandleError(wsConn, errors.WithMessage(err, "invalid param rows in request")) {
+		return
+	}
+
+	cmds := []string{"exec", containerID, command}
+	if len(user) != 0 {
+		cmds = []string{"exec", "-u", user, containerID, command}
+	}
+	if cmd.CheckIllegal(user, containerID, command) {
+		if wshandleError(wsConn, errors.New("  The command contains illegal characters.")) {
+			return
+		}
+	}
+	stdout, err := cmd.ExecWithCheck("docker", cmds...)
+	if wshandleError(wsConn, errors.WithMessage(err, stdout)) {
+		return
+	}
+
+	commands := []string{"exec", "-it", containerID, command}
+	if len(user) != 0 {
+		commands = []string{"exec", "-it", "-u", user, containerID, command}
+	}
+	pidMap := loadMapFromDockerTop(containerID)
+	slave, err := terminal.NewCommand(commands)
+	if wshandleError(wsConn, err) {
+		return
+	}
+	defer killBash(containerID, command, pidMap)
+	defer slave.Close()
+
+	tty, err := terminal.NewLocalWsSession(cols, rows, wsConn, slave, true)
+	if wshandleError(wsConn, err) {
+		return
+	}
+
+	quitChan := make(chan bool, 3)
+	tty.Start(quitChan)
+	go slave.Wait(quitChan)
+
+	<-quitChan
+
+	global.LOG.Info("websocket finished")
+	if wshandleError(wsConn, err) {
+		return
+	}
+}
+
+func loadMapFromDockerTop(containerID string) map[string]string {
+	pidMap := make(map[string]string)
+	sudo := cmd.SudoHandleCmd()
+
+	stdout, err := cmd.Execf("%s docker top %s -eo pid,command ", sudo, containerID)
+	if err != nil {
+		return pidMap
+	}
+	lines := strings.Split(stdout, "\n")
+	for _, line := range lines {
+		parts := strings.Fields(line)
+		if len(parts) < 2 {
+			continue
+		}
+		pidMap[parts[0]] = strings.Join(parts[1:], " ")
+	}
+	return pidMap
+}
+
+func killBash(containerID, comm string, pidMap map[string]string) {
+	sudo := cmd.SudoHandleCmd()
+	newPidMap := loadMapFromDockerTop(containerID)
+	for pid, command := range newPidMap {
+		isOld := false
+		for pid2 := range pidMap {
+			if pid == pid2 {
+				isOld = true
+				break
+			}
+		}
+		if !isOld && command == comm {
+			_, _ = cmd.Execf("%s kill -9 %s", sudo, pid)
+		}
+	}
 }

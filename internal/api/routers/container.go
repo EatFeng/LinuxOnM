@@ -13,6 +13,7 @@ func (s *ContainerRouter) InitRouter(Router *gin.RouterGroup) {
 	containerRouter := Router.Group("container").Use(middleware.PasswordExpired())
 	baseApi := handler.ApiGroupApp.BaseApi
 	{
+		containerRouter.GET("/exec", baseApi.ContainerWsSsh)
 		containerRouter.GET("/stats/:id", baseApi.ContainerStats)
 
 		containerRouter.POST("", baseApi.ContainerCreate)
@@ -25,6 +26,7 @@ func (s *ContainerRouter) InitRouter(Router *gin.RouterGroup) {
 		containerRouter.GET("/search/log", baseApi.ContainerLogs)
 		containerRouter.POST("/download/log", baseApi.DownloadContainerLogs)
 		containerRouter.POST("/clean/log", baseApi.CleanContainerLog)
+		containerRouter.POST("/load/log", baseApi.LoadContainerLog)
 		containerRouter.GET("/limit", baseApi.LoadResourceLimit)
 		containerRouter.POST("/operate", baseApi.ContainerOperation)
 		containerRouter.POST("/inspect", baseApi.Inspect)
@@ -60,6 +62,26 @@ func (s *ContainerRouter) InitRouter(Router *gin.RouterGroup) {
 		containerRouter.POST("/volume/search", baseApi.SearchVolume)
 		containerRouter.POST("/volume", baseApi.CreateVolume)
 
+		containerRouter.GET("/template", baseApi.ListComposeTemplate)
+		containerRouter.POST("/template", baseApi.CreateComposeTemplate)
+		containerRouter.POST("/template/search", baseApi.SearchComposeTemplate)
+		containerRouter.POST("/template/update", baseApi.UpdateComposeTemplate)
+		containerRouter.POST("/template/del", baseApi.DeleteComposeTemplate)
+
+		containerRouter.POST("/compose/search", baseApi.SearchCompose)
+		containerRouter.POST("/compose", baseApi.CreateCompose)
+		containerRouter.POST("/compose/test", baseApi.TestCompose)
+		containerRouter.POST("/compose/operate", baseApi.OperatorCompose)
+		containerRouter.POST("/compose/update", baseApi.ComposeUpdate)
+		containerRouter.GET("/compose/search/log", baseApi.ComposeLogs)
+
 		containerRouter.GET("/docker/status", baseApi.LoadDockerStatus)
+		containerRouter.POST("/docker/operate", baseApi.OperateDocker)
+		containerRouter.GET("/daemonjson", baseApi.LoadDaemonJson)
+		containerRouter.GET("/daemonjson/file", baseApi.LoadDaemonJsonFile)
+		containerRouter.POST("/daemonjson/update", baseApi.UpdateDaemonJson)
+		containerRouter.POST("/logoption/update", baseApi.UpdateLogOption)
+		containerRouter.POST("/ipv6option/update", baseApi.UpdateIpv6Option)
+		containerRouter.POST("/daemonjson/update/byfile", baseApi.UpdateDaemonJsonByFile)
 	}
 }

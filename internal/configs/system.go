@@ -19,4 +19,5 @@ type System struct {
 	Backup      string `mapstructure:"backup"`
 	SSL         string `mapstructure:"ssl"`
 	TmpDir      string `mapstructure:"tmp_dir"`
+	IsDemo      bool   `mapstructure:"is_demo"`
 }

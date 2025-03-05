@@ -3,6 +3,7 @@ module LinuxOnM
 go 1.23.0
 
 require (
+	github.com/creack/pty v1.1.18
 	github.com/dgraph-io/badger/v4 v4.4.0
 	github.com/docker/docker v28.0.1+incompatible
 	github.com/docker/go-connections v0.5.0
@@ -16,6 +17,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
+	github.com/jinzhu/copier v0.4.0
 	github.com/klauspost/compress v1.17.11
 	github.com/mholt/archiver/v4 v4.0.0-alpha.8
 	github.com/mojocn/base64Captcha v1.3.6
@@ -38,6 +40,7 @@ require (
 )
 
 require (
+	github.com/AdaLogics/go-fuzz-headers v0.0.0-20240806141605-e8a1dd7889d6 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect

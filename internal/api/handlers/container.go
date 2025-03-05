@@ -5,6 +5,7 @@ import (
 	"LinuxOnM/internal/api/handlers/helper"
 	"LinuxOnM/internal/constant"
 	"LinuxOnM/internal/global"
+	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -63,7 +64,7 @@ func (b *BaseApi) ContainerCreate(c *gin.Context) {
 // @Param request body dto.ContainerOperate true "request"
 // @Success 200
 // @Security ApiKeyAuth
-// @Router /containers/update [post]
+// @Router /container/update [post]
 // @x-panel-log {"bodyKeys":["name","image"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"更新容器 [name][image]","formatEN":"update container [name][image]"}
 func (b *BaseApi) ContainerUpdate(c *gin.Context) {
 	var req dto.ContainerOperate
@@ -190,7 +191,7 @@ func (b *BaseApi) ContainerListStats(c *gin.Context) {
 // @Param request body dto.ContainerOperation true "request"
 // @Success 200
 // @Security ApiKeyAuth
-// @Router /containers/operate [post]
+// @Router /container/operate [post]
 // @x-panel-log {"bodyKeys":["names","operation"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"容器 [names] 执行 [operation]","formatEN":"container [operation] [names]"}
 func (b *BaseApi) ContainerOperation(c *gin.Context) {
 	var req dto.ContainerOperation
@@ -235,7 +236,7 @@ func (b *BaseApi) ContainerLogs(c *gin.Context) {
 }
 
 // @Description 下载容器日志
-// @Router /containers/download/log [post]
+// @Router /container/download/log [post]
 func (b *BaseApi) DownloadContainerLogs(c *gin.Context) {
 	var req dto.ContainerLog
 	if err := helper.CheckBindAndValidate(c, &req); err != nil {
@@ -254,7 +255,7 @@ func (b *BaseApi) DownloadContainerLogs(c *gin.Context) {
 // @Param request body dto.OperationWithName true "request"
 // @Success 200
 // @Security ApiKeyAuth
-// @Router /containers/clean/log [post]
+// @Router /container/clean/log [post]
 // @x-panel-log {"bodyKeys":["name"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"清理容器 [name] 日志","formatEN":"clean container [name] logs"}
 func (b *BaseApi) CleanContainerLog(c *gin.Context) {
 	var req dto.OperationWithName
@@ -545,4 +546,185 @@ func (b *BaseApi) CreateVolume(c *gin.Context) {
 		return
 	}
 	helper.SuccessWithData(c, nil)
+}
+
+// @Tags Container Compose
+// @Summary Page composes
+// @Description 获取编排列表分页
+// @Accept json
+// @Param request body dto.SearchWithPage true "request"
+// @Success 200 {object} dto.PageResult
+// @Security ApiKeyAuth
+// @Router /container/compose/search [post]
+func (b *BaseApi) SearchCompose(c *gin.Context) {
+	var req dto.SearchWithPage
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	total, list, err := containerService.PageCompose(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, dto.PageResult{
+		Items: list,
+		Total: total,
+	})
+}
+
+// @Tags Container Compose
+// @Summary Create compose
+// @Description 创建容器编排
+// @Accept json
+// @Param request body dto.ComposeCreate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /container/compose [post]
+// @x-panel-log {"bodyKeys":["name"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"创建 compose [name]","formatEN":"create compose [name]"}
+func (b *BaseApi) CreateCompose(c *gin.Context) {
+	var req dto.ComposeCreate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	log, err := containerService.CreateCompose(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, log)
+}
+
+// @Tags Container Compose
+// @Summary Operate compose
+// @Description 容器编排操作
+// @Accept json
+// @Param request body dto.ComposeOperation true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /container/compose/operate [post]
+// @x-panel-log {"bodyKeys":["name","operation"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"compose [operation] [name]","formatEN":"compose [operation] [name]"}
+func (b *BaseApi) OperatorCompose(c *gin.Context) {
+	var req dto.ComposeOperation
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := containerService.ComposeOperation(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}
+
+// @Tags Container Compose
+// @Summary Test compose
+// @Description 测试 compose 是否可用
+// @Accept json
+// @Param request body dto.ComposeCreate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /container/compose/test [post]
+// @x-panel-log {"bodyKeys":["name"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"检测 compose [name] 格式","formatEN":"check compose [name]"}
+func (b *BaseApi) TestCompose(c *gin.Context) {
+	var req dto.ComposeCreate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	isOK, err := containerService.TestCompose(req)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, isOK)
+}
+
+// @Tags Container Compose
+// @Summary Update compose
+// @Description 更新容器编排
+// @Accept json
+// @Param request body dto.ComposeUpdate true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /container/compose/update [post]
+// @x-panel-log {"bodyKeys":["name"],"paramKeys":[],"BeforeFunctions":[],"formatZH":"更新 compose [name]","formatEN":"update compose information [name]"}
+func (b *BaseApi) ComposeUpdate(c *gin.Context) {
+	var req dto.ComposeUpdate
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	if err := containerService.ComposeUpdate(req); err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, nil)
+}
+
+// @Tags Container Compose
+// @Summary Container Compose logs
+// @Description docker-compose 日志
+// @Param compose query string false "compose 文件地址"
+// @Param since query string false "时间筛选"
+// @Param follow query string false "是否追踪"
+// @Param tail query string false "显示行号"
+// @Security ApiKeyAuth
+// @Router /container/compose/search/log [get]
+func (b *BaseApi) ComposeLogs(c *gin.Context) {
+	wsConn, err := upGrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		global.LOG.Errorf("gin context http handler failed, err: %v", err)
+		return
+	}
+	defer wsConn.Close()
+
+	compose := c.Query("compose")
+	since := c.Query("since")
+	follow := c.Query("follow") == "true"
+	tail := c.Query("tail")
+
+	if err := containerService.ContainerLogs(wsConn, "compose", compose, since, tail, follow); err != nil {
+		_ = wsConn.WriteMessage(1, []byte(err.Error()))
+		return
+	}
+}
+
+// @Tags Container
+// @Summary Load container log
+// @Description 获取容器操作日志
+// @Accept json
+// @Param request body dto.OperationWithNameAndType true "request"
+// @Success 200
+// @Security ApiKeyAuth
+// @Router /containers/load/log [post]
+func (b *BaseApi) LoadContainerLog(c *gin.Context) {
+	var req dto.OperationWithNameAndType
+	if err := helper.CheckBindAndValidate(c, &req); err != nil {
+		return
+	}
+
+	content := containerService.LoadContainerLogs(req)
+	helper.SuccessWithData(c, content)
+}
+
+// @Tags Container Docker
+// @Summary Load docker daemon.json
+// @Description 获取 docker 配置信息(表单)
+// @Produce json
+// @Success 200 {object} string
+// @Security ApiKeyAuth
+// @Router /containers/daemonjson/file [get]
+func (b *BaseApi) LoadDaemonJsonFile(c *gin.Context) {
+	if _, err := os.Stat(constant.DaemonJsonPath); err != nil {
+		helper.SuccessWithData(c, "daemon.json is not find in path")
+		return
+	}
+	content, err := os.ReadFile(constant.DaemonJsonPath)
+	if err != nil {
+		helper.ErrorWithDetail(c, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+		return
+	}
+	helper.SuccessWithData(c, string(content))
 }

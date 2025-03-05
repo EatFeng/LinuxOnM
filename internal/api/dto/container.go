@@ -196,3 +196,38 @@ type Volume struct {
 	Mountpoint string    `json:"mountpoint"`
 	CreatedAt  time.Time `json:"createdAt"`
 }
+
+type ComposeInfo struct {
+	Name            string             `json:"name"`
+	CreatedAt       string             `json:"createdAt"`
+	CreatedBy       string             `json:"createdBy"`
+	ContainerNumber int                `json:"containerNumber"`
+	ConfigFile      string             `json:"configFile"`
+	Workdir         string             `json:"workdir"`
+	Path            string             `json:"path"`
+	Containers      []ComposeContainer `json:"containers"`
+}
+type ComposeContainer struct {
+	ContainerID string `json:"containerID"`
+	Name        string `json:"name"`
+	CreateTime  string `json:"createTime"`
+	State       string `json:"state"`
+}
+type ComposeCreate struct {
+	Name     string `json:"name"`
+	From     string `json:"from" validate:"required,oneof=edit path template"`
+	File     string `json:"file"`
+	Path     string `json:"path"`
+	Template uint   `json:"template"`
+}
+type ComposeOperation struct {
+	Name      string `json:"name" validate:"required"`
+	Path      string `json:"path" validate:"required"`
+	Operation string `json:"operation" validate:"required,oneof=start stop down"`
+	WithFile  bool   `json:"withFile"`
+}
+type ComposeUpdate struct {
+	Name    string `json:"name" validate:"required"`
+	Path    string `json:"path" validate:"required"`
+	Content string `json:"content" validate:"required"`
+}

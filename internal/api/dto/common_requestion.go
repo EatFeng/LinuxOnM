@@ -17,3 +17,8 @@ type SearchWithPage struct {
 	PageInfo
 	Info string `json:"info"`
 }
+
+type OperationWithNameAndType struct {
+	Name string `json:"name"`
+	Type string `json:"type" validate:"required"`
+}

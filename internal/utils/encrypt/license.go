@@ -150,7 +150,7 @@ func GenerateHardwareHash() (string, error) {
 		macAddress = "NULL"
 	}
 
-	fmt.Printf("原始信息：%s|%s|%s|%s\n", baseboard, cpuID, diskUUID, macAddress)
+	// fmt.Printf("原始信息：%s|%s|%s|%s\n", baseboard, cpuID, diskUUID, macAddress)
 	// 组合硬件信息
 	hardwareInfo := strings.Join([]string{baseboard, cpuID, diskUUID, macAddress}, "|")
 

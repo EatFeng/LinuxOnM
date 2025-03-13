@@ -10,7 +10,7 @@ import (
 type ContainerRouter struct{}
 
 func (s *ContainerRouter) InitRouter(Router *gin.RouterGroup) {
-	containerRouter := Router.Group("container").Use(middleware.PasswordExpired())
+	containerRouter := Router.Group("container").Use(middleware.PasswordExpired()).Use(middleware.LicenseCheck())
 	baseApi := handler.ApiGroupApp.BaseApi
 	{
 		containerRouter.GET("/exec", baseApi.ContainerWsSsh)

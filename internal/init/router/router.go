@@ -5,9 +5,10 @@ import (
 	rou "LinuxOnM/internal/api/routers"
 	"LinuxOnM/internal/middleware"
 
+	"net/http"
+
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
-	"net/http"
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"

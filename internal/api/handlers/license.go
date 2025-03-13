@@ -29,14 +29,14 @@ func (b *BaseApi) HandleLicenseUpload(c *gin.Context) {
 	}
 
 	// 验证文件类型
-	fmt.Println("验证文件类型")
+	// fmt.Println("验证文件类型")
 	if !strings.HasSuffix(fileHeader.Filename, ".lic") {
 		helper.HandleBusinessError(c, buserr.New("LICENSE_INVALID_TYPE"))
 		return
 	}
 
 	// 读取文件内容
-	fmt.Println("读取文件内容")
+	// fmt.Println("读取文件内容")
 	file, err := fileHeader.Open()
 	if err != nil {
 		helper.HandleBusinessError(c, err)
@@ -51,7 +51,7 @@ func (b *BaseApi) HandleLicenseUpload(c *gin.Context) {
 	}
 
 	// 调用服务处理
-	fmt.Println("调用服务处理")
+	// fmt.Println("调用服务处理")
 	result, err := licenseService.ProcessLicenseUpload(licenseData)
 	if err != nil {
 		helper.HandleBusinessError(c, err)

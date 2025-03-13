@@ -107,7 +107,7 @@ func (s *LicenseService) GetLicenseStatus() (*dto.LicenseStatusResponse, error) 
 	if err != nil {
 		return nil, errors.Wrap(err, "生成硬件哈希失败")
 	}
-	fmt.Println(currentHash)
+	// fmt.Println(currentHash)
 
 	// 获取最新有效的许可证
 	license, err := licenseRepo.GetLatestValid(currentHash)

@@ -14,6 +14,6 @@ func (s *LicenseRouter) InitRouter(Router *gin.RouterGroup) {
 	baseApi := handlers.ApiGroupApp.BaseApi
 	{
 		licenseRouter.POST("/upload", baseApi.HandleLicenseUpload)
-		licenseRouter.GET("/status", baseApi.GetLienceInfo)
+		licenseRouter.GET("/status", baseApi.GetLicenseInfo)
 	}
 }

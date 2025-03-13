@@ -60,3 +60,21 @@ func (b *BaseApi) HandleLicenseUpload(c *gin.Context) {
 
 	c.JSON(http.StatusOK, result)
 }
+
+// GetLicenseInfo 获取许可证状态信息
+// @Summary 获取许可证状态
+// @Tags 许可证管理
+// @Produce json
+// @Success 200 {object} dto.LicenseStatusResponse
+// @Router /api/license/status [get]
+func (b *BaseApi) GetLicenseInfo(c *gin.Context) {
+	// 调用服务层获取许可证信息
+	status, err := licenseService.GetLicenseStatus()
+	if err != nil {
+		helper.HandleBusinessError(c, err)
+		return
+	}
+
+	// 返回结构化响应
+	helper.SuccessWithData(c, status)
+}

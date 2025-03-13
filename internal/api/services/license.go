@@ -18,6 +18,7 @@ type LicenseService struct {
 
 type ILicenseService interface {
 	ProcessLicenseUpload(licenseData []byte) (*dto.LicenseUploadResponse, error)
+	GetLicenseStatus() (*dto.LicenseStatusResponse, error)
 }
 
 func NewILicenseService() ILicenseService {
@@ -97,5 +98,30 @@ func (s *LicenseService) convertToDBModel(dtoData dto.SignedLicenseData) (*model
 		ExpiryDate:   expiryDate,
 		HardwareHash: dtoData.HardwareHash,
 		IssuedAt:     int64(dtoData.IssuedAt),
+	}, nil
+}
+
+func (s *LicenseService) GetLicenseStatus() (*dto.LicenseStatusResponse, error) {
+	// 验证硬件哈希是否匹配
+	currentHash, err := encrypt.GenerateHardwareHash()
+	if err != nil {
+		return nil, errors.Wrap(err, "生成硬件哈希失败")
+	}
+	fmt.Println(currentHash)
+
+	// 获取最新有效的许可证
+	license, err := licenseRepo.GetLatestValid(currentHash)
+	if err != nil {
+		return nil, errors.Wrap(err, "查询许可证失败")
+	}
+
+	// 构造响应
+	return &dto.LicenseStatusResponse{
+		LicenseID:      license.LicenseID,
+		ExpiryDate:     license.ExpiryDate.Format(time.RFC3339),
+		HardwareMatch:  license.HardwareHash == currentHash,
+		RemainingDays:  int(license.ExpiryDate.Sub(time.Now()).Hours() / 24),
+		ActivationTime: time.Unix(license.IssuedAt, 0).Format(time.RFC3339),
+		IsValid:        !license.IsExpired() && license.HardwareHash == currentHash,
 	}, nil
 }

@@ -18,3 +18,12 @@ type SignedLicenseData struct {
 	IssuedAt     int    `json:"issued_at"`
 	LicenseID    string `json:"license_id"` // 按字母顺序最后
 }
+
+type LicenseStatusResponse struct {
+	LicenseID      string `json:"license_id"`
+	ExpiryDate     string `json:"expiry_date"`
+	HardwareMatch  bool   `json:"hardware_match"`
+	RemainingDays  int    `json:"remaining_days"`
+	ActivationTime string `json:"activation_time"`
+	IsValid        bool   `json:"is_valid"`
+}

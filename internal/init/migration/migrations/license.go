@@ -19,16 +19,14 @@ var AddTableLicense = &gormigrate.Migration{
 		// 添加测试数据（可选）
 		testLicenses := []models.License{
 			{
-				LicenseID:    "LIC-TEST-001",
-				ExpiryDate:   time.Now().AddDate(1, 0, 0),
-				HardwareHash: "test_hash_001",
-				IssuedAt:     time.Now().Unix(),
+				LicenseID:  "LIC-TEST-001",
+				ExpiryDate: time.Now().AddDate(1, 0, 0),
+				IssuedAt:   time.Now().Unix(),
 			},
 			{
-				LicenseID:    "LIC-TEST-002",
-				ExpiryDate:   time.Now().AddDate(2, 0, 0),
-				HardwareHash: "test_hash_002",
-				IssuedAt:     time.Now().Add(-24 * time.Hour).Unix(),
+				LicenseID:  "LIC-TEST-002",
+				ExpiryDate: time.Now().AddDate(2, 0, 0),
+				IssuedAt:   time.Now().Add(-24 * time.Hour).Unix(),
 			},
 		}
 		return tx.Create(&testLicenses).Error

@@ -3,7 +3,6 @@ package handlers
 import (
 	"LinuxOnM/internal/api/handlers/helper"
 	"LinuxOnM/internal/buserr"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -22,7 +21,7 @@ import (
 func (b *BaseApi) HandleLicenseUpload(c *gin.Context) {
 	// 获取上传文件
 	fileHeader, err := c.FormFile("file")
-	fmt.Println("获取上传文件")
+	// fmt.Println("获取上传文件")
 	if err != nil {
 		helper.HandleBusinessError(c, err)
 		return

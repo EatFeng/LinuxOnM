@@ -10,7 +10,8 @@ type LicenseRepo struct{}
 
 type ILicenseRepo interface {
 	Create(license *models.License) error
-	GetLatestValid(hardwareHash string) (*models.License, error)
+	// GetLatestValid(hardwareHash string) (*models.License, error)
+	GetLatestValid() (*models.License, error)
 }
 
 func NewLicenseRepo() ILicenseRepo {
@@ -23,9 +24,10 @@ func (r *LicenseRepo) Create(license *models.License) error {
 }
 
 // 获取最新的有效许可证
-func (r *LicenseRepo) GetLatestValid(hardwareHash string) (*models.License, error) {
+// func (r *LicenseRepo) GetLatestValid(hardwareHash string) (*models.License, error) {
+func (r *LicenseRepo) GetLatestValid() (*models.License, error) {
 	var license models.License
-	err := global.DB.Where("hardware_hash = ? AND expiry_date > ?", hardwareHash, time.Now().UTC()).Order("issued_at DESC").First(&license).Error
+	err := global.DB.Where("expiry_date > ?", time.Now().UTC()).Order("issued_at DESC").First(&license).Error
 	if err != nil {
 		return nil, err
 	}

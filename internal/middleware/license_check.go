@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"LinuxOnM/internal/repositories"
-	"LinuxOnM/internal/utils/encrypt"
 	"fmt"
 	"net/http"
 
@@ -13,19 +12,9 @@ func LicenseCheck() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		fmt.Println("license check")
 
-		// 1. 生成硬件哈希
-		hardwareHash, err := encrypt.GenerateHardwareHash()
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"code":    http.StatusInternalServerError,
-				"message": "无法生成硬件指纹",
-			})
-			return
-		}
-
 		// 2. 查询最新有效许可证
 		licenseRepo := repositories.NewLicenseRepo()
-		license, err := licenseRepo.GetLatestValid(hardwareHash)
+		license, err := licenseRepo.GetLatestValid()
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 				"code":    http.StatusForbidden,

@@ -14,3 +14,6 @@ log:
   log_name: LinuxOnM
   log_suffix: .log
   max_backup: 10
+
+license:
+  public_key_path: "../../license/public_key/publick_key.pem"

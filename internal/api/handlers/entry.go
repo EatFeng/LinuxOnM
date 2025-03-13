@@ -27,4 +27,5 @@ var (
 	dockerService          = services.NewIDockerService()
 	imageRepoService       = services.NewIImageRepoService()
 	composeTemplateService = services.NewIComposeTemplateService()
+	licenseService         = services.NewILicenseService()
 )

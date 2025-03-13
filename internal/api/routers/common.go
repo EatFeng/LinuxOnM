@@ -13,5 +13,6 @@ func commonGroups() []CommonRouter {
 		&CronjobRouter{},
 		&ProcessRouter{},
 		&ContainerRouter{},
+		&LicenseRouter{},
 	}
 }

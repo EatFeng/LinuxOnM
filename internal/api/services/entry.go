@@ -16,6 +16,7 @@ var (
 	websiteSSLRepo  = repositories.NewISSLRepo()
 	imageRepoRepo   = repositories.NewIImageRepoRepo()
 	composeRepo     = repositories.NewIComposeTemplateRepo()
+	licenseRepo     = repositories.NewLicenseRepo()
 
 	favoriteRepo = repositories.NewIFavoriteRepo()
 )

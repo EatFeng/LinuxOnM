@@ -6,10 +6,11 @@ import (
 	"LinuxOnM/internal/constant"
 	"LinuxOnM/internal/global"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 )
 
 func ErrorWithDetail(ctx *gin.Context, code int, msgKey string, err error) {
@@ -109,4 +110,16 @@ func SuccessWithMsg(ctx *gin.Context, msg string) {
 	}
 	ctx.JSON(http.StatusOK, res)
 	ctx.Abort()
+}
+
+// HandleBusinessError 处理业务错误
+func HandleBusinessError(ctx *gin.Context, err error) {
+	if err == nil {
+		return
+	}
+	if _, ok := err.(*buserr.BusinessError); ok {
+		ErrorWithDetail(ctx, constant.CodeErrBusiness, constant.ErrTypeLicenseUpload, err)
+	} else {
+		ErrorWithDetail(ctx, constant.CodeErrInternalServer, constant.ErrTypeInternalServer, err)
+	}
 }

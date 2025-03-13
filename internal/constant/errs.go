@@ -4,6 +4,7 @@ import "errors"
 
 const (
 	CodeErrInternalServer = 500
+	CodeErrBusiness       = 408
 	CodeGlobalLoading     = 407
 	CodeAuth              = 406
 	CodeErrNotFound       = 404
@@ -34,6 +35,7 @@ var (
 	ErrTypeInternalServer  = "ErrInternalServer"
 	ErrTypeInvalidParams   = "ErrInvalidParams"
 	ErrTypePasswordExpired = "ErrPasswordExpired"
+	ErrTypeLicenseUpload   = "ErrLicenseUpdate"
 	ErrCmdIllegal          = "ErrCmdIllegal"
 	ErrNameIsExist         = "ErrNameIsExist"
 	ErrTypeNotLogin        = "ErrNotLogin"
@@ -84,4 +86,12 @@ var (
 	ErrObjectInUsed = "ErrObjectInUsed"
 	ErrPortRules    = "ErrPortRules"
 	ErrPgImagePull  = "ErrPgImagePull"
+)
+
+// license
+var (
+	ErrLicenseInvalidType   = "LICENSE_INVALID_TYPE"
+	ErrLicenseDecryptFailed = "LICENSE_DECRYPT_FAILED"
+	ErrLicenseSignature     = "LICENSE_SIGNATURE_INVALID"
+	ErrLicenseExpired       = "LICENSE_EXPIRED"
 )

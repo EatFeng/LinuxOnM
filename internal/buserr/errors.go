@@ -2,6 +2,7 @@ package buserr
 
 import (
 	"fmt"
+
 	"github.com/pkg/errors"
 )
 

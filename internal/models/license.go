@@ -8,12 +8,16 @@ import (
 
 type License struct {
 	gorm.Model
-	LicenseID  string    `gorm:"uniqueIndex;size:50"`
-	ExpiryDate time.Time `gorm:"type:date"` // 明确指定为date类型
-	IssuedAt   int64     // 确保类型与Python的int一致
+	LicenseID      string    `gorm:"uniqueIndex;size:50"`
+	ExpiryDate     time.Time `gorm:"type:datetime"`
+	IssuedAt       int64
+	LastRemindedAt time.Time `gorm:"type:datetime"`
 }
 
-// 修改过期检查方法
 func (l *License) IsExpired() bool {
-	return time.Now().UTC().After(l.ExpiryDate.UTC()) // 统一时区处理
+	now := time.Now().UTC()
+	expiry := l.ExpiryDate.UTC()
+
+	// 精确到秒级判断
+	return now.After(expiry) || now.Equal(expiry)
 }

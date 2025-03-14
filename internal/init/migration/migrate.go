@@ -32,6 +32,7 @@ func Init() {
 		migrations.AddTableForward,
 		migrations.AddTableImageRepo,
 		migrations.AddTableLicense,
+		migrations.AddLastRemindedAtColumn,
 	})
 	if err := m.Migrate(); err != nil {
 		global.LOG.Error(err)

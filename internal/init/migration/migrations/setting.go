@@ -8,9 +8,10 @@ import (
 	"LinuxOnM/internal/models"
 	"LinuxOnM/internal/utils/common"
 	"LinuxOnM/internal/utils/encrypt"
+	"time"
+
 	"github.com/go-gormigrate/gormigrate/v2"
 	"gorm.io/gorm"
-	"time"
 )
 
 var AddTableSetting = &gormigrate.Migration{
@@ -254,6 +255,29 @@ var AddSSLSetting = &gormigrate.Migration{
 			return err
 		}
 		if err := tx.Create(&models.Setting{Key: "SSLID", Value: ""}).Error; err != nil {
+			return err
+		}
+		return nil
+	},
+}
+
+var AddAlertSetting = &gormigrate.Migration{
+	ID: "20250317-add-Alert-setting",
+	Migrate: func(tx *gorm.DB) error {
+		if err := tx.Create(&models.Setting{Key: "CPUThreshold", Value: "50"}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&models.Setting{Key: "MemoryThreshold", Value: "50"}).Error; err != nil {
+			return err
+		}
+		return nil
+	},
+}
+
+var AddNotificationSetting = &gormigrate.Migration{
+	ID: "20250318-add-notification-setting",
+	Migrate: func(tx *gorm.DB) error {
+		if err := tx.Create(&models.Setting{Key: "NotificationURL", Value: "http://192.168.4.82:5000/alert"}).Error; err != nil {
 			return err
 		}
 		return nil

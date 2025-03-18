@@ -33,6 +33,8 @@ func Init() {
 		migrations.AddTableImageRepo,
 		migrations.AddTableLicense,
 		migrations.AddLastRemindedAtColumn,
+		migrations.AddAlertSetting,
+		migrations.AddNotificationSetting,
 	})
 	if err := m.Migrate(); err != nil {
 		global.LOG.Error(err)

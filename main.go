@@ -30,11 +30,12 @@ import (
 	"LinuxOnM/internal/init/viper"
 	"crypto/tls"
 	"encoding/gob"
-	"github.com/gin-gonic/gin"
 	"net"
 	"net/http"
 	"os"
 	"path"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {

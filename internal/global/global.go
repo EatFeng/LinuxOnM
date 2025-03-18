@@ -4,6 +4,8 @@ import (
 	"LinuxOnM/internal/configs"
 	"LinuxOnM/internal/init/cache/badger_db"
 	"LinuxOnM/internal/init/session/psession"
+	"os"
+
 	"github.com/dgraph-io/badger/v4"
 	"github.com/go-playground/validator/v10"
 	"github.com/robfig/cron/v3"
@@ -27,3 +29,13 @@ var (
 	Cron          *cron.Cron
 	MonitorCronID cron.EntryID
 )
+
+func InitLogger() {
+	LOG = logrus.New()
+	LOG.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp: true,
+	})
+	if level, err := logrus.ParseLevel(os.Getenv("LOG_LEVEL")); err == nil {
+		LOG.SetLevel(level)
+	}
+}

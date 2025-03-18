@@ -3,3 +3,8 @@
 *.iml
 *.ipr
 *.iws
+
+# Ignore specific directories and files
+myapp_LinuxOnM
+go_build_LinuxOnM
+go_build_LinuxOnM_cmd

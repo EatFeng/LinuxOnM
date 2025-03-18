@@ -52,6 +52,11 @@ type SettingInfo struct {
 	ProxyUser       string `json:"proxyUser"`
 	ProxyPasswd     string `json:"proxyPasswd"`
 	ProxyPasswdKeep string `json:"proxyPasswdKeep"`
+
+	CPUThreshold    string `json:"cpuThreshold"`
+	MemoryThreshold string `json:"memoryThreshold"`
+
+	NotificationURL string `json:"notificationURL"`
 }
 
 type SettingUpdate struct {

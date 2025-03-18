@@ -5,34 +5,50 @@ import (
 	"LinuxOnM/internal/models"
 	"context"
 	"fmt"
+	"strconv"
+	"sync"
+	"time"
+
 	"github.com/robfig/cron/v3"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/load"
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/shirou/gopsutil/v3/net"
-	"strconv"
-	"time"
 )
 
 type MonitorService struct {
-	DiskIO chan ([]disk.IOCountersStat)
-	NetIO  chan ([]net.IOCountersStat)
+	DiskIO          chan ([]disk.IOCountersStat)
+	NetIO           chan ([]net.IOCountersStat)
+	AlertStates     map[string]*AlertState
+	ThresholdCache  map[string]float64
+	IntervalMinutes int
+	mu              sync.Mutex
+	cacheMu         sync.RWMutex
+	lastUpdated     time.Time
+}
+
+type AlertState struct {
+	Count              int // 连续超过阈值次数
+	LastTriggeredCount int // 最近一次触发报警时的计数
 }
 
 var monitorCancel context.CancelFunc
 
 type IMonitorService interface {
 	Run()
-
+	GetInterval() int
+	SetInterval(minutes int)
 	saveIODataToDB(ctx context.Context, interval float64)
 	saveNetDataToDB(ctx context.Context, interval float64)
 }
 
 func NewIMonitorService() IMonitorService {
 	return &MonitorService{
-		DiskIO: make(chan []disk.IOCountersStat, 2),
-		NetIO:  make(chan []net.IOCountersStat, 2),
+		DiskIO:         make(chan []disk.IOCountersStat, 2),
+		NetIO:          make(chan []net.IOCountersStat, 2),
+		AlertStates:    make(map[string]*AlertState),
+		ThresholdCache: make(map[string]float64),
 	}
 }
 
@@ -52,6 +68,8 @@ func (m *MonitorService) Run() {
 
 	memoryInfo, _ := mem.VirtualMemory()
 	itemModel.Memory = memoryInfo.UsedPercent
+
+	m.checkThresholds(itemModel)
 
 	if err := settingRepo.CreateMonitorBase(itemModel); err != nil {
 		global.LOG.Errorf("Insert basic monitoring data failed, err: %v", err)
@@ -198,6 +216,7 @@ func StartMonitor(removeBefore bool, interval string) error {
 	}
 
 	service := NewIMonitorService()
+	service.SetInterval(intervalItem)
 	ctx, cancel := context.WithCancel(context.Background())
 	monitorCancel = cancel
 	monitorID, err := global.Cron.AddJob(fmt.Sprintf("@every %sm", interval), service)
@@ -212,4 +231,80 @@ func StartMonitor(removeBefore bool, interval string) error {
 
 	global.MonitorCronID = monitorID
 	return nil
+}
+
+func (m *MonitorService) checkThresholds(data models.MonitorBase) {
+	m.refreshThresholds()
+
+	m.checkSingleThreshold("CPU", data.Cpu)
+
+	m.checkSingleThreshold("Memory", data.Memory)
+}
+
+func (m *MonitorService) checkSingleThreshold(metric string, currentValue float64) {
+	m.cacheMu.RLock()
+	threshold, exists := m.ThresholdCache[metric+"Threshold"]
+	m.cacheMu.RUnlock()
+
+	if !exists {
+		return
+	}
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	state, exists := m.AlertStates[metric]
+	if !exists {
+		state = &AlertState{Count: 0, LastTriggeredCount: 0}
+		m.AlertStates[metric] = state
+	}
+
+	if currentValue > threshold {
+		state.Count++
+		if state.Count-state.LastTriggeredCount >= 3 {
+			duration := state.Count * m.GetInterval() * 60
+			m.triggerAlert(metric, currentValue, duration)
+			state.LastTriggeredCount = state.Count
+		}
+	} else {
+		state.Count = 0
+		state.LastTriggeredCount = 0
+	}
+}
+
+func (m *MonitorService) refreshThresholds() {
+	m.cacheMu.Lock()
+	defer m.cacheMu.Unlock()
+
+	if time.Since(m.lastUpdated) < 30*time.Second {
+		return
+	}
+
+	keys := []string{"CPUThreshold", "MemoryThreshold"}
+
+	for _, key := range keys {
+		setting, err := settingRepo.Get(settingRepo.WithByKey(key))
+		if err == nil {
+			if value, err := strconv.ParseFloat(setting.Value, 64); err == nil {
+				m.ThresholdCache[key] = value
+			}
+		}
+	}
+	m.lastUpdated = time.Now()
+}
+
+func (m *MonitorService) triggerAlert(metric string, value float64, duration int) {
+	msg := fmt.Sprintf("%s使用率为%.2f%%，超过阈值达%d秒", metric, value, duration)
+	global.LOG.Info(msg)
+
+	notificationService := NewNotificationService()
+	notificationService.SendAlert(metric, value, duration)
+}
+
+func (m *MonitorService) GetInterval() int {
+	return m.IntervalMinutes
+}
+
+func (m *MonitorService) SetInterval(minutes int) {
+	m.IntervalMinutes = minutes
 }

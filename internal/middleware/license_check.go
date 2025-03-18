@@ -21,7 +21,7 @@ const (
 
 func LicenseCheck() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		fmt.Println("license check")
+		// fmt.Println("license check")
 
 		// 1. 查询最新有效许可证
 		licenseRepo := repositories.NewLicenseRepo()

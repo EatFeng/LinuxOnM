@@ -35,6 +35,7 @@ func Init() {
 		migrations.AddLastRemindedAtColumn,
 		migrations.AddAlertSetting,
 		migrations.AddNotificationSetting,
+		migrations.AddTableStatus,
 	})
 	if err := m.Migrate(); err != nil {
 		global.LOG.Error(err)

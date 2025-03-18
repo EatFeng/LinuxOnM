@@ -283,3 +283,17 @@ var AddNotificationSetting = &gormigrate.Migration{
 		return nil
 	},
 }
+
+var AddTableStatus = &gormigrate.Migration{
+	ID: "20240318_add_table_status", // Table status_configs has been deleted
+	Migrate: func(tx *gorm.DB) error {
+		if err := tx.AutoMigrate(&models.Setting{}); err != nil {
+			return err
+		}
+		if err := tx.Create(&models.Setting{Key: "metrics_config", Value: "{'cpu':true,'mem':true,'disk':false,'net':false,'docker':true}"}).Error; err != nil {
+			return err
+		}
+
+		return nil
+	},
+}
